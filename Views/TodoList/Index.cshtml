@@ -1,0 +1,120 @@
+﻿@model IEnumerable<TaskMonitoringApp.Models.ViewModel.DashboardViewModel>
+
+@{
+    ViewData["Title"] = "Todo Applications";
+}
+
+<!-- Add a section for DataTables CSS if this page uses DataTables -->
+@section Styles {
+    <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+}
+
+<div class="container mx-auto p-8">
+
+    <!-- Active Goal Section -->
+    <section class="border-l-4 mb-8 rounded-lg border-indigo-600 bg-white p-6 shadow-md">
+        <!-- Goal Heading with Actions -->
+        @* <div class="mb-6 flex flex-wrap items-center justify-between">
+        <h1 class="font-semibold text-gray-800 sm:text-xl">Goal Name: Active Goal</h1>
+        <div class="border-t-2 mt-0 flex flex-wrap justify-center space-x-2 pt-1 sm:space-x-4 lg:border-t-0">
+        <button id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+        <i class="fas fa-plus"></i> Add New Goal
+        </button>
+        <button class="my-1 rounded-md bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600">
+        <i class="fas fa-edit"></i> Edit Goal
+        </button>
+        <button class="my-1 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+        <i class="fas fa-trash"></i> Delete Goal
+        </button>
+        <button class="my-1 rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-600">
+        <i class="fas fa-check"></i> Mark as Complete
+        </button>
+        </div>
+        </div> *@
+
+        <!-- Running Tasks Section -->
+        <div class="mb-8">
+            <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
+                <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Active Goals</h2>
+                <button id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+                    <i class="fas fa-plus"></i> Add New Goal
+                </button>
+            </div>
+
+            <!-- Running Task List (Table) -->
+            <div class="overflow-x-auto">
+                <table id="viewGoalTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                    <thead>
+                        <tr>
+                            <th class="p-2 text-left text-gray-600">Id</th>
+                            <th class="p-2 text-left text-gray-600">Goal Name</th>
+                            <th class="p-2 text-left text-gray-600">Due Date</th>
+                            <th class="p-2 text-left text-gray-600">Status</th>
+                            <th class="p-2 text-left text-gray-600">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <!-- Completed Tasks Section -->
+        <div>
+            <h2 class="mb-4 text-xl font-semibold text-gray-700">Completed Tasks</h2>
+
+            <!-- Completed Task List (Table) -->
+            <table class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <thead>
+                    <tr>
+                        <th class="p-2 text-left text-gray-600">Task Name</th>
+                        <th class="p-2 text-left text-gray-600">Completion Date</th>
+                        <th class="p-2 text-left text-gray-600">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-gray-200">
+                        <td class="p-2">Task 3</td>
+                        <td class="p-2">2024-12-01</td>
+                        <td class="p-2">
+                            <button class="my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            <button class="my-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                                <i class="fas fa-sync"></i> Move to Running Task
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="border-b border-gray-200">
+                        <td class="p-2">Task 4</td>
+                        <td class="p-2">2024-12-05</td>
+                        <td class="p-2">
+                            <button class="my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            <button class="my-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                                <i class="fas fa-sync"></i> Move to Running Task
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    @await Html.PartialAsync("AddUpdateGoals")
+
+    @section Scripts
+    {
+        @* DataTable *@
+        <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+        @* sweetalert *@
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        @* Client side Script *@
+        <script src="~/js/sweetAlertScript.js"></script>
+        <script src="~/js/utils.js"></script>
+        <script src="~/js/goalScript.js"></script>
+    }
+</div>
+
+

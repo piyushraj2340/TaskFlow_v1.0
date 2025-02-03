@@ -1,0 +1,318 @@
+﻿@model TaskMonitoringApp.Models.ViewModel.GoalViewModel
+
+
+@section Styles {
+    <style>
+        /* Ensures charts take full height of the parent container */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+}
+@*
+<div class="mx-auto max-w-7xl px-6 py-12">
+    <!-- Action Buttons -->
+    <div class="mb-6 flex justify-end space-x-4">
+        <button class="rounded-lg bg-blue-500 px-6 py-2 text-white transition duration-300 hover:bg-blue-600">
+            <i class="fas fa-edit mr-2"></i>Edit Goal
+        </button>
+        <button class="rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
+            <i class="fas fa-trash mr-2"></i>Delete Goal
+        </button>
+        <button class="rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
+            <i class="fas fa-comment mr-2"></i>Add Notes
+        </button>
+        <button class="rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
+            <i class="fas fa-check mr-2"></i>Mark as Complete
+        </button>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid-cols-1 mb-12 grid gap-8 md:grid-cols-2">
+        <!-- Left Chart - Goal Growth Ratio -->
+        <div class="h-[300px] rounded-lg bg-white p-6 shadow-lg md:h-[400px]">
+            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Goal Growth Ratio</h2>
+            <div class="chart-container">
+                <canvas id="taskGrowthChart" class="h-full w-full"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Chart - Goal Contribution Pie Chart -->
+        <div class="h-[300px] rounded-lg bg-white p-6 shadow-lg md:h-[400px]">
+            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Contributing to the Goal</h2>
+            <div class="chart-container">
+                <canvas id="goalPieChart" class="h-full w-full"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Details Section (Sample Goal Info) -->
+    <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
+        <h2 class="mb-4 text-xl font-semibold text-gray-800">Goal Information</h2>
+        <div>
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-medium">Goal Name:</h3>
+                <span class="text-gray-600">@Model.Name</span>
+            </div>
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-medium">Status:</h3>
+                <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">@Model.GoalStatus</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Section -->
+    <div class="mb-12">
+        <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
+        <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <!-- Goal Card 1 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 1</h3>
+                <p class="mb-2 text-gray-600">Productivity: 75%</p>
+                <p class="mb-4 text-gray-600">Progress: 50% completed</p>
+                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
+            </div>
+            <!-- Goal Card 2 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 2</h3>
+                <p class="mb-2 text-gray-600">Productivity: 85%</p>
+                <p class="mb-4 text-gray-600">Progress: 30% completed</p>
+                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
+            </div>
+            <!-- Goal Card 3 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 3</h3>
+                <p class="mb-2 text-gray-600">Productivity: 40%</p>
+                <p class="mb-4 text-gray-600">Progress: 70% completed</p>
+                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
+            </div>
+            <!-- Goal Card 4 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 4</h3>
+                <p class="mb-2 text-gray-600">Productivity: 60%</p>
+                <p class="mb-4 text-gray-600">Progress: 90% completed</p>
+                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal History Section -->
+    <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
+        <h2 class="mb-4 text-xl font-semibold text-gray-800">Goal History</h2>
+        <table class="min-w-full table-auto">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Date & Time</th>
+                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
+                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Repeat Type</th>
+                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Productivity</th>
+                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Completion Ratio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="px-4 py-2 text-sm text-gray-600">Dec 10, 2024</td>
+                    <td class="px-4 py-2 text-sm text-gray-600">
+                        <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Running</span>
+                    </td>
+                    <td class="px-4 py-2 text-sm text-gray-600">Daily</td>
+                    <td class="px-4 py-2 text-sm text-gray-600">80%</td>
+                    <td class="px-4 py-2 text-sm text-gray-600">65%</td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-2 text-sm text-gray-600">Dec 9, 2024</td>
+                    <td class="px-4 py-2 text-sm text-gray-600">
+                        <span class="inline-flex items-center rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Completed</span>
+                    </td>
+                    <td class="px-4 py-2 text-sm text-gray-600">Weekly</td>
+                    <td class="px-4 py-2 text-sm text-gray-600">90%</td>
+                    <td class="px-4 py-2 text-sm text-gray-600">100%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+ *@
+
+
+<div class="mx-auto max-w-7xl px-2 py-12 md:px-6">
+    <!-- Centered Action Buttons -->
+    <div class="mb-6 flex flex-wrap justify-center gap-4">
+        <button data-id="@Model.Id" class="editGoalBtn flex items-center rounded-lg bg-blue-500 px-6 py-2 text-white transition duration-300 hover:bg-blue-600">
+            <i class="fas fa-edit mr-2"></i>Edit Task
+        </button>
+        <button data-id="@Model.Id" class="deleteGoalBtn flex items-center rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
+            <i class="fas fa-trash mr-2"></i>Delete Task
+        </button>
+        <button class="flex items-center rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
+            <i class="fas fa-comment mr-2"></i>Add Notes
+        </button>
+        <button data-id="@Model.Id" class="markAsComplete flex items-center rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
+            <i class="fas fa-check mr-2"></i>Mark as Complete
+        </button>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="mb-12 grid gap-8 md:grid-cols-3">
+        <!-- Left Chart: Task Growth Ratio (70%) -->
+        <div class="col-span-1 h-[400px] rounded-lg bg-white p-6 shadow-lg md:col-span-2">
+            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Task Growth Ratio</h2>
+            <div class="h-[300px]">
+                <canvas id="taskGrowthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Chart: Donut Chart (30%) -->
+        <div class="h-[400px] rounded-lg bg-white p-6 shadow-lg">
+            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Contributing to the Goal</h2>
+            <div class="h-[300px]">
+                <canvas id="goalPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Task Details Section -->
+    <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
+
+        <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
+            <h2 class="mb-3 text-2xl font-semibold text-gray-800">Task Information</h2>
+        </div>
+        <div class="space-y-4">
+            <!-- Task Name -->
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Task Name</div>
+                <div class="w-full text-left text-lg font-semibold text-gray-800 sm:w-3/4">@Model.Name</div>
+            </div>
+            <!-- Description -->
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Description</div>
+                <div class="w-full text-left text-gray-600 sm:w-3/4">@(string.IsNullOrWhiteSpace(Model.Description) ? "No Descriptions found" : Model.Description)</div>
+            </div>
+            <!-- Priority -->
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Priority</div>
+                <div class="w-full text-left sm:w-3/4">
+                    <span class="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
+                        @Model.Priority 
+                    </span>
+                </div>
+            </div>
+            <!-- Status -->
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Status</div>
+                <div class="w-full text-left sm:w-3/4">
+                    <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
+                        @Model.GoalStatus
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Section -->
+    <div class="mb-12">
+        <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
+        <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <!-- Goal Card 1 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 1</h3>
+                <p class="mb-2 text-gray-600">Productivity: 75%</p>
+                <p class="mb-4 text-gray-600">Progress: 50% completed</p>
+                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
+            </div>
+            <!-- Goal Card 2 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 2</h3>
+                <p class="mb-2 text-gray-600">Productivity: 85%</p>
+                <p class="mb-4 text-gray-600">Progress: 30% completed</p>
+                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
+            </div>
+            <!-- Goal Card 3 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 3</h3>
+                <p class="mb-2 text-gray-600">Productivity: 40%</p>
+                <p class="mb-4 text-gray-600">Progress: 70% completed</p>
+                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
+            </div>
+            <!-- Goal Card 4 -->
+            <div class="rounded-lg bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 4</h3>
+                <p class="mb-2 text-gray-600">Productivity: 60%</p>
+                <p class="mb-4 text-gray-600">Progress: 90% completed</p>
+                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("AddUpdateGoals")
+@section Scripts
+{
+    @* DataTable *@
+    <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+    @* sweetalert *@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @* Client side Script *@
+    <script src="~/js/sweetAlertScript.js"></script>
+    <script src="~/js/utils.js"></script>
+    <script src="~/js/goalScript.js"></script>
+
+    <script>
+        // Goal Growth Ratio Line Chart
+        var ctx1 = document.getElementById('taskGrowthChart').getContext('2d');
+        var taskGrowthChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Goal Growth',
+                    data: [12, 19, 3, 5, 2, 3, 9],
+                    borderColor: '#4CAF50',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Goal Contribution Pie Chart
+        var ctx2 = document.getElementById('goalPieChart').getContext('2d');
+        var goalPieChart = new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: ['Goal 1', 'Goal 2', 'Goal 3'],
+                datasets: [{
+                    data: [40, 30, 30],
+                    backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Optional: Resize charts on window resize
+        window.addEventListener("resize", function () {
+            taskGrowthChart.resize();
+            goalPieChart.resize();
+        });
+    </script>
+
+
+}

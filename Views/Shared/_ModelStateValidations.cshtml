@@ -1,0 +1,35 @@
+﻿@model IList<string>
+
+<!-- Validation Summary -->
+<div class="mb-4">
+    @if (Model.Any())
+    {
+        <div id="error-alert" class="border-l-4 mb-8 flex items-start justify-between rounded-md border-red-600 bg-gray-100 p-4 text-red-600 shadow-md shadow-red-300">
+            <!-- Error Icon (Font Awesome) -->
+            <div class="mr-2 mt-1 flex items-center">
+                <i class="fas fa-exclamation-circle text-xl"></i>
+            </div>
+
+            <!-- Error Message List -->
+            <div class="flex-grow space-y-2">
+                <!-- Heading for List of Errors -->
+                <h4 class="mb-2 text-lg font-semibold text-red-600">List of Errors:</h4>
+
+                <!-- Error Messages -->
+                <ul class="list-disc pl-6">
+                    @foreach (var errorMessage in Model)
+                    {
+                        <li class="text-sm">@errorMessage</li>
+                    }
+                </ul>
+            </div>
+
+            <!-- Close Button (Font Awesome X Icon) -->
+            <button id="close-btn" class="ml-4 text-red-500 hover:text-red-700 focus:outline-none" onclick="document.getElementById('error-alert').classList.add('hidden');">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+    }
+</div>
+

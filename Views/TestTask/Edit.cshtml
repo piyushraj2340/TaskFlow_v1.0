@@ -1,0 +1,98 @@
+﻿@model TaskMonitoringApp.Models.Entities.Tasks
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1 class="text-3xl font-semibold">Edit</h1>
+
+<h4 class="text-xl font-semibold">Tasks</h4>
+<hr class="my-4" />
+<div class="flex justify-center">
+    <div class="w-full max-w-md">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-red-500"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-4">
+                <label asp-for="Name" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="Name" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <span asp-validation-for="Name" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Description" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="Description" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <span asp-validation-for="Description" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Repeat" class="block text-sm font-medium text-gray-700"></label>
+                <select asp-for="Repeat" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <!-- Add options here -->
+                </select>
+                <span asp-validation-for="Repeat" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="RepeatWeekList" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="RepeatWeekList" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <span asp-validation-for="RepeatWeekList" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Priority" class="block text-sm font-medium text-gray-700"></label>
+                <select asp-for="Priority" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <!-- Add options here -->
+                </select>
+                <span asp-validation-for="Priority" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="EndDate" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="EndDate" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <span asp-validation-for="EndDate" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="CreatedOn" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="CreatedOn" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <span asp-validation-for="CreatedOn" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="UpdatedOn" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="UpdatedOn" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <span asp-validation-for="UpdatedOn" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="DeletedOn" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="DeletedOn" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <span asp-validation-for="DeletedOn" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="TaskStatus" class="block text-sm font-medium text-gray-700"></label>
+                <select asp-for="TaskStatus" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <!-- Add options here -->
+                </select>
+                <span asp-validation-for="TaskStatus" class="text-sm text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <input type="submit" value="Save" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Index" class="text-indigo-600 hover:text-indigo-800">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

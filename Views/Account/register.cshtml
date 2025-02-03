@@ -1,0 +1,90 @@
+﻿@model TaskMonitoringApp.Models.ViewModel.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+    var errorMessages = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+}
+
+
+<div class="my-4 flex items-center justify-center bg-gray-100">
+    <div class="w-full max-w-lg rounded-lg bg-white p-8 shadow-lg">
+        <h2 class="mb-6 text-center text-3xl font-bold text-gray-800">Create a New Account</h2>
+        <p class="mb-8 text-center text-gray-600">Join us to start monitoring tasks efficiently</p>
+
+        @await Html.PartialAsync("_ModelStateValidations", errorMessages)
+
+        <!-- Registration Form -->
+        <form asp-action="Register" method="post" class="space-y-6">
+            <!-- First Name -->
+            <div>
+                <label asp-for="FirstName" class="block text-sm font-medium text-gray-600">
+                    @Html.DisplayNameFor(m => m.FirstName) <span class="text-red-500">*</span>
+                </label>
+                <input asp-for="FirstName" class="mt-1 w-full rounded-md border border-gray-300 p-2 text-gray-800 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" />
+                <span asp-validation-for="FirstName" class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- Last Name -->
+            <div>
+                <label asp-for="LastName" class="block text-sm font-medium text-gray-600">
+                    @Html.DisplayNameFor(m => m.LastName)
+                </label>
+                <input asp-for="LastName" class="mt-1 w-full rounded-md border border-gray-300 p-2 text-gray-800 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" />
+                <span asp-validation-for="LastName" class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- User Name -->
+            <div>
+                <label asp-for="UserName" class="block text-sm font-medium text-gray-600">
+                    @Html.DisplayNameFor(m => m.UserName)
+                </label>
+                <input asp-for="UserName" class="mt-1 w-full rounded-md border border-gray-300 p-2 text-gray-800 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" />
+                <span asp-validation-for="UserName" class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label asp-for="Email" class="block text-sm font-medium text-gray-600">
+                    @Html.DisplayNameFor(m => m.Email) <span class="text-red-500">*</span>
+                </label>
+                <input asp-for="Email" class="mt-1 w-full rounded-md border border-gray-300 p-2 text-gray-800 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" />
+                <span asp-validation-for="Email" class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label asp-for="Password" class="block text-sm font-medium text-gray-600">
+                    @Html.DisplayNameFor(m => m.Password) <span class="text-red-500">*</span>
+                </label>
+                <input asp-for="Password" type="password" class="mt-1 w-full rounded-md border border-gray-300 p-2 text-gray-800 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" />
+                <span asp-validation-for="Password" class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+                <label asp-for="ConfirmPassword" class="block text-sm font-medium text-gray-600">
+                    @Html.DisplayNameFor(m => m.ConfirmPassword) <span class="text-red-500">*</span>
+                </label>
+                <input asp-for="ConfirmPassword" type="password" class="mt-1 w-full rounded-md border border-gray-300 p-2 text-gray-800 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" />
+                <span asp-validation-for="ConfirmPassword" class="text-sm text-red-500"></span>
+            </div>
+
+            <!-- Submit Button -->
+            <div>
+                <button type="submit" class="w-full rounded-md bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    Register
+                </button>
+            </div>
+        </form>
+
+        <!-- Already Have an Account -->
+        <p class="mt-6 text-center text-sm text-gray-600">
+            Already have an account?
+            <a asp-controller="Account" asp-action="Login" class="text-blue-500 hover:underline">Sign in here</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
