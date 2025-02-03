@@ -140,6 +140,8 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 # implement the GetAllGoalsWithStatusByTaskId in the task details page
 
 
-# in the home index page productvity calculation not working in the task
+# in the home index page productivity calculation not working in the task
 
 # we have encounter an error tasks model is not maped with the table in the db find the issue in this model....
+
+# all the mapper and logger dependency will be in the service layers.... 
