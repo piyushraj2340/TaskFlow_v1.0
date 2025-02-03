@@ -1,0 +1,77 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace TaskMonitoringApp.Models.Entities
+{
+
+    public enum RepeatType
+    {
+        RunOnce = 0,
+        Daily,
+        Weekly
+    }
+
+    public enum Priority
+    {
+        Low = 0, 
+        Medium,
+        High
+    }
+
+    public enum Weekly
+    {
+        Monday = 0,
+        Tuesday,
+        Wednesday,
+        Thursday,
+        Friday,
+        Saturday,
+        Sunday
+    }
+
+
+    public class Tasks
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [Length(minimumLength: 3, maximumLength: 50, ErrorMessage = "Length of Name must be less than 50 and 3")]
+        public string? Name { get; set; }
+
+        [Required]
+        public string? Description { get; set; }
+
+        [Required]
+        public RepeatType Repeat { get; set; } = RepeatType.RunOnce;
+
+        public List<Weekly> RepeatWeekList { get; set; }
+
+        [Required]
+        public Priority Priority { get; set; } = Priority.High;
+
+        [Required]
+        [Display(Name = "End Date")]
+        public DateTime? EndDate { get; set; }
+
+        public DateTime? CreatedOn { get; set; } = DateTime.Now;
+
+        public DateTime? UpdatedOn { get; set; } = DateTime.Now;
+
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedOn { get; set; }
+
+        public DateTime? EndedOn { get; set; }
+
+        public DateTime? CompletedOn { get; set; }
+
+        public Status TaskStatus { get; set; } = Status.NotStarted;
+
+        public string UserId { get; set; }
+
+        public Users? User { get; set; }
+
+        public ICollection<GoalTask>? GoalTasks { get; set; }
+    }
+}

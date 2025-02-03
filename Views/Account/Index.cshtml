@@ -1,0 +1,180 @@
+﻿@model TaskMonitoringApp.Models.Entities.Users
+
+
+<div class="container mx-auto px-4 py-12 lg:px-8">
+    <div class="mx-auto max-w-4xl rounded-lg bg-white shadow-lg">
+        <!-- Header Section -->
+        <div class="relative bg-blue-500 p-6">
+            <div class="relative mx-auto h-32 w-32">
+                <!-- Avatar -->
+                <img src="~/images/profile-icon.png" alt="User Avatar" id="profileAvatar"
+                     class="border-4 h-full w-full rounded-full border-white object-cover">
+                <!-- Edit Icon -->
+                <button onclick="openModal()"
+                        class="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-blue-600 p-2 text-white shadow-md hover:bg-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M15.232 5.232l3.536 3.536m-2.036-2.036a2.5 2.5 0 11-3.536-3.536l.707.707a2.5 2.5 0 012.829 2.829l-.707-.707zm0 0L10.5 10.5M8 16v4h4M19.292 6.293a1 1 0 00-1.414 1.414l.707.707m-3.536-3.536l-.707-.707m2.536 2.536L6.5 18.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Details -->
+        <div class="px-6 pb-8 pt-24 text-center">
+            <h2 class="text-2xl font-bold text-gray-800">@Model.FirstName @Model.LastName</h2>
+            <p class="mt-1 text-gray-600">@Model.Email</p>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="space-y-8 px-6 pb-8">
+            <!-- Personal Information -->
+            <div>
+                <h3 class="mb-4 text-lg font-semibold text-gray-800">Personal Information</h3>
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">First Name</label>
+                        <input type="text" value="@Model.FirstName" disabled
+                               class="mt-1 w-full rounded-md border border-gray-300 p-3 text-gray-800">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Last Name</label>
+                        <input type="text" value="@Model.LastName" disabled
+                               class="mt-1 w-full rounded-md border border-gray-300 p-3 text-gray-800">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-600">Email</label>
+                        <input type="email" value="@Model.Email" disabled
+                               class="mt-1 w-full rounded-md border border-gray-300 p-3 text-gray-800">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Change Section -->
+            <div class="border-t border-gray-200 py-6">
+                <h3 class="mb-6 text-lg font-semibold text-gray-800">Change Password</h3>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Current Password</label>
+                        <input type="password" name="CurrentPassword"
+                               class="mt-1 w-full rounded-md border border-gray-300 p-3 text-gray-800">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">New Password</label>
+                        <input type="password" name="NewPassword"
+                               class="mt-1 w-full rounded-md border border-gray-300 p-3 text-gray-800">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Confirm New Password</label>
+                        <input type="password" name="ConfirmNewPassword"
+                               class="mt-1 w-full rounded-md border border-gray-300 p-3 text-gray-800">
+                    </div>
+                    <button type="submit" class="mt-4 rounded bg-blue-600 px-6 py-2 text-sm font-medium text-white transition duration-200 hover:bg-blue-700">
+                        Change
+                        Password
+                    </button>
+                </div>
+            </div>
+
+            <!-- Two-Factor Authentication Section -->
+            <div class="border-t border-gray-200 py-6">
+                <h3 class="mb-6 text-lg font-semibold text-gray-800">Two-Factor Authentication</h3>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-700">Enable Two-Factor Authentication</span>
+                    <input type="checkbox" id="twoFactorAuthToggle" class="h-6 w-6 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                           onchange="handleTwoFactorToggle(this.checked)">
+                </div>
+            </div>
+
+            <!-- Delete Account Section -->
+            <div class="border-t border-gray-200 py-6">
+                <h3 class="mb-6 text-lg font-semibold text-red-600">Delete Account</h3>
+                <p class="mb-4 text-sm text-gray-600">Deleting your account will permanently remove all your data.</p>
+                <button type="submit" class="rounded bg-red-600 px-6 py-2 text-sm font-medium text-white transition duration-200 hover:bg-red-700">
+                    Delete
+                    Account
+                </button>
+            </div>
+
+            <!-- Feedback Form Section -->
+            <div class="border-t border-gray-200 py-6">
+                <h3 class="mb-6 text-lg font-semibold text-gray-800">Feedback Form</h3>
+                <textarea name="Feedback" class="w-full rounded-md border border-gray-300 p-3 text-gray-800" rows="4"
+                          placeholder="Share your feedback..."></textarea>
+                <button type="submit" class="mt-4 rounded bg-green-600 px-6 py-2 text-sm font-medium text-white transition duration-200 hover:bg-green-700">
+                    Submit
+                    Feedback
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="imageModal" class="fixed inset-0 hidden items-center justify-center bg-gray-800 bg-opacity-50">
+    <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+        <h3 class="mb-4 text-xl font-semibold text-gray-800">Update Profile Picture</h3>
+        <img id="modalImage" src="~/images/profile-icon.png" alt="Current Avatar"
+             class="mx-auto mb-4 h-32 w-32 rounded-full object-cover">
+        <div class="space-y-4">
+            <button onclick="handleChangeImage()"
+                    class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                Change Image
+            </button>
+            <button onclick="handleRemoveImage()"
+                    class="w-full rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                Remove Image
+            </button>
+            <button onclick="closeModal()"
+                    class="w-full rounded-lg bg-gray-300 px-4 py-2 hover:bg-gray-400">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    const modal = document.getElementById('imageModal');
+
+    // Open Modal
+    function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    // Close Modal
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Handle Change Image
+    function handleChangeImage() {
+        Swal.fire({
+            icon: 'success',
+            title: 'Image Changed',
+            text: 'Your profile image has been updated successfully.',
+        });
+        closeModal();
+    }
+
+    // Handle Remove Image
+    function handleRemoveImage() {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Image Removed',
+            text: 'Your profile image has been removed.',
+        });
+        closeModal();
+    }
+
+    function handleTwoFactorToggle(enabled) {
+        Swal.fire({
+            icon: enabled ? 'success' : 'warning',
+            title: enabled ? 'Two-Factor Authentication Enabled' : 'Two-Factor Authentication Disabled',
+            text: enabled ? 'Your account is now more secure.' : 'Two-factor authentication has been disabled.',
+        });
+    }
+</script>

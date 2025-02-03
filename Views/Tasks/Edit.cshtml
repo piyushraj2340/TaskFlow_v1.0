@@ -1,0 +1,166 @@
+﻿@model TaskMonitoringApp.Models.ViewModel.TaskViewModel;
+
+@{
+    ViewData["Title"] = "Edit Task";
+}
+
+
+<div class="flex min-h-screen items-center justify-center bg-gray-100">
+    <div class="w-full rounded-lg bg-white p-8 shadow-lg sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2">
+        <!-- Heading -->
+        <h1 class="mb-6 text-center text-2xl font-semibold text-gray-700">Edit Task</h1>
+        <!-- Task Form -->
+        @await Html.PartialAsync("AddUpdateTasks", Model)
+    </div>
+</div>
+
+
+<!-- Main container -->
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Handle Repeat Dropdown Change
+            $('#Repeat').on('change', function () {
+                if ($(this).val() == 2) {
+                    $('#RepeatWeekList').removeClass('hidden');
+                } else {
+                    $('#RepeatWeekList').addClass('hidden');
+                }
+            });
+        });
+
+        $(document).ready(function () {
+            const goals = []; // Array to store goal objects from the server (id, name)
+            const selectedGoals = []; // Array to store selected goal objects (id, name)
+
+            // Function to render selected goals
+            function renderSelectedGoals() {
+                const container = $("#selectedGoalsContainer");
+                container.empty();
+
+                if (selectedGoals.length === 0) {
+                    container.append('<p class="text-gray-400" id="noGoalsMessage">No goals selected.</p>');
+                    return;
+                }
+
+                selectedGoals.forEach((goal) => {
+                    const badge = `
+                                <div class="flex items-center space-x-2 rounded-full bg-indigo-600 px-3 py-1 text-white">
+                                    <span>${goal.name}</span>
+                                    <button
+                                        class="rounded-full text-white hover:bg-indigo-800 focus:outline-none"
+                                        onclick="removeGoal(${goal.id})"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            `;
+                    container.append(badge);
+                });
+            }
+
+            // Function to render filtered goals
+            function renderFilteredGoals(filteredGoals) {
+                const list = $("#filteredGoalsList");
+                list.empty();
+
+                filteredGoals.forEach((goal) => {
+                    const item = `
+                                <li class="flex cursor-pointer items-center justify-between p-3 hover:bg-indigo-50"
+                                    onclick='addGoal(${goal.id})' data-id='${goal.id}' data-name='${goal.name}'>
+                                    <span>${goal.name}</span>
+                                </li>
+                            `;
+                    list.append(item);
+                });
+
+                if (filteredGoals.length > 0) {
+                    list.removeClass("hidden");
+                } else {
+                    list.addClass("hidden");
+                }
+            }
+
+            // Function to add a goal to the selectedGoals array
+            window.addGoal = function (goalId) {
+                const goal = goals.find((g) => g.id === goalId);
+
+                if (goal) {
+                    const index = selectedGoals.findIndex((g) => g.id === goal.id);
+
+                    if (index === -1) {
+                        selectedGoals.push(goal);
+
+                        // Update GoalIds field with selected goal IDs, separated by commas
+                        const goalIds = (selectedGoals.map((g) => g.id)).join(",");
+                        $("#GoalIds").val(goalIds);
+
+                        renderSelectedGoals();
+                        filterGoals($("#searchGoal").val());
+                    }
+                }
+            };
+
+            // Function to remove a goal from the selectedGoals array
+            window.removeGoal = function (id) {
+                const index = selectedGoals.findIndex((g) => g.id === id);
+
+                if (index !== -1) {
+                    selectedGoals.splice(index, 1);
+
+                    // Update GoalIds field with remaining goal IDs, separated by commas
+                    const goalIds = selectedGoals.map((g) => g.id).join(",");
+                    $("#GoalIds").val(goalIds);
+
+                    renderSelectedGoals();
+                }
+            };
+
+            // Debounced function to fetch and filter goals from the server
+            const debouncedFilter = debounce(async (query) => {
+                try {
+                    const res = await $.ajax({
+                        url: `/Goals/SearchGoalNameByName?searchQuery=${query}`,
+                        method: "POST",
+                        contentType: "application/json",
+                    });
+
+                    if (res && res.status && Array.isArray(res.data)) {
+                        goals.length = 0; // Clear existing goals
+                        res.data.forEach((g) => goals.push({ id: g.id, name: g.name }));
+                    }
+
+                    filterGoals(query);
+                } catch (error) {
+                    console.error("Error fetching goals:", error);
+                }
+            }, 300);
+
+            // Function to filter goals based on the search query
+            function filterGoals(query) {
+                const filtered = goals.filter(
+                    (goal) =>
+                        goal.name.toLowerCase().includes(query.toLowerCase()) &&
+                        !selectedGoals.some((g) => g.id === goal.id)
+                );
+
+                renderFilteredGoals(filtered);
+            }
+
+            // Input event listener for the search input
+            $("#searchGoal").on("input", function () {
+                const query = $(this).val();
+                debouncedFilter(query);
+            });
+
+            // Debounce utility function
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+        });
+    </script>
+}

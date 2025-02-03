@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Task Monitoring App</title>
+
+    <!-- Tailwind CSS CDN -->
+    <link rel="stylesheet" href="~/css/styles.css">
+
+    @* Page Css style  *@
+    <link rel="stylesheet" href="~/css/site.css">
+
+    <!-- Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <!-- Render styles dynamically from view -->
+    @RenderSection("Styles", required: false)
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal sm:hidden">
+    <!-- Navigation Bar -->
+    <nav class="flex items-center justify-between bg-indigo-600 p-4 text-white">
+        <div class="text-xl font-bold">
+            <a href="/">TaskMonitorApp</a>
+        </div>
+
+        <!-- Mobile Menu Button (Hamburger) -->
+        <div class="block lg:hidden">
+            <button id="menuButton" class="text-white focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Desktop Menu -->
+        <div class="hidden space-x-4 lg:flex">
+            
+            @if(User.Identity.IsAuthenticated)
+            {
+                <a href="@Url.ActionLink("Index", "Todo")" class="rounded px-4 py-2 hover:bg-indigo-500">Todo</a>
+                <a href="@Url.ActionLink("Index", "Productivity")" class="rounded px-4 py-2 hover:bg-indigo-500">Productivity</a>
+                <a href="@Url.ActionLink("Index", "Tasks")" class="rounded px-4 py-2 hover:bg-indigo-500">Tasks</a>
+                <a href="@Url.ActionLink("Index", "Goals")" class="rounded px-4 py-2 hover:bg-indigo-500">Goals</a>
+                <!-- Profile Dropdown -->
+                <div class="group relative">
+                    <!-- Add 'group' class here -->
+                    <button class="flex items-center space-x-2 rounded px-4 py-2 hover:bg-indigo-500">
+                        <span>@User.Identity.Name</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="z-10 group-hover:block absolute right-0 mt-0 hidden w-48 overflow-hidden rounded-md bg-white shadow-lg">
+                        <a href="@Url.ActionLink("Index", "AdminDashboard")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Admin Dashboard</a>
+                        <a href="@Url.ActionLink("Index", "Profile")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Profile</a>
+                        <a href="@Url.ActionLink("Logout", "Account")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Logout</a>
+                    </div>
+                </div>
+            } else
+            {
+                <a href="@Url.ActionLink("Index", "Home")" class="rounded px-4 py-2 hover:bg-indigo-500">Home</a>
+                <a href="@Url.ActionLink("AboutUs", "Home")" class="rounded px-4 py-2 hover:bg-indigo-500">About Us</a>
+                <a href="@Url.ActionLink("ContactUs", "Home")" class="rounded px-4 py-2 hover:bg-indigo-500">Contact Us</a>
+                <a href="@Url.ActionLink("Login", "Account")" class="rounded px-4 py-2 hover:bg-indigo-500">Login</a>
+            }
+            
+
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="absolute right-0 top-12 hidden w-full flex-col space-y-4 rounded-b-md bg-indigo-600 p-4 lg:hidden">
+            
+            @if(User.Identity.IsAuthenticated)
+            {
+                <a href="@Url.ActionLink("Index", "Todo")" class="block px-4 py-2 text-lg text-white">Todo</a>
+                <a href="@Url.ActionLink("Index", "Productivity")" class="block px-4 py-2 text-lg text-white">Productivity</a>
+                <a href="@Url.ActionLink("Index", "Tasks")" class="block px-4 py-2 text-lg text-white">Tasks</a>
+                <a href="@Url.ActionLink("Index", "Goals")" class="block px-4 py-2 text-lg text-white">Goals</a>
+
+                <!-- Profile Dropdown for Mobile -->
+                <div class="relative">
+                    <button onclick="toggleMobileMenu()"
+                            class="flex w-full items-center space-x-2 px-4 py-2 text-lg text-white hover:bg-indigo-500">
+                        <span>@User.Identity.Name</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="mobileDropdown" class="mt-2 hidden space-y-4 overflow-hidden rounded-md bg-indigo-700 p-4 text-white">
+                        <a href="@Url.ActionLink("Index", "AdminDashboard")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Admin Dashboard</a>
+                        <a href="@Url.ActionLink("Index", "Profile")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Profile</a>
+                        <a href="@Url.ActionLink("Logout", "Account")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Logout</a>
+                    </div>
+                </div>
+            } else
+            {
+                <a href="@Url.ActionLink("Index", "Home")" class="block px-4 py-2 text-lg text-white">Home</a>
+                <a href="@Url.ActionLink("AboutUs", "Home")" class="block px-4 py-2 text-lg text-white">About Us</a>
+                <a href="@Url.ActionLink("ContactUs", "Home")" class="block px-4 py-2 text-lg text-white">Contact Us</a>
+                <a href="@Url.ActionLink("Login", "Account")" class="block px-4 py-2 text-lg text-white">Login</a>
+            }
+            
+        </div>
+        <script>
+            function toggleMobileMenu() {
+                var menu = document.getElementById('mobileDropdown');
+                menu.classList.toggle('hidden');
+            }
+        </script>
+    </nav>
+
+    <div class="container mx-auto">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-600 py-6 text-white">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2024 TaskMonitorApp. All rights reserved.</p>
+            <div class="mt-2">
+                <a href="#" class="mx-2 text-white hover:text-gray-300">Privacy Policy</a>
+                <a href="#" class="mx-2 text-white hover:text-gray-300">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,81 @@
+using Microsoft.EntityFrameworkCore;
+using TaskMonitoringApp.Models.Business;
+using TaskMonitoringApp.Models.Data;
+using TaskMonitoringApp.Models.DataAccessLayer;
+using TaskMonitoringApp.Models.Repositories;
+using TaskMonitoringApp.Models.Services;
+using Microsoft.AspNetCore.Identity;
+using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Mappings;
+using TaskMonitoringApp.Middleware;
+
+var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddScoped<IGoalServices, GoalServices>();
+builder.Services.AddScoped<IGoalRepository, GoalRepository>();
+
+builder.Services.AddScoped<ITaskServices, TasksServices>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+
+builder.Services.AddScoped<ITodoServices, TodoServices>();
+builder.Services.AddScoped<ITodoRepository, TodoRepository>();
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache(); // Enable In-Memory Caching
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApplication")));
+
+builder.Services.AddIdentity<Users, IdentityRole>(options =>
+{
+    options.User.RequireUniqueEmail = true; // Ensure email is unique
+}).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // Cookie settings
+    options.Cookie.HttpOnly = true;
+    //options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
+});
+
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+
+var app = builder.Build();
+
+// Use custom exception handling middleware for Web API and MVC
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/api"),
+    appBuilder => appBuilder.UseMiddleware<ApiExceptionMiddleware>() // Web API Middleware
+);
+
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/api"),
+    appBuilder => appBuilder.UseMiddleware<MvcExceptionMiddleware>() // MVC Middleware
+);
+
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthentication(); // Enable authentication middleware
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllers();  // API routes
+
+app.Run();
