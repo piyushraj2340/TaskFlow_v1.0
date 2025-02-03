@@ -28,7 +28,7 @@ namespace TaskMonitoringApp.Models.Data
 
 
         // Adding the sp_entity_data
-        public DbSet<TodoSpWithTaskDTO> TodoSpWithTaskDTOs { get; set; }
+        
 
         public DbSet<InsertUpdateSpWithIdDTO> InsertUpdateSpWithIdDTO { get; set; }
 
@@ -37,6 +37,9 @@ namespace TaskMonitoringApp.Models.Data
 
         public DbSet<TaskDTO> TaskDTOs { get; set; }
         public DbSet<TaskNameDTO> TaskNameDTOs { get; set; }
+
+        public DbSet<TodoWithTask> TodoWithTask { get; set; }
+        public DbSet<TodoDTOWithTaskDTO> TodoWithTaskDTO { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -61,12 +64,13 @@ namespace TaskMonitoringApp.Models.Data
                 .WithMany(t => t.GoalTasks)
                 .HasForeignKey(gt => gt.TaskId);
 
-            modelBuilder.Entity<TodoSpWithTaskDTO>().ToView(null);
             modelBuilder.Entity<InsertUpdateSpWithIdDTO>().ToView(null);
             modelBuilder.Entity<GoalDTO>().ToView(null);
             modelBuilder.Entity<GoalNameDTO>().ToView(null);
             modelBuilder.Entity<TaskDTO>().ToView(null);
             modelBuilder.Entity<TaskNameDTO>().ToView(null);
+            modelBuilder.Entity<TodoWithTask>().ToView(null);
+            modelBuilder.Entity<TodoDTOWithTaskDTO>().ToView(null);
         }
 
         public override int SaveChanges()
