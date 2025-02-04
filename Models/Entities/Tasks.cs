@@ -32,27 +32,19 @@ namespace TaskMonitoringApp.Models.Entities
 
     public class Tasks
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required]
-        [Length(minimumLength: 3, maximumLength: 50, ErrorMessage = "Length of Name must be less than 50 and 3")]
         public string? Name { get; set; }
 
-        [Required]
         public string? Description { get; set; }
 
-        [Required]
         public RepeatType Repeat { get; set; } = RepeatType.RunOnce;
 
         public List<Weekly> RepeatWeekList { get; set; }
 
-        [Required]
         public Priority Priority { get; set; } = Priority.High;
 
-        [Required]
-        [Display(Name = "End Date")]
-        public DateTime? EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public DateTime? CreatedOn { get; set; } = DateTime.Now;
 
