@@ -13,6 +13,8 @@ namespace TaskMonitoringApp.Models.Repositories
 
         Task AddTasksAsync(string UserId, TaskDTO tasks, string goalIds);
 
+        Task UpdateTasksAsync(string UserId, Tasks tasks, string goalIds);
+
         Task UpdateTasksAsync(string UserId, Tasks tasks);
 
         Task UpdateTaskStatusAsync(string userId, int taskId, Status statusToChange);

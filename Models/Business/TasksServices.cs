@@ -68,6 +68,20 @@ namespace TaskMonitoringApp.Models.Business
             return await _taskRepository.GetTasksByIdAsync<TaskDTO>(userId, Id, ResponseDataMode.ModelDTO);
         }
 
+        public async Task UpdateTask(string userId, TaskDTO task, string goalIds)
+        {
+            if (DateTime.Now > task.EndDate)
+            {
+                throw new ArgumentException("The end date must be in the future.");
+            }
+
+            var oldTask = await _taskRepository.GetTasksByIdAsync<Tasks>(userId, task.Id, ResponseDataMode.Model);
+
+            _mapper.Map<Tasks, TaskDTO>(oldTask, task);
+
+            await _taskRepository.UpdateTasksAsync(userId, oldTask, goalIds);
+        }
+
         public async Task UpdateTask(string userId, TaskDTO task)
         {
             if (DateTime.Now > task.EndDate)

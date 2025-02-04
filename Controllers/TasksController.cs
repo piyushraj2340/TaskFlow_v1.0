@@ -147,7 +147,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Repeat,TaskStatus,RepeatWeekList,Priority,EndDate,TasksList")] TaskViewModel task)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Repeat,TaskStatus,RepeatWeekList,Priority,EndDate,TasksList,GoalIds")] TaskViewModel task)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -169,11 +169,7 @@ namespace TaskMonitoringApp.Controllers
 
                 _logger.LogInformation("Attempting to Update new Task: {TaskName}", task.Name);
 
-                var oldTask = await _service.GetTaskById(userId, id);
-
-                oldTask = _mapper.Map(task, oldTask);
-
-                await _service.UpdateTask(userId, oldTask);
+                await _service.UpdateTask(userId, _mapper.Map<TaskDTO>(task));
 
                 // Log success after adding the product
                 _logger.LogInformation("Task '{TaskName}' successfully Updated with ID: {TaskID}", task.Name, task.Id);
