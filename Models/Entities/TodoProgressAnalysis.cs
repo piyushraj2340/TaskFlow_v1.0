@@ -8,32 +8,28 @@ namespace TodoMonitoringApp.Models.Entities
     // this is calculate by using the task-scheduler 
     public class TodoProgressAnalysis
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required]
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
-        [Required]
         public DateTime UpdatedOn { get; set; } = DateTime.Now;
+
+        public int IsDeleted { get; set; }
 
         public DateTime? DeletedOn { get; set; }
 
-        [Required]
-        [Column(TypeName = "date")]
-        public DateTime CalculateDateFor { get; set; } = DateTime.Today;
+        public DateTime CalculateDateFor { get; set; } = DateTime.Today.Date;
 
-        [Range(0, int.MaxValue)]
         public int TotalTodo { get; set; }
 
-        [Range(0, int.MaxValue)]
         public int TotalCompletedTodo { get; set; }
 
-        [Range(0, int.MaxValue)]
         public int TotalMissedTodo { get; set; }
 
         public double ProductivityForDay { get; set; }
 
-        public virtual Users User {get; set;}
+        public string UserId { get; set; }
+
+        public  Users User {get; set;}
     }
 }
