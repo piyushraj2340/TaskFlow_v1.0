@@ -28,14 +28,16 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 new SqlParameter("@Priority", tasks.Priority),
                 new SqlParameter("@Repeat", tasks.Repeat),
                 new SqlParameter("@RepeatWeekList", repeatWeekListAsString ?? (object)DBNull.Value),
+                new SqlParameter("@TaskId", -1),
                 new SqlParameter("@GoalIds", goalIds ?? (object)DBNull.Value),
-                new SqlParameter("@UserId", userId)
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@Mode", 1) // create-operations
             };
 
             // Use the corrected parameter names without prefixes
             await _context.InsertUpdateSpWithIdDTO
                 .FromSqlRaw(
-                    "EXEC usp_AddTaskWithGoals @Name, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @GoalIds, @UserId",
+                    "EXEC usp_AddUpdateTaskWithGoals @Name, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId @Mode",
                     listOfParam.ToArray()
                 )
                 .ToListAsync();
@@ -139,6 +141,37 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             };
         }
 
+        public async Task UpdateTasksAsync(string userId, Tasks tasks, string goalIds)
+        {
+            string repeatWeekListAsString = tasks.RepeatWeekList?
+                .Select(w => ((int)w).ToString())
+                .Aggregate("[", (current, next) => current + (current.Length > 1 ? "," : "") + next) + "]";
+
+
+            var listOfParam = new List<SqlParameter>
+            {
+                new SqlParameter("@Name", tasks.Name),
+                new SqlParameter("@EndDate", tasks.EndDate),
+                new SqlParameter("@TaskStatus", tasks.TaskStatus),
+                new SqlParameter("@Description", tasks.Description),
+                new SqlParameter("@Priority", tasks.Priority),
+                new SqlParameter("@Repeat", tasks.Repeat),
+                new SqlParameter("@RepeatWeekList", repeatWeekListAsString ?? (object)DBNull.Value),
+                new SqlParameter("@TaskId", tasks.Id),
+                new SqlParameter("@GoalIds", goalIds ?? (object)DBNull.Value),
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@Mode", 2) // update-operations
+            };
+
+            // Use the corrected parameter names without prefixes
+            await _context.InsertUpdateSpWithIdDTO
+                .FromSqlRaw(
+                    "EXEC usp_AddUpdateTaskWithGoals @Name, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId, @Mode",
+                    listOfParam.ToArray()
+                )
+                .ToListAsync();
+        }
+
         public async Task UpdateTasksAsync(string UserId, Tasks tasks)
         {
             var user = tasks.UserId ?? throw new ArgumentNullException("UserId Is Required!.");
@@ -147,7 +180,6 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             {
                 throw new ArgumentException("UserId and Task.User.Id must be same!.");
             }
-
             _context.Tasks.Update(tasks);
             await _context.SaveChangesAsync();
         }

@@ -1,4 +1,4 @@
-﻿using TaskMonitoringApp.Models.DTOs;using TaskMonitoringApp.Models.Entities;using TaskMonitoringApp.Models.Repositories;using TaskMonitoringApp.Models.Services;using TodoMonitoringApp.Models.Entities;namespace TaskMonitoringApp.Models.Business{    public class TodoServices : ITodoServices    {        private readonly ITodoRepository _repository;        public TodoServices(ITodoRepository repository)        {            _repository = repository;        }        public async Task AddNewTodo(string UserId, Todo todo)        {            if (todo.Task == null)            {                throw new ArgumentNullException("Missing {TaskID} while creating the new Todo.");            }            await _repository.AddTodoAsync(UserId, todo);        }        public async Task DeleteTodoById(string UserId, int id)        {            var getTodo = await GetTodoById(UserId, id);            getTodo.IsDeleted = true;            getTodo.DeletedOn = DateTime.Now;            await UpdateTodo(UserId, getTodo);        }        public async Task<IEnumerable<Todo>> GetAllTodo(string UserId, Status status)        {            return await _repository.GetAllTodoAsync(UserId, status);        }        public async Task<IEnumerable<Todo>> GetAllTodo(string UserId)        {            return await _repository.GetAllTodoAsync(UserId);        }        public async Task<Todo> GetTodoById(string UserId, int id)        {            return await _repository.GetTodoByIdAsync(UserId, id);        }        public async Task UpdateTodo(string UserId, Todo todo)        {            await _repository.UpdateTodoAsync(UserId, todo);        }
+﻿using TaskMonitoringApp.Models.DTOs;using TaskMonitoringApp.Models.Entities;using TaskMonitoringApp.Models.Repositories;using TaskMonitoringApp.Models.Services;using TodoMonitoringApp.Models.Entities;namespace TaskMonitoringApp.Models.Business{    public class TodoServices : ITodoServices    {        private readonly ITodoRepository _repository;        public TodoServices(ITodoRepository repository)        {            _repository = repository;        }        public async Task AddNewTodo(string UserId, Todo todo)        {            if (todo.Task == null)            {                throw new ArgumentNullException("Missing {TaskID} while creating the new Todo.");            }            await _repository.AddTodoAsync(UserId, todo);        }        public async Task DeleteTodoById(string UserId, int id)        {            var getTodo = await GetTodoById(UserId, id);            getTodo.IsDeleted = true;            getTodo.DeletedOn = DateTime.Now;            await UpdateTodo(UserId, getTodo);        }        public async Task<IEnumerable<Todo>> GetAllTodo(string UserId, Status status)        {            return await _repository.GetAllTodoAsync<Todo>(UserId, status, ResponseDataMode.Model);        }        public async Task<Todo> GetTodoById(string UserId, int id)        {            return await _repository.GetTodoByIdAsync<Todo>(UserId, id, ResponseDataMode.Model);        }        public async Task UpdateTodo(string UserId, Todo todo)        {            await _repository.UpdateTodoAsync(UserId, todo);        }
 
         public async Task MarkAsComplete(string UserId, Todo todo)
         {
@@ -34,31 +34,32 @@
             todo.DeletedOn = null; // if goal is deleted and want to move to the running...
             todo.Status = Status.Running;
             await _repository.UpdateTodoAsync(UserId, todo);
-        }        public async Task<TodoProductivityDTO> GetProgressForTodays(string UserId)
+        }        Task<TodoProductivityDTO> ITodoServices.GetProgressForTodays(string UserId)
         {
-            var startOfDay = DateTime.Today;
-            var endOfDay = DateTime.Today.AddDays(1); // This will give you the start of the next day, i.e., 00:00:00 tomorrow
+            throw new NotImplementedException();
+            //var startOfDay = DateTime.Today;
+            //var endOfDay = DateTime.Today.AddDays(1); // This will give you the start of the next day, i.e., 00:00:00 tomorrow
 
-            int runningTodo = await _repository.GetTodoCountByTodoStatusAndDateTimeRange(UserId, Status.Running, startOfDay, endOfDay);
+            //int runningTodo = await _repository.GetTodoCountByTodoStatusAndDateTimeRange(UserId, Status.Running, startOfDay, endOfDay);
 
-            int completedTodo = await _repository.GetTodoCountByTodoStatusAndDateTimeRange(UserId, Status.Completed, startOfDay, endOfDay);
+            //int completedTodo = await _repository.GetTodoCountByTodoStatusAndDateTimeRange(UserId, Status.Completed, startOfDay, endOfDay);
 
-            double productivity = 0;
+            //double productivity = 0;
 
-            if(runningTodo + completedTodo > 0)
-            {
-                productivity =  (((double)completedTodo / (runningTodo + completedTodo)) * 100);
-            }
-            productivity = Math.Round(productivity, 2);
+            //if(runningTodo + completedTodo > 0)
+            //{
+            //    productivity =  (((double)completedTodo / (runningTodo + completedTodo)) * 100);
+            //}
+            //productivity = Math.Round(productivity, 2);
 
-            TodoProductivityDTO todoProductivity = new TodoProductivityDTO(productivity, runningTodo, completedTodo, runningTodo + completedTodo);
+            //TodoProductivityDTO todoProductivity = new TodoProductivityDTO(productivity, runningTodo, completedTodo, runningTodo + completedTodo);
 
-            // Round to 2 decimal places
+            //// Round to 2 decimal places
 
-            return todoProductivity;
+            //return todoProductivity;
         }
 
-        Task<TodoProgressAnalysis> ITodoServices.CalculateProductivityForToday(string UserId)
+        Task<IEnumerable<Todo>> ITodoServices.GetAllTodo(string UserId)
         {
             throw new NotImplementedException();
         }

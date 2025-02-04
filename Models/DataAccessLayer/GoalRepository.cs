@@ -42,7 +42,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         {
             var userIdParam = new SqlParameter("@UserId", userId);
             var goalIdParam = new SqlParameter("@GoalId", id);
-            var modeParam = new SqlParameter("@Mode", false);
+            var modeParam = new SqlParameter("@Mode", mode);
 
 
             switch (mode)
@@ -57,7 +57,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
                 case ResponseDataMode.ModelDTO:
 
-                    var dataGoalDTO = await _context.Goals.FromSqlRaw("EXEC usp_GetGoalById @UserId, @GoalId, @Mode", userIdParam, goalIdParam, modeParam)
+                    var dataGoalDTO = await _context.GoalDTOs.FromSqlRaw("EXEC usp_GetGoalById @UserId, @GoalId, @Mode", userIdParam, goalIdParam, modeParam)
                                 .ToListAsync() as IEnumerable<T>;
 
                     return dataGoalDTO?.FirstOrDefault()
@@ -65,7 +65,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
                 case ResponseDataMode.ModelNameDTO:
 
-                    var dataGoalNameDTO = await _context.Goals.FromSqlRaw("EXEC usp_GetGoalById @UserId, @GoalId, @Mode", userIdParam, goalIdParam, modeParam)
+                    var dataGoalNameDTO = await _context.GoalNameDTOs.FromSqlRaw("EXEC usp_GetGoalById @UserId, @GoalId, @Mode", userIdParam, goalIdParam, modeParam)
                                 .ToListAsync() as IEnumerable<T>;
 
                     return dataGoalNameDTO?.FirstOrDefault()
@@ -111,13 +111,6 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         /// <exception cref="ArgumentException"></exception>
         public async Task AddGoalAsync(string UserId, Goals goal)
         {
-            var userId = goal.UserId ?? throw new ArgumentNullException(nameof(goal.UserId), "UserId Is Required!.");
-
-            if (userId != UserId)
-            {
-                throw new ArgumentException("UserId and Goal.UserId must be same!.");
-            }
-
             // Saving the data into the database...
             await _context.Goals.AddAsync(goal);
             await _context.SaveChangesAsync();

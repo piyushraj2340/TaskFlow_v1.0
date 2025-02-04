@@ -6,9 +6,6 @@ namespace TaskMonitoringApp.Models.Services
 {
     public interface ITodoServices
     {
-
-        Task<TodoProgressAnalysis> CalculateProductivityForToday(string UserId);
-
         Task AddNewTodo (string UserId, Todo todo);
 
         Task<Todo> GetTodoById(string UserId, int id);

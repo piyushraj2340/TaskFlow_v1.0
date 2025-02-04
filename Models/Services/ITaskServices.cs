@@ -7,6 +7,8 @@ namespace TaskMonitoringApp.Models.Services
     {
         Task AddNewTask(string UserId, TaskDTO task, string goalIds); 
 
+        Task UpdateTask(string UserId, TaskDTO task, string goalIds);
+
         Task UpdateTask(string UserId, TaskDTO task);
 
         Task UpdateTaskStatus(string userId, int taskId, Status statusToChange);
