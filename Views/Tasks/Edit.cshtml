@@ -1,9 +1,21 @@
 ﻿@model TaskMonitoringApp.Models.ViewModel.TaskViewModel;
 
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Serialization
+
 @{
     ViewData["Title"] = "Edit Task";
 }
 
+@{
+    var settings = new JsonSerializerSettings
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        Formatting = Formatting.None // Keep JSON compact (optional)
+    };
+
+    var goalListObj = JsonConvert.SerializeObject(Model.GoalLists, settings);
+}
 
 <div class="flex min-h-screen items-center justify-center bg-gray-100">
     <div class="w-full rounded-lg bg-white p-8 shadow-lg sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2">
@@ -31,7 +43,9 @@
 
         $(document).ready(function () {
             const goals = []; // Array to store goal objects from the server (id, name)
-            const selectedGoals = []; // Array to store selected goal objects (id, name)
+            const selectedGoals = @Html.Raw(goalListObj); // Array to store selected goal objects (id, name)
+
+            console.log(selectedGoals);
 
             // Function to render selected goals
             function renderSelectedGoals() {
@@ -103,8 +117,9 @@
 
             // Function to remove a goal from the selectedGoals array
             window.removeGoal = function (id) {
+                console.log(id);
                 const index = selectedGoals.findIndex((g) => g.id === id);
-
+                console.log(index);
                 if (index !== -1) {
                     selectedGoals.splice(index, 1);
 
