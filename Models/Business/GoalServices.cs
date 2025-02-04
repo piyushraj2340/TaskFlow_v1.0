@@ -22,6 +22,8 @@ namespace TaskMonitoringApp.Models.Business
                 throw new ArgumentException("UserId and Goals.UserId must be same!.");
             }
 
+            goals.EndDate = goals.EndDate.AddDays(1).Date.AddSeconds(-1); //Adding the mid-night ending
+
             if (DateTime.Now > goals.EndDate)
             {
                 throw new ArgumentException("The end date must be in the future.", nameof(goals.EndDate));
@@ -60,6 +62,12 @@ namespace TaskMonitoringApp.Models.Business
             }
 
             var findAndUpdateGoal = await _repository.GetGoalByIdAsync<Goals>(UserId, goals.Id, ResponseDataMode.Model);
+
+            // update the date...
+            if(goals.EndDate != findAndUpdateGoal.EndDate)
+            {
+                goals.EndDate = goals.EndDate.AddDays(1).Date.AddSeconds(-1);
+            }
 
             _mapper.Map(goals, findAndUpdateGoal);
 
