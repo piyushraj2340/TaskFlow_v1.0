@@ -15,13 +15,19 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task AddNewGoal(string UserId, GoalDTO goals)
         {
+            var userId = goals.UserId ?? throw new ArgumentNullException(nameof(goals.UserId), "UserId Is Required!.");
+
+            if (userId != UserId)
+            {
+                throw new ArgumentException("UserId and Goals.UserId must be same!.");
+            }
+
             if (DateTime.Now > goals.EndDate)
             {
                 throw new ArgumentException("The end date must be in the future.", nameof(goals.EndDate));
             }
 
-            var goalToAdd = _mapper.Map<Goals>(goals); 
-
+            var goalToAdd = _mapper.Map<Goals>(goals);
             await _repository.AddGoalAsync(UserId, goalToAdd);
         }
 
