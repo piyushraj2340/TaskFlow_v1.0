@@ -140,6 +140,23 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 # implement the GetAllGoalsWithStatusByTaskId in the task details page
 
 
-# in the home index page productvity calculation not working in the task
+# in the home index page productivity calculation not working in the task
 
 # we have encounter an error tasks model is not maped with the table in the db find the issue in this model....
+
+# all the mapper and logger dependency will be in the service layers.... 
+
+# goal have only end date not time.... expelicetly do in service layers....
+ 
+# EndedGoal, EndedTask, should be handeled by the in-memory queus not by the stored procedured. so remove the sp after this....
+# handel the update functionality in only 1 round trip....
+
+
+
+# update the frontend logic such as : endDate validations and all...
+# edit task with goal not saving goals 
+# see how the task end date saving date and time 
+
+
+# when I implemented the Iunit of work patter then addtaskwithgoal will be added using the entity...
+  

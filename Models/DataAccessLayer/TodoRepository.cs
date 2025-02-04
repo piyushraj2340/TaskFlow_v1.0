@@ -15,19 +15,14 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.Data.SqlClient;
 using TaskMonitoringApp.Models.DTOs;
 using AutoMapper;
+using TaskMonitoringApp.Exceptions;
+using System.Collections;
 
 namespace TaskMonitoringApp.Models.DataAccessLayer
 {
-    public class TodoRepository : ITodoRepository
+    public class TodoRepository(ApplicationDbContext context) : ITodoRepository
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
-
-        public TodoRepository(ApplicationDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task AddTodoAsync(string UserId, Todo todo)
         {
@@ -51,142 +46,173 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Todo>> GetAllTodoAsync(string UserId)
+        public async Task<IEnumerable<T>> GetAllTodoAsync<T>(string userId, Status status, ResponseDataMode mode) where T : class
         {
-            // Fetch the todo list for today and project it to a list of Todo objects
-            var allTodoList = await _context.Todo
-                .Where(t => t.CreatedOn == DateTime.Now.Date && t.User.Id == UserId)  // Ensure we only consider today
-                .ToListAsync();
+            var userIdParam = new SqlParameter("@UserId", userId);
+            var statusParam = new SqlParameter("@Status", status);
+            var modeParam = new SqlParameter("@Mode", mode);
 
-
-            // Fetch all running tasks, ensuring that the task is not associated with any Todo for today
-            var allRunningTask = await _context.Tasks
-                .Where(t => t.User.Id == UserId &&
-                    t.TaskStatus == Status.Running &&
-                    (
-                        t.Repeat == RepeatType.Daily ||
-                        (
-                            t.Repeat == RepeatType.Weekly &&
-                            t.RepeatWeekList != null &&
-                            t.RepeatWeekList.Contains(DateTimeUtility.GetTodayDayName())
-                        )
-                    )
-                )
-                .Include(U => U.User)
-                .ToListAsync();
-
-            allRunningTask = allRunningTask.Where(task => task.User.Id == UserId && !allTodoList.Any(todo => todo?.Task?.Id == task.Id))
-                .ToList();
-
-            foreach (var task in allRunningTask)
+            return mode switch
             {
-                Todo todo = new Todo();
-                todo.Task = task;
-                todo.User = task.User;
-                allTodoList.Add(todo);
-                await _context.Todo.AddAsync(todo);
-            }
-            await _context.SaveChangesAsync();
-            allTodoList.Sort((a, b) => a.Id.CompareTo(b.Id)); // sort the result...
-
-            return allTodoList;
+                ResponseDataMode.Model => await _context.TodoWithTask
+                        .FromSqlRaw("EXEC usp_AddTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                        .ToListAsync() as IEnumerable<T>
+                            ?? throw new NotFoundException("Todo Data Not Found!"),
+                ResponseDataMode.ModelDTO => await _context.TodoWithTaskDTO
+                        .FromSqlRaw("EXEC usp_AddTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                        .ToListAsync() as IEnumerable<T>
+                            ?? throw new NotFoundException("Todo Data Not Found!"),
+                _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
+            };
         }
 
-        public async Task<IEnumerable<Todo>> GetAllTodoAsync(string UserId, Status status)
+        // Todo: Need to test this methods....
+        public async Task<IEnumerable<T>> GetAllTodoWithStatusByGoalId<T>(string userId, int goalId, Status todoStatus, ResponseDataMode mode) where T : class
         {
-            var startOfDay = DateTime.Today;
-            var endOfDay = DateTime.Today.AddDays(1);
-
-            //var task = from t in _context.Tasks
-            //           where t.User.Id == UserId &&
-            //           t.TaskStatus == Status.Running &&
-            //           (
-            //                t.Repeat == RepeatType.Daily ||
-            //                (
-            //                    t.Repeat == RepeatType.Weekly &&
-            //                    t.RepeatWeekList.Contains(DateTimeUtility.GetTodayDayName())
-            //                )
-            //           ) &&
-            //           (
-            //                !_context.Todo.Any(td => td.Task.Id == t.Id && t.CreatedOn >= startOfDay && t.CreatedOn < endOfDay)
-            //           )
-            //           select t;
-
-            if (status == Status.Running)
+            return mode switch
             {
-                var resultSet = await _context.TodoSpWithTaskDTOs
-                .FromSqlRaw("EXEC usp_AddTodoFromTask @UserId", new SqlParameter("@UserId", UserId))
-                .ToListAsync();
+                ResponseDataMode.Model => await _context.Todo
+                        .Include(td => td.Task)
+                        .ThenInclude(t => t.GoalTasks)
+                        .Where(td => td.UserId == userId
+                            && td.Status == todoStatus
+                            && td.IsDeleted == false
+                            && td.Task.GoalTasks.Any(gt => gt.GoalId == goalId))
+                        .ToListAsync() as IEnumerable<T>
+                            ?? throw new NotFoundException("Todo Data Not Found!"),
+                ResponseDataMode.ModelDTO => await _context.Todo
+                    .Include(td => td.Task)
+                        .ThenInclude(t => t.GoalTasks)
+                        .Where(td => td.UserId == userId
+                            && td.Status == todoStatus
+                            && td.IsDeleted == false
+                            && td.Task.GoalTasks.Any(gt => gt.GoalId == goalId))
+                        .Select(td => new TodoDTO()
+                        {
+                            Id = td.Id,
+                            EndDate = td.EndDate,
+                            Status = td.Status,
+                            UserId = td.UserId,
+                            TaskId = td.Task.Id,
+                            Task = new TaskDTO()
+                            {
+                                Id = td.Task.Id,
+                                Name = td.Task.Name,
+                                Description = td.Task.Description,
+                                EndDate = td.Task.EndDate,
+                                Priority = td.Task.Priority,
+                                Repeat = td.Task.Repeat,
+                                RepeatWeekList = td.Task.RepeatWeekList,
+                                TaskStatus = td.Task.TaskStatus,
+                                UserId = td.Task.UserId
+                            }
+                        })
+                        .ToListAsync() as IEnumerable<T>
+                            ?? throw new NotFoundException("Todo Data Not Found!"),
+                _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
 
-                var result = _mapper.Map<List<Todo>>(resultSet);
-
-                return result;
-            }
-
-            return await _context.Todo.Include(t => t.Task)
-                .Where(td => td.User.Id == UserId && td.Status == status && (td.CreatedOn >= startOfDay && td.CreatedOn < endOfDay))
-                .ToListAsync();
+            };
         }
 
-        public async Task<IEnumerable<Todo>> GetAllTodoAsync(string UserId, Status status, string backup = "true")
+        // Todo: Need to test this methods.....
+        public async Task<IEnumerable<T>> GetAllTodoWithStatusByTaskId<T>(string userId, int taskId, Status todoStatus, ResponseDataMode mode) where T : class
         {
-            // Step 1: Fetch all Todo items for today
-            // We will also include the Task information and filter by status
-            var startOfDay = DateTime.Today;
-            var endOfDay = DateTime.Today.AddDays(1); // This will give you the start of the next day, i.e., 00:00:00 tomorrow
+            return mode switch
+            { 
+                ResponseDataMode.Model => await _context.Todo
+                    .Include(td => td.Task)
+                    .Where(td => td.UserId == userId && td.IsDeleted == false && td.Status == todoStatus && td.Task.Id == taskId)
+                    .ToListAsync() as IEnumerable<T>
+                        ?? throw new NotFoundException("Todo Data Not Found!"),
+                ResponseDataMode.ModelDTO => await _context.Todo
+                    .Include(td => td.Task)
+                    .Where(td => td.UserId == userId && td.IsDeleted == false && td.Status == todoStatus && td.Task.Id == taskId)
+                    .Select(td => new TodoDTO()
+                    {
+                        Id = td.Id,
+                        TaskId = td.Task.Id,
+                        UserId = td.UserId,
+                        EndDate = td.EndDate,
+                        Status = td.Status,
+                        Task = new TaskDTO ()
+                        {
+                            Id = td.Task.Id,
+                            Name = td.Task.Name,
+                            Description = td.Task.Description,
+                            TaskStatus = td.Task.TaskStatus,
+                            EndDate = td.Task.EndDate,
+                            Priority = td.Task.Priority,
+                            Repeat = td.Task.Repeat,
+                            RepeatWeekList = td.Task.RepeatWeekList,
+                            UserId =  td.Task.UserId
+                        }
+                    })
+                    .AsSingleQuery()
+                    .ToListAsync() as IEnumerable<T>
+                        ?? throw new NotFoundException("Todo Data Not Found!"),
+                _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
+            };
+        }
 
-            var allTodoList = await _context.Todo
-                        .Where(t => t.User.Id == UserId && t.CreatedOn >= startOfDay && t.CreatedOn < endOfDay)
-                        .Include(t => t.Task)
-                        .ToListAsync();
+        // todo: need to test this methods......
+        public async Task<T> GetTodoByIdAsync<T>(string UserId, int Id, ResponseDataMode mode) where T: class
+        {
+            switch(mode)
+            {
+                case ResponseDataMode.Model:
+                    var modelData =  await _context.Todo
+                            .Include(td => td.Task)
+                            .Where(td => td.UserId == UserId && td.Id == Id && td.IsDeleted == false)
+                            .AsSingleQuery()
+                            .ToListAsync() as IEnumerable<T>;
 
-            if (status == Status.Running)
-            { // only create the new instance when it is running...
+                    if(modelData == null)
+                    {
+                        throw new NotFoundException("Todo Data Not Found!");
+                    }
 
-                // Step 2: Get task IDs already assigned to Todo items for today
-                var todoTaskIds = allTodoList.Select(t => t?.Task?.Id).ToList();
+                    return modelData.FirstOrDefault()
+                        ?? throw new NotFoundException("Todo Data Not Found!");
 
-                // Fetch all running tasks, ensuring that the task is not associated with any Todo for today
-                // Step 3: Fetch all running tasks for today that aren't already assigned to Todo
-                var allRunningTasks = await _context.Tasks
-                    .Where(t => t.User.Id == UserId &&
-                        t.TaskStatus == Status.Running &&
-                        (
-                            t.Repeat == RepeatType.Daily ||
-                            (
-                                t.Repeat == RepeatType.Weekly &&
-                                t.RepeatWeekList != null &&
-                                t.RepeatWeekList.Contains(DateTimeUtility.GetTodayDayName())
-                            )
-                        ) &&
-                        !todoTaskIds.Contains(t.Id)) // Ensure task is not already in a Todo for today
-                    .Include(U => U.User)
-                    .ToListAsync();
+                case ResponseDataMode.ModelDTO:
+                    var modelDTOData = await _context.Todo
+                            .Include(td => td.Task)
+                            .Where(td => td.UserId == UserId && td.Id == Id && td.IsDeleted == false)
+                            .AsSingleQuery()
+                            .Select(td => new TodoDTO()
+                            {
+                                Id = td.Id,
+                                EndDate = td.EndDate,
+                                Status = td.Status,
+                                UserId = td.UserId,
+                                TaskId = td.Task.Id,
+                                Task = new TaskDTO()
+                                {
+                                    Id = td.Task.Id,
+                                    Name = td.Task.Name,
+                                    Description = td.Task.Description,
+                                    EndDate = td.Task.EndDate,
+                                    Priority = td.Task.Priority,
+                                    Repeat = td.Task.Repeat,
+                                    RepeatWeekList = td.Task.RepeatWeekList,
+                                    TaskStatus = td.Task.TaskStatus,
+                                    UserId = td.Task.UserId
+                                }
+                            })
+                            .ToListAsync() as IEnumerable<T>;
 
+                    if (modelDTOData == null)
+                    {
+                        throw new NotFoundException("Todo Data Not Found!");
+                    }
 
-                // Step 4: Create new Todo instances for tasks not already assigned
-                var newTodos = allRunningTasks.Select(task => new Todo
-                {
-                    Task = task,
-                    User = task.User,
-                    CreatedOn = DateTime.Now,
-                    Status = Status.Running
-                }).ToList();
+                    return modelDTOData.FirstOrDefault()
+                        ?? throw new NotFoundException("Todo Data Not Found!");
 
-                // Step 5: Add new Todos to the context and save changes
-                if (newTodos.Any())
-                {
-                    await _context.Todo.AddRangeAsync(newTodos);
-                    await _context.SaveChangesAsync();
-                }
+                default:
+                    throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.");
+
             }
-
-            allTodoList = await _context.Todo.Where(t => t.User.Id == UserId &&
-                t.Status == status && (t.CreatedOn >= startOfDay && t.CreatedOn < endOfDay))
-                .ToListAsync();
-            // sort the result...
-
-            return allTodoList;
         }
 
         public async Task<Todo> GetTodoByIdAsync(string UserId, int Id)
@@ -222,6 +248,13 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         public async Task<int> GetTodoCountByTodoStatusAndDateTimeRange(string UserId, Status status, DateTime from, DateTime end)
         {
             return await _context.Todo.CountAsync(t => t.User.Id == UserId && (t.CreatedOn >= from && t.CreatedOn < end && t.Status == status));
+        }
+
+
+        // todo need to implement this metods....
+        Task ITodoRepository.UpdateTodoStatusAsync(string userId, int todoId, Status statusToChange)
+        {
+            throw new NotImplementedException();
         }
     }
 }
