@@ -6,14 +6,10 @@ namespace TaskMonitoringApp.Models.Entities
 {
     public class Todo
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required]
-        [Display(Name = "End Date")]
-        public DateTime? EndDate { get; set; } = DateTime.Now.AddDays(1); 
+        public DateTime EndDate { get; set; } = DateTime.Now.AddDays(1).Date;
 
-        [Required]
         public Status Status { get; set; } = Status.Running;
 
         public DateTime? CreatedOn { get; set; } = DateTime.Now;
@@ -24,7 +20,11 @@ namespace TaskMonitoringApp.Models.Entities
 
         public DateTime? DeletedOn { get; set; }
 
-        public string TaskId { get; set; }
+        public DateTime? EndedOn { get; set; }
+
+        public DateTime? CompletedOn { get; set; }
+
+        public int TaskId { get; set; }
 
         public Tasks Task { get; set; }
 
@@ -32,9 +32,6 @@ namespace TaskMonitoringApp.Models.Entities
 
         public Users User { get; set; }
 
-        public string TodoProgressId { get; set; }
-
-        public TodoProgressAnalysis TodoProgress { get; set; }
     }
 
 
