@@ -37,7 +37,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             // Use the corrected parameter names without prefixes
             await _context.InsertUpdateSpWithIdDTO
                 .FromSqlRaw(
-                    "EXEC usp_AddUpdateTaskWithGoals @Name, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId @Mode",
+                    "EXEC usp_AddUpdateTaskWithGoals @Name, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId, @Mode",
                     listOfParam.ToArray()
                 )
                 .ToListAsync();

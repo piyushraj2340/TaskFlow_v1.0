@@ -169,7 +169,13 @@ namespace TaskMonitoringApp.Controllers
 
                 _logger.LogInformation("Attempting to Update new Task: {TaskName}", task.Name);
 
-                await _service.UpdateTask(userId, _mapper.Map<TaskDTO>(task));
+                if(string.IsNullOrWhiteSpace(task.GoalIds))
+                {
+                    await _service.UpdateTask(userId, _mapper.Map<TaskDTO>(task));
+                } else
+                {
+                    await _service.UpdateTask(userId, _mapper.Map<TaskDTO>(task), task.GoalIds);
+                }
 
                 // Log success after adding the product
                 _logger.LogInformation("Task '{TaskName}' successfully Updated with ID: {TaskID}", task.Name, task.Id);
