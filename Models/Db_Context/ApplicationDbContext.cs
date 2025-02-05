@@ -41,6 +41,8 @@ namespace TaskMonitoringApp.Models.Data
         public DbSet<TodoWithTask> TodoWithTask { get; set; }
         public DbSet<TodoDTOWithTaskDTO> TodoWithTaskDTO { get; set; }
 
+        public DbSet<TodoProgressAnalysisDTO> TodoProgressAnalysesDTO { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -71,6 +73,7 @@ namespace TaskMonitoringApp.Models.Data
             modelBuilder.Entity<TaskNameDTO>().ToView(null);
             modelBuilder.Entity<TodoWithTask>().ToView(null);
             modelBuilder.Entity<TodoDTOWithTaskDTO>().ToView(null);
+            modelBuilder.Entity<TodoProgressAnalysisDTO>().ToView(null);
         }
 
         public override int SaveChanges()

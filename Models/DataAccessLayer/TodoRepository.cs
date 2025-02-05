@@ -215,18 +215,6 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             }
         }
 
-        public async Task<Todo> GetTodoByIdAsync(string UserId, int Id)
-        {
-            var todo = await _context.Todo.FirstOrDefaultAsync(u => u.User.Id == UserId && u.Id == Id);
-
-            if (todo == null)
-            {
-                throw new KeyNotFoundException($"Todo with ID {Id} not found.");
-            }
-
-            return todo;
-        }
-
         public async Task UpdateTodoAsync(string UserId, Todo todo)
         {
             var user = todo.User ?? throw new ArgumentNullException(nameof(todo.User), "UserId Is Required!.");
@@ -240,21 +228,44 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             await _context.SaveChangesAsync();
         }
 
-        public async Task<int> GetTodoCountByTodoStatus(string UserId, Status status)
+        public async Task<T> GetTodoProgressForTodaysAsync<T>(string userId, ResponseDataMode mode) where T : class
         {
-            return await _context.Todo.CountAsync(t => t.User.Id == UserId && t.Status == status);
-        }
+            var userIdParam = new SqlParameter("@UserId", userId);
+            var modeParam = new SqlParameter("@Mode", mode);
 
-        public async Task<int> GetTodoCountByTodoStatusAndDateTimeRange(string UserId, Status status, DateTime from, DateTime end)
-        {
-            return await _context.Todo.CountAsync(t => t.User.Id == UserId && (t.CreatedOn >= from && t.CreatedOn < end && t.Status == status));
-        }
+            switch(mode)
+            {
+                case ResponseDataMode.Model :
+                    var todayAnalysisModel = await _context.TodoProgressAnalyses
+                        .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
+                        .ToListAsync() as IEnumerable<T>
+                            ?? throw new NotFoundException("Todo Not Found!");
 
+                    return todayAnalysisModel.FirstOrDefault()
+                            ?? throw new NotFoundException("Todo Data Not Found!");;
+
+                case ResponseDataMode.ModelDTO :
+                    var todayAnalysisDTO = await _context.TodoProgressAnalysesDTO
+                    .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
+                    .ToListAsync() as IEnumerable<T>
+                        ?? throw new NotFoundException("Todo Not Found!");
+
+                    return todayAnalysisDTO.FirstOrDefault()
+                            ?? throw new NotFoundException("Todo Data Not Found!"); ;
+
+                default:  throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.");
+            };
+        }
 
         // todo need to implement this metods....
-        Task ITodoRepository.UpdateTodoStatusAsync(string userId, int todoId, Status statusToChange)
+        public async Task UpdateTodoStatusAsync(string userId, int todoId, Status statusToChange)
         {
-            throw new NotImplementedException();
+            var userIdParam = new SqlParameter("@UserId", userId);
+            var todoIdParam = new SqlParameter("@TodoId", todoId);
+            var statusToChangeParam = new SqlParameter("@StatusToUpdate", statusToChange);
+
+            await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeTodoStatus @UserId, @TodoId, @StatusToUpdate", userIdParam, todoIdParam, statusToChangeParam)
+                .ToListAsync();
         }
     }
 }

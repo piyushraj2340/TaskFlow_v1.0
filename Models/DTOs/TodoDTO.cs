@@ -56,16 +56,4 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public Status Status { get; set; } = Status.NotStarted;
     }
-
-
-    public class TodoProductivityDTO(double productivity, int runningTask, int completedTask, int totalTask)
-    {
-        public double Productivity { get; set; } = productivity;
-
-        public int RunningTask { get; set; } = runningTask;
-
-        public int CompletedTask { get; set; } = completedTask;
-
-        public int TotalTask { get; set; } = totalTask;
-    }
 }

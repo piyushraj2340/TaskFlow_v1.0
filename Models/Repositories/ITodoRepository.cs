@@ -1,4 +1,5 @@
-﻿using TaskMonitoringApp.Models.Entities;
+﻿using TaskMonitoringApp.Models.DTOs;
+using TaskMonitoringApp.Models.Entities;
 
 namespace TaskMonitoringApp.Models.Repositories
 {
@@ -11,6 +12,8 @@ namespace TaskMonitoringApp.Models.Repositories
         Task<IEnumerable<T>> GetAllTodoWithStatusByTaskId<T>(string userId, int goalId, Status todoStatus, ResponseDataMode mode) where T : class;
 
         Task<T> GetTodoByIdAsync<T>(string UserId, int Id, ResponseDataMode mode) where T: class;
+
+        Task<T> GetTodoProgressForTodaysAsync<T>(string userId, ResponseDataMode mode) where T: class;
 
         Task AddTodoAsync(string UserId, Todo todoList);
 
