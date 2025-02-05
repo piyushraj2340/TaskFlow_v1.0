@@ -33,7 +33,7 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            TodoProductivityDTO productivity = await _service.GetProgressForTodays(userId);
+            TodoProgressAnalysisDTO productivity = await _service.GetProgressForTodays(userId);
             return View(productivity);
         }
 
@@ -49,7 +49,7 @@ namespace TaskMonitoringApp.Controllers
 
             try
             {
-                TodoProductivityDTO productivity = await _service.GetProgressForTodays(userId);
+                var productivity = await _service.GetProgressForTodays(userId);
                 return Json(new { status = true, message = "Todo Task Progress", data = productivity });
             } catch(Exception)
             {
@@ -88,7 +88,7 @@ namespace TaskMonitoringApp.Controllers
             if (!string.IsNullOrEmpty(searchValue))
             {
                 // Perform case-insensitive search on multiple fields (Name and Id)
-                data = data.Where(x => x.Task?.Name?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
+                data = data.Where(x => x.TaskName?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
             }
 
             // Get filtered record count after search
@@ -100,13 +100,13 @@ namespace TaskMonitoringApp.Controllers
                 switch (sortColumn)
                 {
                     case "Name":
-                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Task?.Name) : data.OrderByDescending(x => x.Task?.Name);
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskName) : data.OrderByDescending(x => x.TaskName);
                         break;
                     case "EndDate":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
                         break;
                     case "Priority":
-                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Task?.Priority) : data.OrderByDescending(x => x.Task?.Priority);
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
                         break;
                     case "Id":
                         // Sorting by Id (numerical)
@@ -166,7 +166,7 @@ namespace TaskMonitoringApp.Controllers
             if (!string.IsNullOrEmpty(searchValue))
             {
                 // Perform case-insensitive search on multiple fields (Name and Id)
-                data = data.Where(x => x.Task?.Name?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
+                data = data.Where(x => x.TaskName?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
             }
 
             // Get filtered record count after search
@@ -178,13 +178,13 @@ namespace TaskMonitoringApp.Controllers
                 switch (sortColumn)
                 {
                     case "Name":
-                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Task?.Name) : data.OrderByDescending(x => x.Task?.Name);
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskName) : data.OrderByDescending(x => x.TaskName);
                         break;
                     case "EndDate":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
                         break;
                     case "Priority":
-                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Task?.Priority) : data.OrderByDescending(x => x.Task?.Priority);
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
                         break;
                     case "Id":
                         // Sorting by Id (numerical)
@@ -230,47 +230,8 @@ namespace TaskMonitoringApp.Controllers
             if (ModelState.IsValid)
             {
 
-                var taskInfo = await _service.GetTodoById(userId, Id);
-                taskInfo = _mapper.Map(todoUpdate, taskInfo);
-
-                var user = await _userManager.FindByIdAsync(userId);
-                
-                if(user == null)
-                {
-                    return RedirectToAction("Login", "Account");
-                }
-
-                taskInfo.User = user;
-
-                // handling to mark as complete...
-                if (todoUpdate.Status == Status.Completed)
-                {
-                    await _service.MarkAsComplete(userId, taskInfo);
-
-                    return Json(new { status = true, message = $"Task with Id {Id} Status change to Completed!" });
-                }
-                else if (todoUpdate.Status == Status.Running) // handling to move to running
-                {
-                    await _service.MoveToRunning(userId, taskInfo);
-                    return Json(new { status = true, message = $"Task with Id {Id} Status change to Running!" });
-                }
-                else if (todoUpdate.Status == Status.Ended)
-                {
-                    taskInfo.Status = Status.Ended; // changing the status to ended
-                    taskInfo.EndDate = DateTime.Now; // making task to end early...
-
-                    await _service.UpdateTodo(userId, taskInfo);
-                    return Json(new { status = true, message = $"Task with Id {Id} Status change to End!" });
-                }
-                else if (todoUpdate.Status == Status.NotStarted)
-                {
-                    await _service.UpdateTodo(userId, taskInfo);
-                    return Json(new { status = true, message = $"Task with Id {Id} Status change to NotStarted!" });
-                }
-                else
-                {
-                    return Json(new { status = false, message = "Invalid parameter status" });
-                }
+                await _service.UpdateTodoStatus(userId, todoUpdate.Id, todoUpdate.Status);
+                return Json(new { status = true, message = $"Todo with Id {Id} Status change to Completed!" });
             }
 
             return Json(new { status = false, message = "ModelState is not valid!" });

@@ -6,22 +6,20 @@ namespace TaskMonitoringApp.Models.Services
 {
     public interface ITodoServices
     {
-        Task AddNewTodo (string UserId, Todo todo);
+        Task AddNewTodo (string UserId, TodoDTO todo);
 
-        Task<Todo> GetTodoById(string UserId, int id);
+        Task<TodoDTOWithTaskDTO> GetTodoById(string UserId, int id);
 
-        Task<IEnumerable<Todo>> GetAllTodo(string UserId, Status status);
+        Task<IEnumerable<TodoDTOWithTaskDTO>> GetAllTodo(string UserId, Status status);
 
-        Task<IEnumerable<Todo>> GetAllTodo(string UserId); // All todo...
+        Task<IEnumerable<TodoDTOWithTaskDTO>> GetAllTodo(string UserId);
 
         Task DeleteTodoById(string UserId, int id);
 
-        Task UpdateTodo(string UserId, Todo todo);
+        Task UpdateTodo(string UserId, TodoDTO todo);
 
-        Task MarkAsComplete(string UserId, Todo todo);
+        Task UpdateTodoStatus(string userId, int todoId, Status statusToChange);
 
-        Task MoveToRunning(string UserId, Todo todo);
-
-        Task<TodoProductivityDTO> GetProgressForTodays(string UserId);
+        Task<TodoProgressAnalysisDTO> GetProgressForTodays(string UserId);
     }
 }
