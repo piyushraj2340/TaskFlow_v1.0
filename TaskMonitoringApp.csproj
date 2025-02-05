@@ -26,10 +26,4 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-    <ItemGroup>
-	    <Content Remove="appsettings.json" />
-    </ItemGroup>
-
-
 </Project>
