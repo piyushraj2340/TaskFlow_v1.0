@@ -3,31 +3,31 @@
 Todo: 
 1. Implement the error handling for the developer mode : redirect.... for both.. || have the both error throwing mode for json and view...
 2. design the error page beautiful 
-3. Implement the todo page... such that get the information about the daily routine ... working on...
+8. implement the add notes with the time stamp and having the roadmap or planning....
+	1. ISpecification use of this to apply the filter....
+3. Implement the todo page... such that get the information about the daily routine ... working on...✅
 4. Implement the logic for the having an instance of the task tha have an repeat daily or weekly ✅
 5. analysis the data simple only such as completed task count, goal achieved count, success ratio, etc....✅
 6. implement the time taken to complete the task manual latter implement the tracker.... or having both...
 7. filter the data like in the active row only show the active, complete only show complete... ✅
-8. implement the add notes with the time stamp and having the roadmap or planning....
 10. implement the pop-over when we attamps to delete the data in the row to confirm, you want to delete or not. ✅
-	11. Authentication using the identity asp.net or both... to learn ... 
+	11. Authentication using the identity asp.net or both... to learn ... ✅ using the identity
 	
 	1. 1. Implement the active and completed goal  same goes to the task ✅
-	1. ISpecification use of this to apply the filter....
-	1. add endedonDate in both task, goal.. modify if the status changes to the end then make the datetime to the current so that next moment it goes to end and also update the status...
+	1. add endedonDate in both task, goal.. modify if the status changes to the end then make the datetime to the current so that next moment it goes to end and also update the status...✅
 	1. implement the redirect logic from the same page that have been called for the create task and edit task.. ✅
 	1. calculations is done using the mvc model -- productivity... using the service... ✅
-	1. all the calculations goes through the stored procedured.... ❌ implemet in the identity using the linq or implement both...
+	1. all the calculations goes through the stored procedured.... 
 
-	for the mvc that direcly render like in the details : generate the status in more better ways like: delete have red color.. 
+	for the mvc that direcly render like in the details : generate the status in more better ways like: delete have red color..✅ 
 	1. 
-	1. Add the date like: CompletedOn, EndedOn, StartedOn, EndingOn, etc... in the next version of projects...
+	1. Add the date like: CompletedOn, EndedOn, StartedOn, EndingOn, etc... in the next version of projects...✅
 	1. Add the descriptions, priority, that have been added today... on the model class ✅
 
 	        [Range(minimum:0,maximum:100)]
         public int PerformanceScale { get; set; } // this help me to calculate the actual productivity of the task...
 
-		if needed add this also 
+		if needed add this also implemnt the custome productivity by the user 
 
 	
 		check if we Add validations in the controller 
@@ -44,7 +44,7 @@ Todo:
 	1. sorting on the datatable....
 	2. review the calculations of goal,task,and todos.... 
 
-# Add UserBased control in service, repository if need....
+# Add UserBased control in service, repository if need....✅
 # Add username while register user  ✅
 # add the task, goal, todo, productivity controller to the authorize ✅
 # add the model error in the mvc patter using the partial view  ✅
@@ -56,7 +56,7 @@ Todo:
 
 
 # need to test the updateExecuteAsync if not work implement the saveChangesAsync()
-# test if the goal.user.id work or not if not use the another LINQ based approach used the include
+# test if the goal.user.id work or not if not use the another LINQ based approach used the include✅
 # redirect logic if we add, update, task as we have made to redirect to back page but if we have directly come to that page so where to redirect....
 
 # test the todo to the and add the todo in repository layer 
@@ -117,7 +117,7 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 		###  --- suggestiong like task 1 with goal 1 add explictily and give the suggestion name.....
 --- use the sp for the above functionality... ---
 
-# GoalEndDate - TaskEndDate does it need the dateTime or just need the date 
+# GoalEndDate - TaskEndDate does it need the dateTime or just need the date : ans: need datetime but time end to mid-night like : 23:59:59 
 # if goal or task mark as completed and then change the status to running: need to add the notes before move to running....
 # also add the notes automatically when status changes or task completed, etc.... and have tags manual notes or log notes....
 
@@ -160,3 +160,24 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 
 # when I implemented the Iunit of work patter then addtaskwithgoal will be added using the entity...
   
+  #TODO PAGE NOW WOKING NOW BUT HAS ISSUE WITH CREATING THE INSTANCE OF THE TASK 
+
+  CREATEING THE MULTIPLE TODO WITH THE SAME DATE 
+
+  TODO LINK TO TASK IS NOT OPENING SOME 0 IDS 
+
+  SEARCH GOAL ON THE TASK CREATION WILL NOT HIDE IF OTHER FIELD IS SELECTED 
+
+  PRIORITY TAG APPERS WRONGS 
+
+  STILL NOT GETTIG THE GOAL DETAILS ON EDITING 
+
+  Add validation in the sp to only active goal is added to the task
+
+  fix: end time for goal,task,todo at :23:59:59
+
+ Scheduled move to running.... like planning
+ 
+ add the components on planning on goal and task both...
+
+ add deleted and ended todos 
