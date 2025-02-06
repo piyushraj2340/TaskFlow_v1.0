@@ -6,10 +6,13 @@ namespace TaskMonitoringApp.Models.Entities
     public enum Status
     {
         NotStarted = 0,
-        Running,
-        Completed,
-        Ended,
-        All
+        Running = 1,
+        Completed = 2,
+        Ended = 3,
+        All = 4,
+        Draft = 5,
+        Published = 6,
+        Archived = 7,
     }
 
     public enum ResponseDataMode
