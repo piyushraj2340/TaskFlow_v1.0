@@ -66,6 +66,14 @@ namespace TaskMonitoringApp.Models.Data
                 .WithMany(t => t.GoalTasks)
                 .HasForeignKey(gt => gt.TaskId);
 
+            modelBuilder.Entity<Goals>()
+                .HasIndex(g => new { g.UserId, g.Name })
+                .IsUnique();
+
+            modelBuilder.Entity<Tasks>()
+                .HasIndex(g => new { g.UserId, g.Name })
+                .IsUnique();
+
             modelBuilder.Entity<InsertUpdateSpWithIdDTO>().ToView(null);
             modelBuilder.Entity<GoalDTO>().ToView(null);
             modelBuilder.Entity<GoalNameDTO>().ToView(null);
