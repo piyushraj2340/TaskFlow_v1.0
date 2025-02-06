@@ -181,3 +181,10 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
  add the components on planning on goal and task both...
 
  add deleted and ended todos 
+
+
+
+ ### Features : notes..
+# Introduce the concept of the category, labels, or tags, etc dynamic....
+# configure the sticky notes models such as time,stickytilldate,timerange,closecount,etc....
+#
