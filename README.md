@@ -188,3 +188,10 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 # Introduce the concept of the category, labels, or tags, etc dynamic....
 # configure the sticky notes models such as time,stickytilldate,timerange,closecount,etc....
 #
+
+
+# Test the DTOWithout creating the tables or we need to use the select
+# move the hardCoded goalId, taskId, todoId in the notes as notes can be added any where in the application using the category :-
+
+# implement the IUnitOfWork Patter with the ISpecficaton
+
