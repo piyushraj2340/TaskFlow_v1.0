@@ -26,9 +26,10 @@ namespace TaskMonitoringApp.Models.Data
 
         public DbSet<TodoProgressAnalysis> TodoProgressAnalyses { get; set; }
 
+        public DbSet<Notes> Notes { get; set; }
 
         // Adding the sp_entity_data
-        
+
 
         public DbSet<InsertUpdateSpWithIdDTO> InsertUpdateSpWithIdDTO { get; set; }
 
@@ -42,8 +43,6 @@ namespace TaskMonitoringApp.Models.Data
         public DbSet<TodoDTOWithTaskDTO> TodoWithTaskDTO { get; set; }
 
         public DbSet<TodoProgressAnalysisDTO> TodoProgressAnalysesDTO { get; set; }
-
-        public DbSet<Notes> Notes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
