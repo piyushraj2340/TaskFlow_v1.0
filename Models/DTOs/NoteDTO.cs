@@ -18,8 +18,6 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public int? ParentNoteId { get; set; }
 
-        public Notes? ParentNote { get; set; }
-
         public Status Status { get; set; }
 
         public bool IsPinned { get; set; }
@@ -27,8 +25,6 @@ namespace TaskMonitoringApp.Models.DTOs
         public DateTime TimeStamp { get; set; }
 
         public string UserId { get; set; }
-
-        public Users User { get; set; }
     }
 
     public class NoteDTOWithGoalDTO : NoteDTO

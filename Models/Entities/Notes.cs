@@ -1,54 +1,51 @@
-﻿    namespace TaskMonitoringApp.Models.Entities
+﻿namespace TaskMonitoringApp.Models.Entities
+{
+    public class Notes
     {
+        public int Id { get; set; }
 
+        public string Title { get; set; }
 
+        public string Content { get; set; }
 
-        public class Notes
-        {
-            public int Id { get; set; }
+        public List<string> Tags { get; set; } = new List<string>();
 
-            public string Title { get; set; }
+        public bool IsModified { get; set; } = false;
 
-            public string Content { get; set; }
+        public DateTime? ModifiedOn { get; set; }
 
-            public List<string> Tags { get; set; } = new List<string>();
+        public int? ParentNoteId { get; set; }
 
-            public bool IsModified { get; set; } = false;
+        public Notes? ParentNote { get; set; }
 
-            public DateTime? ModifiedOn { get; set; }
+        public Status Status { get; set; }
 
-            public int? ParentNoteId { get; set; } 
+        public bool IsPinned { get; set; }
 
-            public Notes? ParentNote { get; set; }
+        public DateTime? CreatedOn { get; set; } = DateTime.Now;
 
-            public Status Status { get; set; }
+        public DateTime? UpdatedOn { get; set; } = DateTime.Now;
 
-            public bool IsPinned { get; set; }
+        public DateTime TimeStamp { get; set; } = DateTime.Now;
 
-            public DateTime? CreatedOn { get; set; } = DateTime.Now;
+        public bool IsDeleted { get; set; } = false;
 
-            public DateTime? UpdatedOn { get; set; } = DateTime.Now;
+        public DateTime? DeletedOn { get; set; }
 
-            public DateTime TimeStamp { get; set; } = DateTime.Now;
+        public int? TodoId { get; set; }
 
-            public bool IsDeleted { get; set; } = false;
+        public Todo? Todo { get; set; }
 
-            public DateTime? DeletedOn { get; set; }
+        public int? TaskId { get; set; }
 
-            public int? TodoId { get; set; }
+        public Tasks? Task { get; set; }
 
-            public Todo? Todo { get; set; }
+        public int? GoalId { get; set; }
 
-            public int? TaskId { get; set; }
+        public Goals? Goal { get; set; }
 
-            public Tasks? Task { get; set; }
+        public string UserId { get; set; }
 
-            public int? GoalId { get; set; }
-
-            public Goals? Goal { get; set; }
-
-            public string UserId { get; set; }
-
-            public Users User { get; set; }
-        }
+        public Users User { get; set; }
     }
+}
