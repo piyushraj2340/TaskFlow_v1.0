@@ -175,7 +175,202 @@
     </div>
 
 
-    <!-- Task Details Section -->
+    <div class="shadow-lgmb-8 mb-8 rounded-lg rounded-lg bg-white bg-white p-6 p-6 shadow-lg">
+        <div class="border-b border-gray-300">
+            <!-- Tab Navigation -->
+            <ul class="flex space-x-4">
+                <li><a href="#" class="tab-link active-tab border-b-2 border-blue-600 px-4 py-2 font-semibold text-blue-600" data-tab="info">Info</a></li>
+                <li><a href="#" class="tab-link px-4 py-2 text-gray-600" data-tab="notes">All Notes</a></li>
+                <li><a href="#" class="tab-link px-4 py-2 text-gray-600" data-tab="board1">Board 1</a></li>
+                <li><a href="#" class="tab-link px-4 py-2 text-gray-600" data-tab="create">Create Board</a></li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="mt-4">
+            <!-- Info Tab -->
+            <div id="info" class="tab-content">
+                <div class="mb-4">
+                    <h2 class="text-3xl font-bold text-gray-800">Task Information</h2>
+                    <p class="text-gray-600">Here are all details related to this goals.</p>
+                </div>
+                <div class="ms-4 space-y-4">
+                    <!-- Task Name -->
+                    <div class="flex flex-col sm:flex-row">
+                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Task Name</div>
+                        <div class="w-full text-left text-lg font-semibold text-gray-800 sm:w-3/4">@Model.Name</div>
+                    </div>
+                    <!-- Description -->
+                    <div class="flex flex-col sm:flex-row">
+                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Description</div>
+                        <div class="w-full text-left text-gray-600 sm:w-3/4">@(string.IsNullOrWhiteSpace(Model.Description) ? "No Descriptions found" : Model.Description)</div>
+                    </div>
+                    <!-- Priority -->
+                    <div class="flex flex-col sm:flex-row">
+                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Priority</div>
+                        <div class="w-full text-left sm:w-3/4">
+                            <span class="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
+                                @Model.Priority
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Status -->
+                    <div class="flex flex-col sm:flex-row">
+                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Status</div>
+                        <div class="w-full text-left sm:w-3/4">
+                            <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
+                                @Model.GoalStatus
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Tab -->
+            <div id="notes" class="tab-content hidden">
+
+                <div class="mb-4">
+                    <h2 class="text-3xl font-bold text-gray-800">Notes Timeline</h2>
+                    <p class="text-gray-600">Here are all the notes related to this goals.</p>
+                </div>
+
+                <div class="ms-8 max-w-4xl ps-4">
+                    <!-- Timeline Wrapper -->
+                    <div class="border-l-4 relative border-gray-300 pl-6">
+
+                        <!-- Note 1 -->
+                        <div class="relative mb-6">
+                            <!-- Timeline Dot -->
+                            <div class="absolute -left-[20px] top-4 h-0.5 w-2 bg-gray-300"></div>
+                            <div class="border-4 absolute -left-[11px] top-2 flex h-5 w-5 items-center justify-center rounded-full border-white bg-blue-600">
+                            </div>
+
+                            <div class="rounded-lg bg-blue-100 p-4 shadow">
+                                <h3 class="flex items-center font-semibold text-blue-700">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Feb 1, 2025
+                                </h3>
+                                <p class="text-gray-700">Finalized project roadmap.</p>
+                                <div class="mt-2 text-xs text-gray-600">Created: Feb 1, 2025 | <span class="text-green-700">Published</span></div>
+
+                                <!-- Actions -->
+                                <div class="mt-3 flex items-center justify-between">
+                                    <div class="flex space-x-2">
+                                        <button class="text-gray-700 hover:text-blue-500"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="text-gray-700 hover:text-red-500"><i class="fas fa-trash"></i> Delete</button>
+                                    </div>
+                                    <button class="text-yellow-600"><i class="fas fa-thumbtack"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Note 2 -->
+                        <div class="relative mb-6">
+                            <!-- Timeline Dot -->
+                            <div class="absolute -left-[20px] top-4 h-0.5 w-2 bg-gray-300"></div>
+                            <div class="border-4 absolute -left-[11px] top-2 flex h-5 w-5 items-center justify-center rounded-full border-white bg-blue-600">
+                            </div>
+
+                            <div class="rounded-lg bg-yellow-100 p-4 shadow">
+                                <h3 class="flex items-center font-semibold text-yellow-700">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Feb 3, 2025
+                                </h3>
+                                <p class="text-gray-700">Completed UI design phase.</p>
+                                <div class="mt-2 text-xs text-gray-600">Modified: Feb 3, 2025 | <span class="text-red-600">Draft</span></div>
+
+                                <!-- Actions -->
+                                <div class="mt-3 flex items-center justify-between">
+                                    <div class="flex space-x-2">
+                                        <button class="text-gray-700 hover:text-blue-500"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="text-gray-700 hover:text-red-500"><i class="fas fa-trash"></i> Delete</button>
+                                    </div>
+                                    <button class="text-yellow-600"><i class="fas fa-thumbtack"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*                         <!-- Dash Separator -->
+                        <div class="relative mb-6">
+                            <div class="absolute -left-4 top-0 h-full w-2 bg-gray-300"></div>
+                            <div class="flex items-center justify-center text-sm text-gray-500">
+                                <i class="fas fa-unlink mr-2"></i> Break in Timeline
+                            </div>
+                        </div>
+ *@
+                        <!-- Note 3 -->
+                        <div class="relative">
+                            <!-- Timeline Dot -->
+                            <div class="absolute -left-[20px] top-4 h-0.5 w-2 bg-gray-300"></div>
+                            <div class="border-4 absolute -left-[11px] top-2 flex h-5 w-5 items-center justify-center rounded-full border-white bg-blue-600">
+                            </div>
+
+                            <div class="rounded-lg bg-green-100 p-4 shadow">
+                                <h3 class="flex items-center font-semibold text-green-700">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Feb 5, 2025
+                                </h3>
+                                <p class="text-gray-700">Tested API performance.</p>
+                                <div class="mt-2 text-xs text-gray-600">Archived: Feb 5, 2025</div>
+
+                                <!-- Actions -->
+                                <div class="mt-3 flex items-center justify-between">
+                                    <div class="flex space-x-2">
+                                        <button class="text-gray-700 hover:text-blue-500"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="text-gray-700 hover:text-red-500"><i class="fas fa-trash"></i> Delete</button>
+                                    </div>
+                                    <button class="text-gray-600"><i class="fas fa-thumbtack"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Board 1 Tab -->
+            <div id="board1" class="tab-content hidden">
+                <div class="mb-4">
+                    <h2 class="text-3xl font-bold text-gray-800">Notes Board</h2>
+                    <p class="text-gray-600">Display board-related notes here.</p>
+                </div>
+                <div class="mx-auto max-w-6xl">
+                    <!-- Notes Board Container -->
+                    <div class="grid-cols-1 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        <!-- Sample Note -->
+                        <div class="rotate-[-2deg] relative transform rounded-lg bg-yellow-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
+                            <div class="absolute right-2 top-2 text-gray-700">
+                                <i class="fa-solid fa-thumbtack"></i>
+                            </div>
+                            <h2 class="text-lg font-semibold">Project Planning</h2>
+                            <p class="mt-2 text-sm text-gray-800">Finalize project roadmap and assign tasks.</p>
+                            <div class="mt-4 text-xs text-gray-600">🕒 Created: 2025-02-06</div>
+                        </div>
+
+                        <div class="rotate-[-2deg] relative transform rounded-lg bg-green-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
+                            <div class="absolute right-2 top-2 text-gray-700">
+                                <i class="fa-solid fa-thumbtack"></i>
+                            </div>
+                            <h2 class="text-lg font-semibold">Meeting Notes</h2>
+                            <p class="mt-2 text-sm text-gray-800">Discuss feature updates and client requirements.</p>
+                            <div class="mt-4 text-xs text-gray-600">🕒 Modified: 2025-02-05</div>
+                        </div>
+
+                        <div class="rotate-[-2deg] relative transform rounded-lg bg-blue-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
+                            <h2 class="text-lg font-semibold">Bug Fixes</h2>
+                            <p class="mt-2 text-sm text-gray-800">Resolve UI inconsistencies in task module.</p>
+                            <div class="mt-4 text-xs text-gray-600">🕒 Created: 2025-02-04</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Board Tab -->
+            <div id="create" class="tab-content hidden">
+                <h2 class="mb-4 text-2xl font-semibold">Create Board</h2>
+                <p class="text-gray-600">Use this section to create a new board.</p>
+            </div>
+        </div>
+    </div>
+
+    @* <!-- Task Details Section -->
     <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
 
         <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
@@ -211,7 +406,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> *@
 
     <!-- Goals Section -->
     <div class="mb-12">
@@ -311,6 +506,24 @@
         window.addEventListener("resize", function () {
             taskGrowthChart.resize();
             goalPieChart.resize();
+        });
+
+
+        // Tabs
+        $(".tab-link").click(function(e){
+            e.preventDefault();
+
+            // Remove active class from all tabs
+            $(".tab-link").removeClass("text-blue-600 border-b-2 border-blue-600 font-semibold").addClass("text-gray-600");
+
+            // Add active class to the clicked tab
+            $(this).addClass("text-blue-600 border-b-2 border-blue-600 font-semibold").removeClass("text-gray-600");
+
+            // Hide all tab contents
+            $(".tab-content").addClass("hidden");
+
+            // Show the selected tab
+            $("#" + $(this).data("tab")).removeClass("hidden");
         });
     </script>
 
