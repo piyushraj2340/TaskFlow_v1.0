@@ -46,6 +46,9 @@ namespace TaskMonitoringApp.Mappings
             CreateMap<Todo, TodoStatusDTO>();
             CreateMap<TodoDTO, TodoDTOWithTaskDTO>().ReverseMap();
 
+            CreateMap<Notes, NoteDTO>();
+            CreateMap<NoteDTO, Notes>();
+
             CreateMap<RegisterViewModel, Users>();
         }
     }

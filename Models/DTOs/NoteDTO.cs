@@ -24,7 +24,7 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public DateTime TimeStamp { get; set; }
 
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
     }
 
     public class NoteDTOWithGoalDTO : NoteDTO

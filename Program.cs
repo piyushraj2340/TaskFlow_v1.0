@@ -22,6 +22,7 @@ builder.Services.AddScoped<ITodoServices, TodoServices>();
 builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
 builder.Services.AddScoped<INotesRepository, NotesRepository>();
+builder.Services.AddScoped<INotesServices, NotesServices>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

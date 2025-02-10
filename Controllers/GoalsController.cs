@@ -76,7 +76,8 @@ namespace TaskMonitoringApp.Controllers
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
 
-        public async Task<IActionResult> Details(int Id)
+        [Route("Goals/Details/{Id}/{tabName?}")]    
+        public async Task<IActionResult> Details(int Id, string? tabName)
         {
             // Get the logged-in user's ID
             var userId = _userManager.GetUserId(User);
