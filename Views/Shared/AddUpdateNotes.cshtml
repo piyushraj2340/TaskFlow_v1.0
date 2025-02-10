@@ -1,119 +1,113 @@
-﻿@model TaskMonitoringApp.Models.DTOs.NoteDTO
+﻿<!-- Modal Background -->
+<div id="goalModal" class="fixed inset-0 flex hidden w-full items-center justify-center bg-gray-800 bg-opacity-50">
+    <div class="w-full max-w-xl rounded-lg bg-white shadow-xl">
+        <!-- Card Header -->
+        <div class="flex items-center justify-between rounded-t-lg bg-indigo-600 px-6 py-4 text-white">
+            <h2 class="text-xl font-semibold tracking-wide">
+                <i class="fa-solid fa-clipboard-list"></i> Create a Progress Record in Goal
+            </h2>
+            <button class="text-2xl text-white hover:text-gray-200" id="closeModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
-<div class="w-full max-w-xl rounded-lg bg-white shadow-xl">
-    <!-- Card Header -->
-    <div class="flex items-center justify-between rounded-t-lg bg-indigo-600 px-6 py-4 text-white">
-        <h2 class="text-xl font-semibold tracking-wide">
-            <i class="fa-solid fa-clipboard-list"></i> Create a Progress Record in Goal
-        </h2>
-        <button class="text-2xl text-white hover:text-gray-200" id="closeCard">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
+        <!-- Card Body -->
+        <div class="p-6">
+            <p class="mb-4 text-sm text-gray-600">Add Goal Progress with Goal Title</p>
 
-    <!-- Card Body -->
-    <div class="p-6">
-        <p class="mb-4 text-sm text-gray-600">Add Goal Progress with Goal Title</p>
+            <form asp-action="Create" asp-controller="Notes" method="post" enctype="multipart/form-data" id="noteForm" data-goalId="@Model.Id">
+                @Html.AntiForgeryToken()
 
-        <form asp-action="CreateNote" asp-controller="Notes" method="post" enctype="multipart/form-data" id="noteForm">
-            @Html.AntiForgeryToken()
-
-            <!-- Title -->
-            <div class="mb-4">
-                <label asp-for="Title" class="mb-1 block font-semibold text-gray-700">
-                    <i class="fa-solid fa-heading"></i> Title
-                </label>
-                <input asp-for="Title" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter note title" required>
-                <span asp-validation-for="Title" class="text-sm text-red-500"></span>
-            </div>
-
-            <!-- Content -->
-            <div class="mb-4">
-                <label asp-for="Content" class="mb-1 block font-semibold text-gray-700">
-                    <i class="fa-solid fa-file-alt"></i> Content
-                </label>
-                <textarea asp-for="Content" rows="4" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter progress details" required></textarea>
-                <span asp-validation-for="Content" class="text-sm text-red-500"></span>
-            </div>
-
-            <!-- Tags -->
-            <div class="mb-4">
-                <label class="mb-1 block font-semibold text-gray-700">
-                    <i class="fa-solid fa-tags"></i> Tags (Comma separated)
-                </label>
-                <input type="text" id="tags" name="Tags" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., work, meeting">
-            </div>
-
-            <!-- Pin Note -->
-            <div class="mb-4 flex items-center">
-                <input asp-for="IsPinned" type="checkbox" class="mr-2">
-                <label asp-for="IsPinned" class="font-semibold text-gray-700">
-                    <i class="fa-solid fa-thumbtack"></i> Pin this note
-                </label>
-            </div>
-
-            <!-- File Upload -->
-            <div class="mb-4">
-                <label class="mb-1 block font-semibold text-gray-700">
-                    <i class="fa-solid fa-paperclip"></i> Attachments
-                </label>
-                <div class="flex items-center">
-                    <label class="flex cursor-pointer items-center space-x-2 rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700">
-                        <i class="fa-solid fa-upload"></i>
-                        <span>Upload File</span>
-                        <input type="file" id="attachments" name="attachments" class="hidden">
+                <!-- Title -->
+                <div class="mb-4">
+                    <label for="title" class="mb-1 block font-semibold text-gray-700">
+                        Title
                     </label>
-                    <span id="fileName" class="ml-3 text-sm text-gray-600"></span>
+                    <input id="title" name="title" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter note title" required>
+                    <span data-validation-for="title" class="text-sm text-red-500"></span>
                 </div>
-            </div>
 
-            <!-- Color & Theme Selection -->
-            <div class="mb-4">
-                <label class="mb-1 block font-semibold text-gray-700">
-                    <i class="fa-solid fa-palette"></i> Choose Color
-                </label>
-                <p class="mb-2 text-sm text-gray-500">Select the theme color below:</p>
+                <!-- Content -->
+                <div class="mb-4">
+                    <label for="content" class="mb-1 block font-semibold text-gray-700">
+                        Content
+                    </label>
+                    <textarea id="content" name="content" rows="4" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter progress details" required></textarea>
+                    <span data-validation-for="content" class="text-sm text-red-500"></span>
+                </div>
 
-                <div class="flex items-center space-x-3">
-                    <div class="flex space-x-2">
-                        <div class="h-8 w-8 cursor-pointer rounded-full bg-red-500 shadow-md"></div>
-                        <div class="h-8 w-8 cursor-pointer rounded-full bg-blue-500 shadow-md"></div>
-                        <div class="h-8 w-8 cursor-pointer rounded-full bg-green-500 shadow-md"></div>
-                        <div class="h-8 w-8 cursor-pointer rounded-full bg-yellow-500 shadow-md"></div>
+                <!-- Tags -->
+                <div class="mb-4">
+                    <label for="tags" class="mb-1 block font-semibold text-gray-700">
+                        Tags (Comma separated)
+                    </label>
+                    <input type="text" id="tags" name="tags" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., work, meeting">
+                </div>
+
+                <!-- Pin Note -->
+                <div class="mb-4 flex items-center">
+                    <input id="IsPinned" name="IsPinned" type="checkbox" class="mr-2">
+                    <label for="IsPinned" class="font-semibold text-gray-700">
+                        <i class="fa-solid fa-thumbtack"></i> Pin this note
+                    </label>
+                </div>
+
+                <!-- File Upload -->
+                <div class="mb-4">
+                    <label class="mb-1 block font-semibold text-gray-700">
+                        <i class="fa-solid fa-paperclip"></i> Attachments
+                    </label>
+                    <div class="flex items-center">
+                        <label class="flex cursor-pointer items-center space-x-2 rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700">
+                            <i class="fa-solid fa-upload"></i>
+                            <span>Upload File</span>
+                            <input type="file" id="attachments" name="attachments" class="hidden">
+                        </label>
+                        <span id="fileName" class="ml-3 text-sm text-gray-600"></span>
                     </div>
-                    <button class="ml-3 text-xl text-indigo-600 hover:text-indigo-800">
-                        <i class="fa-solid fa-plus-circle"></i>
+                </div>
+
+                <!-- Color & Theme Selection -->
+                <div class="mb-4">
+                    <label class="mb-1 block font-semibold text-gray-700">
+                        <i class="fa-solid fa-palette"></i> Choose Color
+                    </label>
+                    <p class="mb-2 text-sm text-gray-500">Select the theme color below:</p>
+
+                    <div class="flex items-center space-x-3">
+                        <div class="flex space-x-4">
+                            <!-- Theme 1 -->
+                            <label class="cursor-pointer">
+                                <input type="radio" name="theme" value="theme-red" class="peer hidden" checked />
+                                <div class="border-4 h-10 w-10 rounded-full border-transparent bg-red-500 peer-checked:border-gray-800"></div>
+                            </label>
+
+                            <!-- Theme 2 -->
+                            <label class="cursor-pointer">
+                                <input type="radio" name="theme" value="theme-blue" class="peer hidden" />
+                                <div class="border-4 h-10 w-10 rounded-full border-transparent bg-blue-500 peer-checked:border-gray-800"></div>
+                            </label>
+
+                            <!-- Theme 3 -->
+                            <label class="cursor-pointer">
+                                <input type="radio" name="theme" value="theme-green" class="peer hidden" />
+                                <div class="border-4 h-10 w-10 rounded-full border-transparent bg-green-500 peer-checked:border-gray-800"></div>
+                            </label>
+                        </div>
+
+                        <button type="button" class="ml-3 text-xl text-indigo-600 hover:text-indigo-800">
+                            <i class="fa-solid fa-plus-circle"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Card Footer -->
+                <div class="flex justify-end rounded-b-lg border-t p-4">
+                    <button type="submit" id="saveNotesBtn" class="flex items-center space-x-2 rounded-md bg-indigo-600 px-6 py-2 text-white transition hover:bg-indigo-700">
+                        <i class="fa-solid fa-save"></i>
+                        <span>Save Note</span>
                     </button>
                 </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Card Footer -->
-    <div class="flex justify-end rounded-b-lg border-t bg-gray-50 p-4">
-        <button type="submit" id="saveBtn" class="flex items-center space-x-2 rounded-md bg-indigo-600 px-6 py-2 text-white transition hover:bg-indigo-700">
-            <i class="fa-solid fa-save"></i>
-            <span>Save Note</span>
-        </button>
+            </form>
+        </div>       
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Close Card Button
-        document.getElementById("closeCard").addEventListener("click", function () {
-            document.querySelector(".shadow-xl").style.display = "none";
-        });
-
-        // Display File Name
-        document.getElementById("attachments").addEventListener("change", function () {
-            let fileName = this.value.split("\\").pop();
-            document.getElementById("fileName").textContent = fileName;
-        });
-
-        // Handle Form Submission
-        document.getElementById("saveBtn").addEventListener("click", function () {
-            document.getElementById("noteForm").submit();
-        });
-    });
-</script>
