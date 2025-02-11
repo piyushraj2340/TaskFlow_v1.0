@@ -125,7 +125,7 @@
                                         <!-- Actions -->
                                         <div class="mt-3 flex items-center justify-between">
                                             <div class="flex space-x-2">
-                                                <button class="text-gray-700 hover:text-blue-500"><i class="fas fa-edit"></i> Edit</button>
+                                                <button class="edit-notes text-gray-700 hover:text-blue-500" data-noteId="@noteList.Id"><i class="fas fa-edit"></i> Edit</button>
                                                 <button class="text-gray-700 hover:text-red-500"><i class="fas fa-trash"></i> Delete</button>
                                             </div>
                                             @if(noteList.IsPinned)
@@ -238,6 +238,7 @@
     <script src="~/js/sweetAlertScript.js"></script>
     <script src="~/js/utils.js"></script>
     <script src="~/js/goalScript.js"></script>
+    <script src="~/js/notesScript.js"></script>
 
     <script>
         // Goal Growth Ratio Line Chart
@@ -287,85 +288,6 @@
         window.addEventListener("resize", function () {
             taskGrowthChart.resize();
             goalPieChart.resize();
-        });
-    </script>
-
-    <script>
-
-        // Tabs
-        $(".tab-link").click(function (e) {
-            e.preventDefault();
-
-            history.pushState(null, null, this.href);
-
-            // Remove active class from all tabs
-            $(".tab-link").removeClass("text-blue-600 border-blue-600 font-semibold").addClass("text-gray-600 border-gray-600");
-
-            // Add active class to the clicked tab
-            $(this).addClass("text-blue-600 border-blue-600 font-semibold").removeClass("text-gray-600 border-gray-600");
-
-            // Hide all tab contents
-            $(".tab-content").addClass("hidden");
-
-            // Show the selected tab
-            $("#" + $(this).data("tab")).removeClass("hidden");
-        });
-    </script>
-
-    <script>
-        //Add the Notes
-
-
-        $("#noteForm").on('submit', function (e) {
-            e.preventDefault();
-            const data = {
-                Title: $("#title").val(),
-                Content: $("#content").val(),
-                Tags: $("#tags").val(),
-                IsPinned: true
-            }
-
-            const goalId = $("#noteForm").data("goalid");
-
-            console.log(data);
-            console.log(goalId);
-
-
-            $.ajax({
-                url: `/Notes/Create/${goalId}`,
-                method: "POST",
-                data: data,
-                success: function (response) {
-                    console.log("Success:", response);
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error:", error);
-                }
-            });
-
-        });
-
-        $(document).ready(function () {
-            // Open Modal
-            $("#openAddNotesModal").on('click', function () {
-                $("#goalModal").removeClass("hidden").fadeIn();
-            });
-
-            // Close Modal
-            $("#closeModal").click(function () {
-                $("#goalModal").fadeOut();
-            });
-
-            // Display File Name
-            $("#attachments").change(function () {
-                let fileName = $(this).val().split("\\").pop();
-                $("#fileName").text(fileName);
-            });
-
-            // Handle Form Submission
-            $("#saveBtn").click(function () {
-                $("#noteForm").submit();
-            });
         });
     </script>
 }
