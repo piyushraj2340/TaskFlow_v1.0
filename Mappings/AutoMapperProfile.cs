@@ -9,12 +9,6 @@ namespace TaskMonitoringApp.Mappings
     {
         public AutoMapperProfile()
         {
-            
-            CreateMap<Todo, TodoDTO>();
-            CreateMap<TodoDTO, Todo>();
-            CreateMap<TodoStatusDTO, Todo>();
-            CreateMap<Todo, TodoStatusDTO>();
-            CreateMap<TodoDTO, TodoDTOWithTaskDTO>().ReverseMap();
 
             CreateMap<Notes, NoteDTO>();
             CreateMap<NoteDTO, Notes>();

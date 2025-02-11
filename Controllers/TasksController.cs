@@ -161,6 +161,7 @@ namespace TaskMonitoringApp.Controllers
             {
                 return NotFound();
             }
+            task.UserId = userId;
 
             ViewBag.IsEditMode = true;
             var returnUrl = string.IsNullOrWhiteSpace(TempData["ReturnUrl"]?.ToString()) ? Url.Action("Index", "Home") : TempData["ReturnUrl"]?.ToString();

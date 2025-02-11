@@ -39,6 +39,8 @@ namespace TaskMonitoringApp.Models.ViewModel
         public string? GoalIds { get; set; }
 
         public IEnumerable<GoalNameDTO>? GoalLists { get; set; }
+        
+        public string? UserId { get; set; }
     }
 
     public class TaskProductivityViewModel
