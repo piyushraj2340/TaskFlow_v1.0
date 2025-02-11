@@ -26,4 +26,8 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Mappings\NewFolder\" />
+  </ItemGroup>
 </Project>

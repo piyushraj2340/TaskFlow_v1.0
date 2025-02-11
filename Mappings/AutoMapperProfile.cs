@@ -9,22 +9,7 @@ namespace TaskMonitoringApp.Mappings
     {
         public AutoMapperProfile()
         {
-            CreateMap<Tasks, TaskDTO>();
-            CreateMap<TaskDTO, Tasks>();
-            CreateMap<Tasks, TaskViewModel>();
-            CreateMap<TaskViewModel, Tasks>();
-            CreateMap<TaskStatusDTO, Tasks>();
-            CreateMap<Tasks, TaskStatusDTO>();
-            CreateMap<TaskDTO, TaskViewModel>();
-            CreateMap<TaskViewModel, TaskDTO>();
-            CreateMap<TaskDTOWithGoalNameDTOs, TaskViewModel>();
-            CreateMap<TaskViewModel, TaskDTOWithGoalNameDTOs>();
-            CreateMap<TaskDTO, TaskDTOWithGoalNameDTOs>();
-            CreateMap<TaskDTOWithGoalNameDTOs, TaskDTO>();
-            CreateMap<TaskDTO, TaskDTOWithGoalDTOs>();
-            CreateMap<TaskDTOWithGoalDTOs, TaskDTO>();
-
-
+            
             CreateMap<Todo, TodoDTO>();
             CreateMap<TodoDTO, Todo>();
             CreateMap<TodoStatusDTO, Todo>();
