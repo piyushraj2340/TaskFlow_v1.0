@@ -19,4 +19,9 @@ namespace TaskMonitoringApp.Models.ViewModel
 
         public string? UserId { get; set; }
     }
+
+    public class GoalWithNotesListViewModel : GoalViewModel
+    {
+        public IEnumerable<NoteDTOWithGoalDTO> NotesList { get; set; }
+    }
 }
