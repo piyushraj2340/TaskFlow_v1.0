@@ -17,45 +17,17 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public Status GoalStatus { get; set; }
 
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
     }
 
-    public class GoalDTOWithTaskNameDTOs
+    public class GoalDTOWithTaskNameListDTO : GoalDTO
     {
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-
-        public DateTime EndDate { get; set; }
-
-        public Priority Priority { get; set; }
-
-        public string Description { get; set; }
-
-        public Status GoalStatus { get; set; }
-
-        public string UserId { get; set; }
-
         public ICollection<TaskNameDTO>? TaskLists { get; set; }
     }
 
-    public class GoalDTOWithTaskDTOs
+    public class GoalDTOWithTaskListDTO
     {
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-
-        public DateTime EndDate { get; set; }
-
-        public Priority Priority { get; set; }
-
-        public string Description { get; set; }
-
-        public Status GoalStatus { get; set; }
-
-        public string UserId { get; set; }
-
-        public ICollection<TaskDTO> TaskList { get; set; }
+        public ICollection<TaskDTO> TaskLists{ get; set; }
     }
 
     public class GoalStatusDTO
