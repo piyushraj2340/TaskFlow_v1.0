@@ -80,7 +80,7 @@ namespace TaskMonitoringApp.Models.Business
 
             var oldTask = await _taskRepository.GetTasksByIdAsync<Tasks>(userId, task.Id, ResponseDataMode.Model);
 
-            _mapper.Map<Tasks, TaskDTO>(oldTask, task);
+            _mapper.Map<TaskDTO, Tasks>(task, oldTask);
 
             await _taskRepository.UpdateTasksAsync(userId, oldTask, goalIds);
         }
@@ -94,7 +94,7 @@ namespace TaskMonitoringApp.Models.Business
 
             var oldTask = await _taskRepository.GetTasksByIdAsync<Tasks>(userId, task.Id, ResponseDataMode.Model);
 
-            _mapper.Map<Tasks, TaskDTO>(oldTask, task);
+            _mapper.Map<TaskDTO, Tasks>(task, oldTask);
 
             await _taskRepository.UpdateTasksAsync(userId, oldTask);
         }
