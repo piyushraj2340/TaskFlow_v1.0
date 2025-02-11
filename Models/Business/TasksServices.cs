@@ -39,22 +39,25 @@ namespace TaskMonitoringApp.Models.Business
             return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId,goalId, taskStatus, ResponseDataMode.ModelDTO);
         }
 
-        public async Task<TaskDTOWithGoalDTOs> GetAllGoalsWithStatusAndTask(string userId, int taskId, Status goalStatus)
+        public async Task<TaskDTOWithGoalListDTO> GetAllGoalsWithStatusAndTask(string userId, int taskId, Status goalStatus)
         {
             var task = await _taskRepository.GetTasksByIdAsync<TaskDTO>(userId, taskId, ResponseDataMode.ModelDTO);
             var goal = await _goalRepository.GetAllGoalsWithStatusByTaskId<GoalDTO>(userId, taskId, goalStatus, ResponseDataMode.ModelDTO);
 
-            var taskWithGoals = _mapper.Map<TaskDTOWithGoalDTOs>(task);
-            return _mapper.Map<IEnumerable<GoalDTO>, TaskDTOWithGoalDTOs>(goal, taskWithGoals); 
+            var taskWithGoals = _mapper.Map<TaskDTOWithGoalListDTO>(task);
+            taskWithGoals.GoalLists = goal;
+
+            return taskWithGoals;
         }
 
-        public async Task<TaskDTOWithGoalNameDTOs> GetAllGoalNamesWithStatusAndTask(string userId, int taskId, Status goalStatus)
+        public async Task<TaskDTOWithGoalNameListDTO> GetAllGoalNamesWithStatusAndTask(string userId, int taskId, Status goalStatus)
         {
             var task = await _taskRepository.GetTasksByIdAsync<TaskDTO>(userId, taskId,ResponseDataMode.ModelDTO);
             var goals = await _goalRepository.GetAllGoalsWithStatusByTaskId<GoalNameDTO>(userId, taskId, goalStatus, ResponseDataMode.ModelNameDTO);
 
-            var taskWithGoals = _mapper.Map<TaskDTOWithGoalNameDTOs>(task);
+            var taskWithGoals = _mapper.Map<TaskDTOWithGoalNameListDTO>(task);
             taskWithGoals.GoalLists = goals;
+
             return taskWithGoals;
         }
 
