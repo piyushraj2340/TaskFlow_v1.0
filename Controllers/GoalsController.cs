@@ -16,14 +16,16 @@ namespace TaskMonitoringApp.Controllers
     [Authorize]
     public class GoalsController : Controller
     {
-        private readonly IGoalServices _service;
+        private readonly IGoalServices _goalService;
+        private readonly INotesServices _noteService;
         private readonly ILogger<HomeController> _logger;
         private readonly IMapper _mapper;
         private readonly UserManager<Users> _userManager;
 
-        public GoalsController(ILogger<HomeController> logger, IGoalServices service, IMapper mapper, UserManager<Users> userManager)
+        public GoalsController(ILogger<HomeController> logger, IGoalServices goalService, INotesServices noteService, IMapper mapper, UserManager<Users> userManager)
         {
-            _service = service;
+            _goalService = goalService;
+            _noteService = noteService;
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
@@ -39,7 +41,7 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
             
-            GoalProductivityDTO productivity = await _service.GetGoalProductivity(userId);
+            GoalProductivityDTO productivity = await _goalService.GetGoalProductivity(userId);
 
             return View(productivity);
         }
@@ -64,7 +66,7 @@ namespace TaskMonitoringApp.Controllers
                 // Log before adding the product
                 _logger.LogInformation("Attempting to add a new Goal: {GoalName}", goal.Name);
 
-                await _service.AddNewGoal(userId, _mapper.Map<GoalDTO>(goal)); 
+                await _goalService.AddNewGoal(userId, _mapper.Map<GoalDTO>(goal)); 
 
                 // Log success after adding the product
                 _logger.LogInformation("Goal '{GoalName}' successfully added with ID: {GoalID}", goal.Name, goal.Id);
@@ -87,14 +89,21 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var goal = await _service.GetGoalById(userId, Id);
+            var goal = await _goalService.GetGoalById(userId, Id);
 
             if (goal == null)
             {
                 return NotFound();
             }
 
-            return View(_mapper.Map<GoalViewModel>(goal));
+            ViewBag.tabName = tabName;
+
+            var notesList = await _noteService.GetAllNotesByGoalId(userId, Id, Status.All);
+            var goalWithNoteList = _mapper.Map<GoalDTOWithNoteListDTO>(goal);
+            goalWithNoteList.NotesList = notesList;
+
+
+            return View(_mapper.Map<GoalWithNotesListViewModel>(goalWithNoteList));
         }
 
         [HttpPut]
@@ -113,7 +122,7 @@ namespace TaskMonitoringApp.Controllers
                 var goal = _mapper.Map<GoalDTO>(goalData);
                 goal.UserId = userId;
 
-                await _service.UpdateGoal(userId,goal);
+                await _goalService.UpdateGoal(userId,goal);
 
                 return Json(new { status = true, message = "Goal updated successfully" });
             }
@@ -141,8 +150,8 @@ namespace TaskMonitoringApp.Controllers
             int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-            // Get all goals from the service
-            var data = await _service.GetAllGoals(userId, Status.Running);
+            // Get all goals from the goalService
+            var data = await _goalService.GetAllGoals(userId, Status.Running);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -224,8 +233,8 @@ namespace TaskMonitoringApp.Controllers
             int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-            // Get all goals from the service
-            var data = await _service.GetAllGoals(userId, Status.Completed);
+            // Get all goals from the goalService
+            var data = await _goalService.GetAllGoals(userId, Status.Completed);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -307,8 +316,8 @@ namespace TaskMonitoringApp.Controllers
             int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-            // Get all goals from the service
-            var data = await _service.GetAllGoals(userId, Status.NotStarted);
+            // Get all goals from the goalService
+            var data = await _goalService.GetAllGoals(userId, Status.NotStarted);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -390,8 +399,8 @@ namespace TaskMonitoringApp.Controllers
             int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-            // Get all goals from the service
-            var data = await _service.GetAllGoals(userId, Status.Ended);
+            // Get all goals from the goalService
+            var data = await _goalService.GetAllGoals(userId, Status.Ended);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -473,8 +482,8 @@ namespace TaskMonitoringApp.Controllers
         //    int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
         //    int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-        //    // Get all goals from the service
-        //    var data = await _service.GetAllGoals(userId, Status.Deleted);
+        //    // Get all goals from the goalService
+        //    var data = await _goalService.GetAllGoals(userId, Status.Deleted);
 
         //    // Get total count of records
         //    totalRecord = data.Count();
@@ -546,7 +555,7 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            await _service.DeleteGoal(userId, Id);
+            await _goalService.DeleteGoal(userId, Id);
             return Json(new { status = true, message = $"Goal with Id: {Id} is deleted!" });
 
         }
@@ -567,7 +576,7 @@ namespace TaskMonitoringApp.Controllers
 
             if (ModelState.IsValid)
             {
-                await _service.UpdateGoalStatus(userId, goalUpdate.Id, goalUpdate.GoalStatus);
+                await _goalService.UpdateGoalStatus(userId, goalUpdate.Id, goalUpdate.GoalStatus);
                 return Json(new { status = true, message = $"Goal with Id {Id} Status changed to { goalUpdate.GoalStatus.ToString() }!" });
             }
 
@@ -585,18 +594,18 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var result = await _service.GetGoalNameBySearchQuery(userId, searchQuery);
+            var result = await _goalService.GetGoalNameBySearchQuery(userId, searchQuery);
 
             return Json(new { status = true, message = $"List of Goals with search query : {searchQuery}", data = result });
         }
 
         //public async Task<IActionResult> GetProductivity()
         //{
-        //    int runningGoal = await _service.GetGoalCountByGoalStatus(Status.Running);
+        //    int runningGoal = await _goalService.GetGoalCountByGoalStatus(Status.Running);
 
         //    // over all productivity...
-        //    int endGoalCount = await _service.GetGoalCountByGoalStatus(Status.Ended);
-        //    int completedGoalCount = await _service.GetGoalCountByGoalStatus(Status.Completed);
+        //    int endGoalCount = await _goalService.GetGoalCountByGoalStatus(Status.Ended);
+        //    int completedGoalCount = await _goalService.GetGoalCountByGoalStatus(Status.Completed);
 
         //    // Ensure that the division happens with floating-point precision
         //    double productivity = (((double)completedGoalCount / (endGoalCount + completedGoalCount)) * 100);
@@ -608,8 +617,8 @@ namespace TaskMonitoringApp.Controllers
 
 
         //    // Calculating the previous week productivity....
-        //    int endGoalPreviousWeekCount = await _service.GetGoalCountByGoalStatusAndDateTimeRange(Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
-        //    int completedPreviousWeekGoalCount = await _service.GetGoalCountByGoalStatusAndDateTimeRange(Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+        //    int endGoalPreviousWeekCount = await _goalService.GetGoalCountByGoalStatusAndDateTimeRange(Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+        //    int completedPreviousWeekGoalCount = await _goalService.GetGoalCountByGoalStatusAndDateTimeRange(Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
 
         //    // Ensure that the division happens with floating-point precision
         //    double productivityPreviousWeek = (((double)completedPreviousWeekGoalCount / (endGoalPreviousWeekCount + completedPreviousWeekGoalCount)) * 100);
@@ -625,8 +634,8 @@ namespace TaskMonitoringApp.Controllers
 
 
         //    // Calculating the current week productivity....
-        //    int endGoalCurrentWeekCount = await _service.GetGoalCountByGoalStatusAndDateTimeRange(Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
-        //    int completedCurrentWeekGoalCount = await _service.GetGoalCountByGoalStatusAndDateTimeRange(Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
+        //    int endGoalCurrentWeekCount = await _goalService.GetGoalCountByGoalStatusAndDateTimeRange(Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
+        //    int completedCurrentWeekGoalCount = await _goalService.GetGoalCountByGoalStatusAndDateTimeRange(Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
 
         //    // Ensure that the division happens with floating-point precision
         //    double productivityCurrent = (((double)completedCurrentWeekGoalCount / (endGoalCurrentWeekCount + completedCurrentWeekGoalCount)) * 100);

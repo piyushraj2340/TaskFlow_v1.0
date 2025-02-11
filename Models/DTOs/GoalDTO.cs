@@ -87,4 +87,9 @@ namespace TaskMonitoringApp.Models.DTOs
         public string? UserId { get; set; }
 
     }
+
+    public class GoalDTOWithNoteListDTO : GoalDTO
+    {
+        public IEnumerable<NoteDTOWithGoalDTO> NotesList { get; set; }
+    }
 }

@@ -9,19 +9,26 @@ namespace TaskMonitoringApp.Mappings
     {
         public AutoMapperProfile()
         {
-            CreateMap<Goals, GoalDTO>();
-            CreateMap<GoalDTO, Goals>();
-            CreateMap<Goals, GoalViewModel>();
-            CreateMap<GoalViewModel, Goals>();
-            CreateMap<GoalStatusDTO, Goals>();
-            CreateMap<Goals, GoalStatusDTO>();
-            CreateMap<Goals, GoalNameDTO>();
-            CreateMap<GoalDTO, GoalViewModel>();
-            CreateMap<GoalViewModel, GoalDTO>();
-            CreateMap<GoalDTO, GoalDTOWithTaskNameDTOs>();
+            CreateMap<Goals, GoalDTO>().ReverseMap();
+            CreateMap<GoalDTO, GoalViewModel>().ReverseMap();
+
+            CreateMap<GoalDTO, GoalDTOWithTaskNameDTOs>(); 
             CreateMap<GoalDTOWithTaskNameDTOs, GoalDTO>();
+
             CreateMap<GoalDTO, GoalDTOWithTaskDTOs>();
             CreateMap<GoalDTOWithTaskDTOs, GoalDTO>();
+
+            CreateMap<GoalDTO, NoteDTOWithGoalDTO>();
+            CreateMap<NoteDTOWithGoalDTO, GoalDTO>();
+
+            CreateMap<GoalDTO, NoteDTOWithGoalDTO>();
+
+            CreateMap<GoalDTO, GoalDTOWithNoteListDTO>();
+
+            CreateMap<GoalViewModel, GoalWithNotesListViewModel>();
+
+            CreateMap<GoalDTOWithNoteListDTO, GoalWithNotesListViewModel>().ReverseMap();
+
 
 
             CreateMap<Tasks, TaskDTO>();

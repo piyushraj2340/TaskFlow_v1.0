@@ -36,7 +36,7 @@ namespace TaskMonitoringApp.Controllers
                 return Json(new { status = true, message = "Your Notes Saved!" });
             }
 
-            return Json(new { status = false, message = "Your data does't save!" });
+            return Json(new { status = false, message = "Your notes does not save!" });
 
         }
     }
