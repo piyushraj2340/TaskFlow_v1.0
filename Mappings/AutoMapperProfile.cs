@@ -9,11 +9,6 @@ namespace TaskMonitoringApp.Mappings
     {
         public AutoMapperProfile()
         {
-
-            CreateMap<Notes, NoteDTO>();
-            CreateMap<NoteDTO, Notes>();
-            CreateMap<NoteDTO, NoteDTOWithGoalDTO>().ReverseMap();
-
             CreateMap<RegisterViewModel, Users>();
         }
     }

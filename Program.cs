@@ -46,6 +46,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddAutoMapper(typeof(GoalProfile));
 builder.Services.AddAutoMapper(typeof(TaskProfile));
+builder.Services.AddAutoMapper(typeof(TodoProfile));
+builder.Services.AddAutoMapper(typeof(NotesProfile));
 
 var app = builder.Build();
 
