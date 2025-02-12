@@ -44,25 +44,25 @@
                 },
                 function (response) {
 
-                    if (runningdataTableReload !== null) {
-                        runningdataTableReload.draw();
-                    }
+                    //if (runningdataTableReload !== null) {
+                    //    runningdataTableReload.draw();
+                    //}
 
-                    if (notStartedDataTableReload !== null) {
-                        notStartedDataTableReload.draw();
-                    }
+                    //if (notStartedDataTableReload !== null) {
+                    //    notStartedDataTableReload.draw();
+                    //}
 
-                    if (completedDataTableReload !== null) {
-                        completedDataTableReload.draw();
-                    }
+                    //if (completedDataTableReload !== null) {
+                    //    completedDataTableReload.draw();
+                    //}
 
-                    if (endedDataTableReload !== null) {
-                        endedDataTableReload.draw();
-                    }
+                    //if (endedDataTableReload !== null) {
+                    //    endedDataTableReload.draw();
+                    //}
 
-                    if (deletedDataTableReload !== null) {
-                        deletedDataTableReload.draw();
-                    }
+                    //if (deletedDataTableReload !== null) {
+                    //    deletedDataTableReload.draw();
+                    //}
                 },
                 function (error) { // Error callback
                     console.error('Error deleting task:', error);
@@ -623,5 +623,5 @@
     loadCompletedTaskData();
     loadNotStartedTaskData();
     loadEndedTaskData();
-    loadDeletedTaskData();
+    //loadDeletedTaskData();
 })
