@@ -96,6 +96,26 @@ namespace TaskMonitoringApp.Controllers
             return View(_mapper.Map<GoalWithTaskNameListViewModel>(goal));
         }
 
+        public async Task<IActionResult> GetById(int Id)
+        {
+            // Get the logged-in user's ID
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var goal = await _service.GetAllTaskNameWithStatusAndGoal(userId, Id, Status.All);
+
+            if (goal == null)
+            {
+                return Json(new { status = false, message = "Goal Data Not Found!" });
+            }
+
+            return Json(new { status = true, message = "Goal Data Not Found!", data = goal });
+        }
+
         [HttpPut]
         public async Task<IActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority")] GoalViewModel goalData)
         {

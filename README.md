@@ -181,3 +181,5 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
  add the components on planning on goal and task both...
 
  add deleted and ended todos 
+
+ add include time optional to the user for end date by default it will be ending on 23:59:59

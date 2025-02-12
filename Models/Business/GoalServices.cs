@@ -24,7 +24,7 @@ namespace TaskMonitoringApp.Models.Business
                 throw new ArgumentException("UserId and Goals.UserId must be same!.");
             }
 
-            goals.EndDate = goals.EndDate.AddDays(1).Date.AddSeconds(-1); //Adding the mid-night ending
+            goals.EndDate = goals.EndDate.AddDays(1).Date.AddMinutes(-1); //Adding the mid-night ending
 
             if (DateTime.Now > goals.EndDate)
             {
@@ -68,7 +68,7 @@ namespace TaskMonitoringApp.Models.Business
             // update the date...
             if(goals.EndDate != findAndUpdateGoal.EndDate)
             {
-                goals.EndDate = goals.EndDate.AddDays(1).Date.AddSeconds(-1);
+                goals.EndDate = goals.EndDate.AddDays(1).Date.AddMinutes(-1);
             }
 
             _mapper.Map(goals, findAndUpdateGoal);

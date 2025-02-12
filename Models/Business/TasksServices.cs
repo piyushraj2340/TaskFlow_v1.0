@@ -15,13 +15,23 @@ namespace TaskMonitoringApp.Models.Business
         
         public async Task AddNewTask(string userId, TaskDTO task, string goalIds)
         {
-            if(DateTime.Now > task.EndDate)
+            var UserId = task.UserId ?? throw new ArgumentNullException(nameof(task.UserId), "UserId Is Required!.");
+
+            if (userId != UserId)
             {
-                throw new ArgumentException("The end date must be in the future.");
+                throw new ArgumentException("UserId and Goals.UserId must be same!.");
+            }
+
+            task.EndDate = task.EndDate?.AddDays(1).Date.AddMinutes(-1); //Adding the mid-night ending
+
+
+            if (DateTime.Now > task.EndDate)
+            {
+                throw new ArgumentException("The end date must be in the future.", nameof(task.EndDate));
             }
 
             await _taskRepository.AddTasksAsync(userId, task, goalIds);
-        }
+            }
 
         public async Task DeleteTask(string userId, int Id)
         {
@@ -70,30 +80,54 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task UpdateTask(string userId, TaskDTO task, string goalIds)
         {
+            var UserId = task.UserId ?? throw new ArgumentNullException(nameof(task.UserId), "UserId Is Required!.");
+
+            if (userId != UserId)
+            {
+                throw new ArgumentException("UserId and Goals.UserId must be same!.");
+            }
+
             if (DateTime.Now > task.EndDate)
             {
-                throw new ArgumentException("The end date must be in the future.");
+                throw new ArgumentException("The end date must be in the future.", nameof(task.EndDate));
             }
 
             var oldTask = await _taskRepository.GetTasksByIdAsync<Tasks>(userId, task.Id, ResponseDataMode.Model);
 
-            _mapper.Map<Tasks, TaskDTO>(oldTask, task);
+            if (task.EndDate != oldTask.EndDate)
+            {
+                task.EndDate = task.EndDate?.AddDays(1).Date.AddMinutes(-1);
+            }
+
+            _mapper.Map<TaskDTO, Tasks>(task, oldTask);
 
             await _taskRepository.UpdateTasksAsync(userId, oldTask, goalIds);
         }
 
         public async Task UpdateTask(string userId, TaskDTO task)
         {
+            var UserId = task.UserId ?? throw new ArgumentNullException(nameof(task.UserId), "UserId Is Required!.");
+
+            if (userId != UserId)
+            {
+                throw new ArgumentException("UserId and Goals.UserId must be same!.");
+            }
+
             if (DateTime.Now > task.EndDate)
             {
-                throw new ArgumentException("The end date must be in the future.");
+                throw new ArgumentException("The end date must be in the future.", nameof(task.EndDate));
             }
 
             var oldTask = await _taskRepository.GetTasksByIdAsync<Tasks>(userId, task.Id, ResponseDataMode.Model);
 
-            _mapper.Map<Tasks, TaskDTO>(oldTask, task);
+            if (task.EndDate != oldTask.EndDate)
+            {
+                task.EndDate = task.EndDate?.AddDays(1).Date.AddMinutes(-1);
+            }
 
-            await _taskRepository.UpdateTasksAsync(userId, oldTask);
+            _mapper.Map<TaskDTO, Tasks>(task, oldTask);
+
+            await _taskRepository.UpdateTasksAsync(userId, oldTask, String.Empty);
         }
 
         public async Task UpdateTaskStatus(string userId, int taskId, Status statusToChange)
