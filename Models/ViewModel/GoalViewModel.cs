@@ -19,4 +19,14 @@ namespace TaskMonitoringApp.Models.ViewModel
 
         public string? UserId { get; set; }
     }
+
+    public class GoalWithTaskNameListViewModel : GoalViewModel
+    {
+        public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
+    }
+
+    public class GoalWithTaskListViewModel : GoalViewModel
+    {
+        public IEnumerable<TaskDTO> TaskList { get; set; }
+    }
 }

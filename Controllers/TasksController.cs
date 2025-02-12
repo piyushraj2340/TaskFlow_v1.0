@@ -53,7 +53,7 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            TaskDTO task = await _service.GetTaskById(userId, Id);
+            var task = await _service.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
             TaskViewModel taskDetail = _mapper.Map<TaskViewModel>(task);
 
             return View(taskDetail);

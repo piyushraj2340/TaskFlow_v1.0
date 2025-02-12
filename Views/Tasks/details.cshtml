@@ -49,7 +49,7 @@
                  <canvas id="goalPieChart" class="h-full w-full"></canvas>
              </div>
          </div>
-     </div> 
+     </div>
 
     <!-- Charts Section -->
     <div class="grid-cols-1 mb-12 grid gap-8 md:grid-cols-7">
@@ -188,28 +188,28 @@
     </div>
 
     <!-- Charts Section -->
-     <div class="mb-12 grid gap-8 md:grid-cols-3">
-         <!-- Left Chart: Task Growth Ratio (70%) -->
-         <div class="col-span-1 h-[400px] rounded-lg bg-white p-6 shadow-lg md:col-span-2">
-             <h2 class="mb-4 text-2xl font-semibold text-gray-800">Task Growth Ratio</h2>
-             <div class="h-[300px]">
-                 <canvas id="taskGrowthChart"></canvas>
-             </div>
-         </div>
+    <div class="mb-12 grid gap-8 md:grid-cols-3">
+        <!-- Left Chart: Task Growth Ratio (70%) -->
+        <div class="col-span-1 h-[400px] rounded-lg bg-white p-6 shadow-lg md:col-span-2">
+            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Task Growth Ratio</h2>
+            <div class="h-[300px]">
+                <canvas id="taskGrowthChart"></canvas>
+            </div>
+        </div>
 
-         <!-- Right Chart: Donut Chart (30%) -->
-         <div class="h-[400px] rounded-lg bg-white p-6 shadow-lg">
-             <h2 class="mb-4 text-2xl font-semibold text-gray-800">Contributing to the Goal</h2>
-             <div class="h-[300px]">
-                 <canvas id="goalPieChart"></canvas>
-             </div>
-         </div>
-     </div>
+        <!-- Right Chart: Donut Chart (30%) -->
+        <div class="h-[400px] rounded-lg bg-white p-6 shadow-lg">
+            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Contributing to the Goal</h2>
+            <div class="h-[300px]">
+                <canvas id="goalPieChart"></canvas>
+            </div>
+        </div>
+    </div>
 
 
-     <!-- Task Details Section -->
+    <!-- Task Details Section -->
     <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
-        
+
         <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
             <h2 class="mb-3 text-2xl font-semibold text-gray-800">Task Information</h2>
         </div>
@@ -235,14 +235,14 @@
             </div>
             <!-- Repeat Type list -->
             @{
-                if(Model.Repeat == TaskMonitoringApp.Models.Entities.RepeatType.Weekly && Model.RepeatWeekList != null)
+                if (Model.Repeat == TaskMonitoringApp.Models.Entities.RepeatType.Weekly && Model.RepeatWeekList != null)
                 {
-                    
+
                     <div class="flex flex-col sm:flex-row">
                         <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Weekly Repeat</div>
                         <div class="w-full text-left sm:w-3/4">
-                        
-                            @foreach(TaskMonitoringApp.Models.Entities.Weekly weekName in Model.RepeatWeekList)
+
+                            @foreach (TaskMonitoringApp.Models.Entities.Weekly weekName in Model.RepeatWeekList)
                             {
                                 // <span class="text-sm text-black peer-checked:text-white">@weekName.ToString()</span>
                                 <span class="badge mb-2 mr-2 rounded-full bg-gray-200 px-3 py-1 text-sm text-gray-900">
@@ -274,75 +274,83 @@
         </div>
     </div>
 
-       <!-- Goals Section -->
-    <div class="mb-12">
-        <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
-        <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <!-- Goal Card 1 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 1</h3>
-                <p class="mb-2 text-gray-600">Productivity: 75%</p>
-                <p class="mb-4 text-gray-600">Progress: 50% completed</p>
-                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
-            </div>
-            <!-- Goal Card 2 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 2</h3>
-                <p class="mb-2 text-gray-600">Productivity: 85%</p>
-                <p class="mb-4 text-gray-600">Progress: 30% completed</p>
-                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
-            </div>
-            <!-- Goal Card 3 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 3</h3>
-                <p class="mb-2 text-gray-600">Productivity: 40%</p>
-                <p class="mb-4 text-gray-600">Progress: 70% completed</p>
-                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
-            </div>
-            <!-- Goal Card 4 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 4</h3>
-                <p class="mb-2 text-gray-600">Productivity: 60%</p>
-                <p class="mb-4 text-gray-600">Progress: 90% completed</p>
-                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
+    <!-- Goals Section -->
+    @if (Model.GoalLists != null && Model?.GoalLists?.Count() > 0)
+    {
+        <div class="mb-12">
+            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
+            <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                @{
+                    
+                    foreach (var goal in Model.GoalLists)
+                    {
+
+                        int productivity = new Random().Next(1, 100);
+
+                        
+                        <div class="rounded-lg bg-white p-6 shadow-lg">
+                            <a href="@Url.Action("Details", "Goals", new { id = goal.Id })">
+                                <h3 class="mb-2 text-lg font-medium text-gray-800">@goal.Name</h3>
+                            </a>
+                            <p class="mb-2 text-gray-600">Productivity: @productivity%</p>
+                            <p class="mb-4 text-gray-600">Progress: @productivity% completed</p>
+                            @if (productivity <= 50) //productivity bellow 30 -- need action --added static 
+                            {
+                                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
+                            }
+                            else if (productivity <= 70)
+                            {
+                                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
+                            }
+                            else if (productivity <= 90)
+                            {
+                                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
+                            }
+                            else
+                            {
+                                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
+                            }
+                        </div>
+                    }
+                }
             </div>
         </div>
-    </div>
+    }
 
     <!-- Task History Section -->
     @* <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
-        <h2 class="mb-4 text-xl font-semibold text-gray-800">Task History</h2>
-        <table class="min-w-full table-auto">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Date & Time</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Repeat Type</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Productivity</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Completion Ratio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="px-4 py-2 text-sm text-gray-600">Dec 10, 2024</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">
-                        <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Running</span>
-                    </td>
-                    <td class="px-4 py-2 text-sm text-gray-600">Daily</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">80%</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">65%</td>
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 text-sm text-gray-600">Dec 9, 2024</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">
-                        <span class="inline-flex items-center rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Completed</span>
-                    </td>
-                    <td class="px-4 py-2 text-sm text-gray-600">Weekly</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">90%</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">100%</td>
-                </tr>
-            </tbody>
-        </table>
+    <h2 class="mb-4 text-xl font-semibold text-gray-800">Task History</h2>
+    <table class="min-w-full table-auto">
+    <thead>
+    <tr>
+    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Date & Time</th>
+    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
+    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Repeat Type</th>
+    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Productivity</th>
+    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Completion Ratio</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td class="px-4 py-2 text-sm text-gray-600">Dec 10, 2024</td>
+    <td class="px-4 py-2 text-sm text-gray-600">
+    <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Running</span>
+    </td>
+    <td class="px-4 py-2 text-sm text-gray-600">Daily</td>
+    <td class="px-4 py-2 text-sm text-gray-600">80%</td>
+    <td class="px-4 py-2 text-sm text-gray-600">65%</td>
+    </tr>
+    <tr>
+    <td class="px-4 py-2 text-sm text-gray-600">Dec 9, 2024</td>
+    <td class="px-4 py-2 text-sm text-gray-600">
+    <span class="inline-flex items-center rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Completed</span>
+    </td>
+    <td class="px-4 py-2 text-sm text-gray-600">Weekly</td>
+    <td class="px-4 py-2 text-sm text-gray-600">90%</td>
+    <td class="px-4 py-2 text-sm text-gray-600">100%</td>
+    </tr>
+    </tbody>
+    </table>
     </div> *@
 </div>
 

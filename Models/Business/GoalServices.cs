@@ -5,12 +5,14 @@ using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Repositories;
 using TaskMonitoringApp.Models.Services;
+using TaskMonitoringApp.Models.ViewModel;
 
 namespace TaskMonitoringApp.Models.Business
 {
-    public class GoalServices(IGoalRepository repository, IMapper mapper) : IGoalServices
+    public class GoalServices(ITaskRepository taskRepository, IGoalRepository goalRepository, IMapper mapper) : IGoalServices
     {
-        private readonly IGoalRepository _repository = repository;
+        private readonly ITaskRepository _taskRepository = taskRepository;
+        private readonly IGoalRepository _goalRepository = goalRepository;
         private readonly IMapper _mapper = mapper;
 
         public async Task AddNewGoal(string UserId, GoalDTO goals)
@@ -30,28 +32,28 @@ namespace TaskMonitoringApp.Models.Business
             }
 
             var goalToAdd = _mapper.Map<Goals>(goals);
-            await _repository.AddGoalAsync(UserId, goalToAdd);
+            await _goalRepository.AddGoalAsync(UserId, goalToAdd);
         }
 
         public async Task DeleteGoal(string UserId, int GoalId)
         {
             // Implemented the soft Delete....
-            var getGoalAndDelete = await _repository.GetGoalByIdAsync<Goals>(UserId, GoalId, ResponseDataMode.Model);
+            var getGoalAndDelete = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, GoalId, ResponseDataMode.Model);
 
             getGoalAndDelete.DeletedOn = DateTime.Now;
             getGoalAndDelete.IsDeleted = true;
 
-            await _repository.UpdateGoalAsync(UserId, getGoalAndDelete);
+            await _goalRepository.UpdateGoalAsync(UserId, getGoalAndDelete);
         }
 
         public async Task<IEnumerable<GoalDTO>> GetAllGoals(string UserId, Status status)
         {
-            return await _repository.GetAllGoalsAsync<GoalDTO>(UserId, status, ResponseDataMode.ModelDTO);
+            return await _goalRepository.GetAllGoalsAsync<GoalDTO>(UserId, status, ResponseDataMode.ModelDTO);
         }
 
         public async Task<GoalDTO> GetGoalById(string UserId, int Id)
         {
-            return await _repository.GetGoalByIdAsync<GoalDTO>(UserId, Id, ResponseDataMode.ModelDTO);
+            return await _goalRepository.GetGoalByIdAsync<GoalDTO>(UserId, Id, ResponseDataMode.ModelDTO);
         }
 
         public async Task UpdateGoal(string UserId, GoalDTO goals)
@@ -61,7 +63,7 @@ namespace TaskMonitoringApp.Models.Business
                 throw new ArgumentException("The end date must be in the future.");
             }
 
-            var findAndUpdateGoal = await _repository.GetGoalByIdAsync<Goals>(UserId, goals.Id, ResponseDataMode.Model);
+            var findAndUpdateGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.Id, ResponseDataMode.Model);
 
             // update the date...
             if(goals.EndDate != findAndUpdateGoal.EndDate)
@@ -71,31 +73,31 @@ namespace TaskMonitoringApp.Models.Business
 
             _mapper.Map(goals, findAndUpdateGoal);
 
-            await _repository.UpdateGoalAsync(UserId, findAndUpdateGoal);
+            await _goalRepository.UpdateGoalAsync(UserId, findAndUpdateGoal);
         }
 
         public async Task UpdateGoalStatus(string userId, int goalId, Status statusToUpdate)
         {
-            await _repository.UpdateGoalStatusAsync(userId, goalId, statusToUpdate);
+            await _goalRepository.UpdateGoalStatusAsync(userId, goalId, statusToUpdate);
         }
 
         public async Task<int> GetGoalCountByGoalStatus(string UserId, Status status)
         {
-            return await _repository.GetGoalCountByGoalStatus(UserId, status);
+            return await _goalRepository.GetGoalCountByGoalStatus(UserId, status);
         }
 
         public async Task<int> GetGoalCountByGoalStatusAndDateTimeRange(string UserId, Status status, DateTime from, DateTime end)
         {
-            return await _repository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, status, from, end);
+            return await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, status, from, end);
         }
 
         public async Task<GoalProductivityDTO> GetGoalProductivity(string UserId)
         {
-            int runningGoal = await _repository.GetGoalCountByGoalStatus(UserId, Status.Running);
+            int runningGoal = await _goalRepository.GetGoalCountByGoalStatus(UserId, Status.Running);
 
             // over all productivity...
-            int endGoalCount = await _repository.GetGoalCountByGoalStatus(UserId, Status.Ended);
-            int completedGoalCount = await _repository.GetGoalCountByGoalStatus(UserId, Status.Completed);
+            int endGoalCount = await _goalRepository.GetGoalCountByGoalStatus(UserId, Status.Ended);
+            int completedGoalCount = await _goalRepository.GetGoalCountByGoalStatus(UserId, Status.Completed);
 
             // Ensure that the division happens with floating-point precision
             double productivity = (((double)completedGoalCount / (endGoalCount + completedGoalCount)) * 100);
@@ -107,8 +109,8 @@ namespace TaskMonitoringApp.Models.Business
 
 
             // Calculating the previous week productivity....
-            int endGoalPreviousWeekCount = await _repository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
-            int completedPreviousWeekGoalCount = await _repository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+            int endGoalPreviousWeekCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+            int completedPreviousWeekGoalCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
 
             // Ensure that the division happens with floating-point precision
             double productivityPreviousWeek = (((double)completedPreviousWeekGoalCount / (endGoalPreviousWeekCount + completedPreviousWeekGoalCount)) * 100);
@@ -124,8 +126,8 @@ namespace TaskMonitoringApp.Models.Business
 
 
             // Calculating the current week productivity....
-            int endGoalCurrentWeekCount = await _repository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
-            int completedCurrentWeekGoalCount = await _repository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
+            int endGoalCurrentWeekCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
+            int completedCurrentWeekGoalCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
 
             // Ensure that the division happens with floating-point precision
             double productivityCurrent = (((double)completedCurrentWeekGoalCount / (endGoalCurrentWeekCount + completedCurrentWeekGoalCount)) * 100);
@@ -159,8 +161,29 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<IEnumerable<GoalNameDTO>> GetGoalNameBySearchQuery(string userId, string searchQuery)
         {
-            return await _repository.GetGoalNameBySearchQueryAsync(userId, searchQuery);
+            return await _goalRepository.GetGoalNameBySearchQueryAsync(userId, searchQuery);
         }
 
+        public async Task<GoalDTOWithTaskNameDTOs> GetAllTaskNameWithStatusAndGoal(string userId, int goalId, Status goalStatus)
+        {
+            var goal = await _goalRepository.GetGoalByIdAsync<GoalDTO>(userId, goalId, ResponseDataMode.ModelDTO);
+            var taskNameList = await _taskRepository.GetAllTasksWithStatusByGoalId<TaskNameDTO>(userId, goalId, Status.All, ResponseDataMode.ModelNameDTO);
+
+            var goalNameWithTaskName = _mapper.Map<GoalDTOWithTaskNameDTOs>(goal);
+            goalNameWithTaskName.TaskLists = taskNameList;
+
+            return goalNameWithTaskName;
+        }
+
+        public async Task<GoalDTOWithTaskDTOs> GetAllTaskWithStatusAndGoal(string userId, int goalId, Status goalStatus)
+        {
+            var goal = await _goalRepository.GetGoalByIdAsync<GoalDTO>(userId, goalId, ResponseDataMode.ModelDTO);
+            var taskNameList = await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId, goalId, Status.All, ResponseDataMode.ModelDTO);
+
+            var goalNameWithTask = _mapper.Map<GoalDTOWithTaskDTOs>(goal);
+            goalNameWithTask.TaskLists = taskNameList;
+
+            return goalNameWithTask;
+        }
     }
 }

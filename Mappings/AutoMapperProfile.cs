@@ -22,6 +22,9 @@ namespace TaskMonitoringApp.Mappings
             CreateMap<GoalDTOWithTaskNameDTOs, GoalDTO>();
             CreateMap<GoalDTO, GoalDTOWithTaskDTOs>();
             CreateMap<GoalDTOWithTaskDTOs, GoalDTO>();
+            CreateMap<GoalNameDTO, GoalWithTaskNameListViewModel>().ReverseMap();
+            CreateMap<GoalDTOWithTaskNameDTOs, GoalWithTaskNameListViewModel>().ReverseMap();
+
 
 
             CreateMap<Tasks, TaskDTO>();
