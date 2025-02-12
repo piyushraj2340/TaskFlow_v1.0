@@ -1,142 +1,4 @@
-﻿@model TaskMonitoringApp.Models.ViewModel.GoalViewModel
-
-
-@section Styles {
-    <style>
-        /* Ensures charts take full height of the parent container */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
-}
-@*
-<div class="mx-auto max-w-7xl px-6 py-12">
-    <!-- Action Buttons -->
-    <div class="mb-6 flex justify-end space-x-4">
-        <button class="rounded-lg bg-blue-500 px-6 py-2 text-white transition duration-300 hover:bg-blue-600">
-            <i class="fas fa-edit mr-2"></i>Edit Goal
-        </button>
-        <button class="rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
-            <i class="fas fa-trash mr-2"></i>Delete Goal
-        </button>
-        <button class="rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
-            <i class="fas fa-comment mr-2"></i>Add Notes
-        </button>
-        <button class="rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
-            <i class="fas fa-check mr-2"></i>Mark as Complete
-        </button>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="grid-cols-1 mb-12 grid gap-8 md:grid-cols-2">
-        <!-- Left Chart - Goal Growth Ratio -->
-        <div class="h-[300px] rounded-lg bg-white p-6 shadow-lg md:h-[400px]">
-            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Goal Growth Ratio</h2>
-            <div class="chart-container">
-                <canvas id="taskGrowthChart" class="h-full w-full"></canvas>
-            </div>
-        </div>
-
-        <!-- Right Chart - Goal Contribution Pie Chart -->
-        <div class="h-[300px] rounded-lg bg-white p-6 shadow-lg md:h-[400px]">
-            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Contributing to the Goal</h2>
-            <div class="chart-container">
-                <canvas id="goalPieChart" class="h-full w-full"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Goal Details Section (Sample Goal Info) -->
-    <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
-        <h2 class="mb-4 text-xl font-semibold text-gray-800">Goal Information</h2>
-        <div>
-            <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-medium">Goal Name:</h3>
-                <span class="text-gray-600">@Model.Name</span>
-            </div>
-            <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-medium">Status:</h3>
-                <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">@Model.GoalStatus</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Goals Section -->
-    <div class="mb-12">
-        <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
-        <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <!-- Goal Card 1 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 1</h3>
-                <p class="mb-2 text-gray-600">Productivity: 75%</p>
-                <p class="mb-4 text-gray-600">Progress: 50% completed</p>
-                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
-            </div>
-            <!-- Goal Card 2 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 2</h3>
-                <p class="mb-2 text-gray-600">Productivity: 85%</p>
-                <p class="mb-4 text-gray-600">Progress: 30% completed</p>
-                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
-            </div>
-            <!-- Goal Card 3 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 3</h3>
-                <p class="mb-2 text-gray-600">Productivity: 40%</p>
-                <p class="mb-4 text-gray-600">Progress: 70% completed</p>
-                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
-            </div>
-            <!-- Goal Card 4 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 4</h3>
-                <p class="mb-2 text-gray-600">Productivity: 60%</p>
-                <p class="mb-4 text-gray-600">Progress: 90% completed</p>
-                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Goal History Section -->
-    <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
-        <h2 class="mb-4 text-xl font-semibold text-gray-800">Goal History</h2>
-        <table class="min-w-full table-auto">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Date & Time</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Repeat Type</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Productivity</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Completion Ratio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="px-4 py-2 text-sm text-gray-600">Dec 10, 2024</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">
-                        <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Running</span>
-                    </td>
-                    <td class="px-4 py-2 text-sm text-gray-600">Daily</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">80%</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">65%</td>
-                </tr>
-                <tr>
-                    <td class="px-4 py-2 text-sm text-gray-600">Dec 9, 2024</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">
-                        <span class="inline-flex items-center rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Completed</span>
-                    </td>
-                    <td class="px-4 py-2 text-sm text-gray-600">Weekly</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">90%</td>
-                    <td class="px-4 py-2 text-sm text-gray-600">100%</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-</div>
- *@
-
+﻿@model TaskMonitoringApp.Models.ViewModel.GoalWithTaskNameListViewModel
 
 <div class="mx-auto max-w-7xl px-2 py-12 md:px-6">
     <!-- Centered Action Buttons -->
@@ -214,39 +76,47 @@
     </div>
 
     <!-- Goals Section -->
-    <div class="mb-12">
-        <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
-        <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <!-- Goal Card 1 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 1</h3>
-                <p class="mb-2 text-gray-600">Productivity: 75%</p>
-                <p class="mb-4 text-gray-600">Progress: 50% completed</p>
-                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
-            </div>
-            <!-- Goal Card 2 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 2</h3>
-                <p class="mb-2 text-gray-600">Productivity: 85%</p>
-                <p class="mb-4 text-gray-600">Progress: 30% completed</p>
-                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
-            </div>
-            <!-- Goal Card 3 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 3</h3>
-                <p class="mb-2 text-gray-600">Productivity: 40%</p>
-                <p class="mb-4 text-gray-600">Progress: 70% completed</p>
-                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
-            </div>
-            <!-- Goal Card 4 -->
-            <div class="rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-medium text-gray-800">Goal 4</h3>
-                <p class="mb-2 text-gray-600">Productivity: 60%</p>
-                <p class="mb-4 text-gray-600">Progress: 90% completed</p>
-                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
+    @if (Model.TaskLists != null && Model?.TaskLists?.Count() > 0)
+    {
+        <div class="mb-12">
+            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
+            <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                @{
+
+                    foreach (var task in Model.TaskLists)
+                    {
+
+                        int productivity = new Random().Next(1, 100);
+
+
+                        <div class="rounded-lg bg-white p-6 shadow-lg">
+                            <a href="@Url.Action("Details", "Tasks", new { id = task.Id })">
+                                <h3 class="mb-2 text-lg font-medium text-gray-800">@task.Name</h3>
+                            </a>
+                            <p class="mb-2 text-gray-600">Productivity: @productivity%</p>
+                            <p class="mb-4 text-gray-600">Progress: @productivity% completed</p>
+                            @if (productivity <= 50) //productivity bellow 30 -- need action --added static
+                            {
+                                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
+                            }
+                            else if (productivity <= 70)
+                            {
+                                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
+                            }
+                            else if (productivity <= 90)
+                            {
+                                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
+                            }
+                            else
+                            {
+                                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
+                            }
+                        </div>
+                    }
+                }
             </div>
         </div>
-    </div>
+    }
 </div>
 
 @await Html.PartialAsync("AddUpdateGoals")

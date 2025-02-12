@@ -86,14 +86,14 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var goal = await _service.GetGoalById(userId, Id);
+            var goal = await _service.GetAllTaskNameWithStatusAndGoal(userId, Id, Status.All);
 
             if (goal == null)
             {
                 return NotFound();
             }
 
-            return View(_mapper.Map<GoalViewModel>(goal));
+            return View(_mapper.Map<GoalWithTaskNameListViewModel>(goal));
         }
 
         [HttpPut]
