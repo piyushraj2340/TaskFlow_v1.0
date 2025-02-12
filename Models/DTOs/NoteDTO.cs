@@ -12,7 +12,7 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public List<string> Tags { get; set; } = new List<string>();
 
-        public bool IsModified { get; set; }
+        public bool IsModified { get; set; } = false;
 
         public DateTime? ModifiedOn { get; set; }
 
@@ -20,9 +20,9 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public Status Status { get; set; }
 
-        public bool IsPinned { get; set; }
+        public bool IsPinned { get; set; } = false;
 
-        public DateTime TimeStamp { get; set; }
+        public DateTime TimeStamp { get; set; } = DateTime.Now;
 
         public string? UserId { get; set; }
     }

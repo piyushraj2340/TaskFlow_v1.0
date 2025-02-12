@@ -232,7 +232,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             {
                 case ResponseDataMode.Model:
                     var dataModel = await _context.Notes
-                        .Where(n => n.UserId == userId && n.IsDeleted == false)
+                        .Where(n => n.UserId == userId && n.Id == id && n.IsDeleted == false)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Notes with userId Not Found!");
 
@@ -241,7 +241,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
                 case ResponseDataMode.ModelDTO:
                     var dataModelDTO = await _context.Notes
-                       .Where(n => n.UserId == userId && n.IsDeleted == false)
+                       .Where(n => n.UserId == userId && n.Id == id && n.IsDeleted == false)
                        .Select(n => new NoteDTO()
                        {
                            Id = n.Id,

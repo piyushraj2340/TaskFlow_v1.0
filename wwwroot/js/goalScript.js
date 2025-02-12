@@ -183,25 +183,25 @@
                 },
                 function (response) { // Success callback
                     $(`button[data-id='${goalId}']`).parent().remove();
-                    if (goalRunningDataTableReload !== null) {
-                        goalRunningDataTableReload.draw();
-                    }
+                    //if (goalRunningDataTableReload !== null) {
+                    //    goalRunningDataTableReload.draw();
+                    //}
 
-                    if (goalCompletedDataTableReload !== null) {
-                        goalCompletedDataTableReload.draw();
-                    }
+                    //if (goalCompletedDataTableReload !== null) {
+                    //    goalCompletedDataTableReload.draw();
+                    //}
 
-                    if (goalNotStartedDataTableReload !== null) {
-                        goalNotStartedDataTableReload.draw();
-                    }
+                    //if (goalNotStartedDataTableReload !== null) {
+                    //    goalNotStartedDataTableReload.draw();
+                    //}
 
-                    if (goalEndedDataTableReload !== null) {
-                        goalEndedDataTableReload.draw();
-                    }
+                    //if (goalEndedDataTableReload !== null) {
+                    //    goalEndedDataTableReload.draw();
+                    //}
 
-                    if (goalDeletedDataTableReload !== null) {
-                        goalDeletedDataTableReload.draw();
-                    }
+                    //if (goalDeletedDataTableReload !== null) {
+                    //    goalDeletedDataTableReload.draw();
+                    //}
                 },
                 function (error) { // Error callback
                     console.error('Error deleting goal:', error);
