@@ -1,5 +1,5 @@
 ﻿$(document).ready(function () {
-    // Tabs
+    // Tabs changes
     $(".tab-link").on('click', function (e) {
         e.preventDefault();
 
@@ -18,50 +18,109 @@
         $("#" + $(this).data("tab")).removeClass("hidden");
     });
 
-    // Handel Create Notes...
     $("#noteForm").on('submit', function (e) {
         e.preventDefault();
         const data = {
             Title: $("#title").val(),
             Content: $("#content").val(),
             Tags: $("#tags").val(),
-            IsPinned: true
+            IsPinned: $("#IsPinned").prop('checked'),
         }
 
-        const goalId = $("#noteForm").data("goalid");
+        const action = $(this).data('action-note-form');
+        const goalId = $(this).data("goalid");
+        const noteId = $(this).data("noteid");
 
-        $.ajax({
-            url: `/Notes/Create/${goalId}`,
-            method: "POST",
-            data: data,
-            success: function (response) {
-                showSuccessNotification(response.message || "Notes Saved with Goal!");
+        if (action.toString().toLowerCase() === 'create') {
+            $.ajax({
+                url: `/Notes/Create/${goalId}`,
+                method: "POST",
+                data: data,
+                success: function (response) {
+                    showSuccessNotification(response.message || "Notes Saved with Goal!");
 
-                setTimeout(() => {
-                    $("#goalModal").fadeOut();
-                }, 500)
-            },
-            error: function (xhr, status, error) {
-                showErrorNotification(error.message || "Notes Saved Failed!");
-                console.error("Error:", error);
-            }
-        });
+                    setTimeout(() => {
+                        $("#noteModal").fadeOut();
+                    }, 500)
+                },
+                error: function (xhr, status, error) {
+                    showErrorNotification(error.message || "Notes Saved Failed!");
+                    console.error("Error:", error);
+                }
+            });
+        } else if (action.toString().toLowerCase() === 'edit' && noteId) {
+            data.id = noteId;
 
+            $.ajax({
+                url: `/Notes/Edit/${noteId}`,
+                method: "POST",
+                data: data,
+                success: function (response) {
+                    showSuccessNotification(response.message || "Notes Saved with Goal!");
+
+                    setTimeout(() => {
+                        $("#noteModal").fadeOut();
+                    }, 500)
+                },
+                error: function (xhr, status, error) {
+                    showErrorNotification(error.message || "Notes Saved Failed!");
+                    console.error("Error:", error);
+                }
+            });
+        } else {
+            showErrorNotification("Invalid Action!")
+        }
     });
 
     $("#openAddNotesModal").on('click', function () {
-        $("#goalModal").removeClass("hidden").fadeIn();
+        $("#noteModal").removeClass("hidden").fadeIn();
+        $("#note-title").html('<i class="fa-solid fa-clipboard-list"></i> Create a Progress Record in Goal');
+        $("#note-id-field").addClass("hidden");
+
+        $("#title").val('');
+        $("#content").val('');
+        $("#tags").val('');
+        $("#IsPinned").prop("checked", false);
+
     });
 
-    $(".edit-notes").on('click', function () {
-        //$("#goalModal").removeClass("hidden").fadeIn();
+    $(".edit-notes").on('click', function (e) {
+        
+        $("#noteModal").removeClass("hidden").fadeIn();
+        $("#note-title").html('<i class="fa-solid fa-edit"></i> Edit Your Progress Record in Goal');
+        $("#noteForm").data('action-note-form', 'edit');
+        
+        $("#note-id-field").removeClass("hidden").fadeIn();
 
-        alert($(this).data("noteId"));
+        const id = $(this).data("noteeditid");
+
+        $("#noteForm").data("noteid", id);
+
+        $.ajax({
+            url: `/Notes/Details/${id}`,
+            method: "POST",
+            success: function (response) {
+                $("#noteModal").removeClass("hidden").fadeIn();
+
+                const { data } = response;
+
+                $("#noteid").val(data.id);
+                $("#title").val(data.title);
+                $("#content").val(data.content);
+                $("#tags").val(data.tags);
+                $("#IsPinned").prop("checked", data.isPinned);
+
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error.message || "Failed To Load data!");
+                console.error("Error:", error);
+            }
+        });
     })
 
     // Close Modal
     $("#closeModal").on('click',function () {
-        $("#goalModal").fadeOut();
+        $("#noteModal").fadeOut();
     });
 
     // Display File Name
@@ -74,4 +133,59 @@
     $("#saveBtn").on('click', function () {
         $("#noteForm").submit();
     });
+
+
+    $(".delete-notes").on("click",  async function () {
+        const id = $(this).data("noteeditid");
+
+        if (!id) {
+            showErrorNotification("Missing Id parameters!");
+            return;
+        }
+
+        try {
+
+            // Call reusable confirmation function
+            showConfirmationDialog(
+                {
+                    title: 'Are you sure?',
+                    text: 'Do you really want to delete this goal? This action cannot be undone.',
+                },
+                {
+                    url: `/Notes/Delete`,
+                    type: 'DELETE',
+                    data: { Id: id }
+                },
+                function (response) { // Success callback
+                    $(`button[data-id='${goalId}']`).parent().remove();
+
+                },
+                function (error) { // Error callback
+                    console.error('Error deleting goal:', error);
+                }
+            );
+
+            //const res = await $.ajax({
+            //    url: "/Goals/DeleteGoal",
+            //    method: "DELETE",
+            //    data: { Id: id }
+            //})
+
+            //if (res.status) {
+
+            //    if (goalRunningDataTableReload !== null) {
+            //        goalRunningDataTableReload.draw();
+            //    }
+
+            //    showSuccessNotification(res.message);
+
+            //} else {
+            //    showErrorNotification(res.message || "Error: while deleting Goal with Id: " + id);
+            //}
+        }
+        catch (error) {
+            showErrorNotification(error.message || "Error: while deleting Goal with Id: " + id);
+            console.log(error);
+        }
+    })
 })

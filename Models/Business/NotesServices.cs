@@ -21,6 +21,7 @@ namespace TaskMonitoringApp.Models.Business
 
             var notesToAdd = _mapper.Map<Notes>(notes);
             notesToAdd.GoalId = goalId;
+            notesToAdd.TimeStamp = DateTime.Now;
 
             await _repository.AddNotes(notesToAdd);
         }
@@ -58,22 +59,22 @@ namespace TaskMonitoringApp.Models.Business
             return await _repository.GetAllNotesAsync<Notes>(userId, status, ResponseDataMode.Model);
         }
 
-        public async Task<NoteDTO> GetNoteById(string userId, int noteId, Status status)
+        public async Task<NoteDTO> GetNoteById(string userId, int noteId)
         {
             return await _repository.GetNotesByIdAsync<NoteDTO>(userId, noteId, ResponseDataMode.ModelDTO);
         }
 
-        public async Task<NoteDTOWithGoalDTO> GetNoteByIdByGoalId(string userId, int noteId, int goalId, Status status)
+        public async Task<NoteDTOWithGoalDTO> GetNoteByIdByGoalId(string userId, int noteId, int goalId)
         {
             return await _repository.GetNotesByIdWithGoalIdAsync<NoteDTOWithGoalDTO>(userId, noteId, goalId, ResponseDataMode.ModelDTO);
         }
 
-        public async Task<NoteDTOWithTaskDTO> GetNoteByIdByTaskId(string userId, int noteId, int taskId, Status status)
+        public async Task<NoteDTOWithTaskDTO> GetNoteByIdByTaskId(string userId, int noteId, int taskId)
         {
             return await _repository.GetNotesByIdWithTaskIdAsync<NoteDTOWithTaskDTO>(userId, noteId, taskId, ResponseDataMode.ModelDTO);
         }
 
-        public async Task<Notes> GetNoteByIdWithFullContext(string userId, int noteId, Status status)
+        public async Task<Notes> GetNoteByIdWithFullContext(string userId, int noteId)
         {
             return await _repository.GetNotesByIdAsync<Notes>(userId, noteId, ResponseDataMode.Model);
         }
@@ -82,9 +83,27 @@ namespace TaskMonitoringApp.Models.Business
         {
             var getNotes = await _repository.GetNotesByIdAsync<Notes>(userId, noteToUpdate.Id, ResponseDataMode.Model);
 
+            if(noteToUpdate.Title != getNotes.Title || noteToUpdate.Content != getNotes.Content)
+            {
+                noteToUpdate.IsModified = true;
+                noteToUpdate.ModifiedOn = DateTime.Now;
+            }
+
             _mapper.Map<NoteDTO, Notes>(noteToUpdate, getNotes);
 
             await _repository.UpdateNotes(userId, getNotes);
+        }
+
+        public async Task DeleteNotes(string userId, int noteId)
+        {
+            var noteData = await _repository.GetNotesByIdAsync<Notes>(userId, noteId, ResponseDataMode.Model);
+
+            noteData.IsDeleted = true;
+            noteData.DeletedOn = DateTime.Now;
+            noteData.UpdatedOn = DateTime.Now;
+
+            await _repository.UpdateNotes(userId, noteData);
+            
         }
     }
 }

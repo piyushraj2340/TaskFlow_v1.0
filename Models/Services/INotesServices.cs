@@ -13,13 +13,13 @@ namespace TaskMonitoringApp.Models.Services
         
         Task<IEnumerable<NoteDTOWithTaskDTO>> GetAllNotesByTaskId(string userId, int taskId, Status status);
 
-        Task<Notes> GetNoteByIdWithFullContext(string userId, int notesId, Status status);
+        Task<Notes> GetNoteByIdWithFullContext(string userId, int notesId);
 
-        Task<NoteDTO> GetNoteById(string userId, int notesId,  Status status);
+        Task<NoteDTO> GetNoteById(string userId, int notesId);
 
-        Task<NoteDTOWithGoalDTO> GetNoteByIdByGoalId(string userId, int notesId,  int goalId, Status status);
+        Task<NoteDTOWithGoalDTO> GetNoteByIdByGoalId(string userId, int notesId, int goalId);
 
-        Task<NoteDTOWithTaskDTO> GetNoteByIdByTaskId(string userId, int notesId,  int taskId, Status status);
+        Task<NoteDTOWithTaskDTO> GetNoteByIdByTaskId(string userId, int notesId, int taskId);
 
         Task AddNotesWithGoalId(string userId, NoteDTO notes, int goalId);
 
@@ -27,5 +27,6 @@ namespace TaskMonitoringApp.Models.Services
 
         Task UpdateNotes(string userId, NoteDTO noteToUpdate);
 
+        Task DeleteNotes(string userId, int noteId);
     }
 }
