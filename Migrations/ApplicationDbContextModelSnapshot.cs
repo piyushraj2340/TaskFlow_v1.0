@@ -373,7 +373,7 @@ namespace TaskMonitoringApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("GoalTasks");
+                    b.ToTable("GoalTasks", (string)null);
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Goals", b =>
@@ -427,7 +427,7 @@ namespace TaskMonitoringApp.Migrations
                     b.HasIndex("UserId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Goals");
+                    b.ToTable("Goals", (string)null);
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Tasks", b =>
@@ -488,7 +488,7 @@ namespace TaskMonitoringApp.Migrations
                     b.HasIndex("UserId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", (string)null);
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Todo", b =>
@@ -536,7 +536,7 @@ namespace TaskMonitoringApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Todo");
+                    b.ToTable("Todo", (string)null);
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.TodoWithTask", b =>
@@ -729,7 +729,7 @@ namespace TaskMonitoringApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TodoProgressAnalyses");
+                    b.ToTable("TodoProgressAnalyses", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
