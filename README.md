@@ -142,11 +142,14 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 
 # in the home index page productivity calculation not working in the task
 
-# we have encounter an error tasks model is not maped with the table in the db find the issue in this model....
+# we have encounter an error tasks model is not maped with the table in the db find the issue in this model....✅
 
-# all the mapper and logger dependency will be in the service layers.... 
+# all the mapper and logger dependency will be in the service layers....
+-- LOGGER WILL MOVE TO THE SERVICE LAYER 
+-- MAPPER CAN STILL BE USED IN THE CONTROLLER AND THE SERVICE 
+-- IN CONTROLLER WE CHANGE VIEWMODEL <---> DTO
 
-# goal have only end date not time.... expelicetly do in service layers....
+# goal have only end date not time.... expelicetly do in service layers.... ❌ - IMPLEMENTED TO END 23:23:59 AND NOW GOING TO IMPLEMENT TO ADD THE TIME OPTIONAL.....
  
 # EndedGoal, EndedTask, should be handeled by the in-memory queus not by the stored procedured. so remove the sp after this....
 # handel the update functionality in only 1 round trip....
@@ -154,27 +157,28 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 
 
 # update the frontend logic such as : endDate validations and all...
-# edit task with goal not saving goals 
-# see how the task end date saving date and time 
+# edit task with goal not saving goals ✅
+# see how the task end date saving date and time ✅
 
 
-# when I implemented the Iunit of work patter then addtaskwithgoal will be added using the entity...
+# when I implemented the Iunit of work patter then addtaskwithgoal WE will be TRY  added using the entity...
+# ALSO IMPLEMENT THE QUEUE TO HANDEL ALL THE ASYNC TASK LIKE CHANGE THE STRUCTUE IN BULK 
   
-  #TODO PAGE NOW WOKING NOW BUT HAS ISSUE WITH CREATING THE INSTANCE OF THE TASK 
+  #TODO PAGE NOW WOKING NOW BUT HAS ISSUE WITH CREATING THE INSTANCE OF THE TASK ✅
 
-  CREATEING THE MULTIPLE TODO WITH THE SAME DATE 
+  CREATEING THE MULTIPLE TODO WITH THE SAME DATE ✅
 
-  TODO LINK TO TASK IS NOT OPENING SOME 0 IDS 
+  TODO LINK TO TASK IS NOT OPENING SOME 0 IDS ✅
 
   SEARCH GOAL ON THE TASK CREATION WILL NOT HIDE IF OTHER FIELD IS SELECTED 
 
-  PRIORITY TAG APPERS WRONGS 
+  PRIORITY TAG APPERS WRONGS ✅
 
-  STILL NOT GETTIG THE GOAL DETAILS ON EDITING 
+  STILL NOT GETTIG THE GOAL DETAILS ON EDITING ✅
 
-  Add validation in the sp to only active goal is added to the task
+  Add validation in the sp to only active goal is added to the task ✅
 
-  fix: end time for goal,task,todo at :23:59:59
+  fix: end time for goal,task,todo at :23:59 ✅
 
  Scheduled move to running.... like planning
  
@@ -182,4 +186,5 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 
  add deleted and ended todos 
 
- add include time optional to the user for end date by default it will be ending on 23:59:59
+ add include time optional to the user for end date by default it will be ending on 23:59:59 ✅
+	and use the socket for timer ending... 
