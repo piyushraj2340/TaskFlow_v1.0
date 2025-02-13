@@ -121,13 +121,17 @@ namespace TaskMonitoringApp.Controllers
             // Paginate the data (skip and take)
             var empList = data.Skip(skip).Take(pageSize).ToList();
 
+            var todoData = _mapper.Map<List<TodoDTO>>(empList);
+
+            //if(todoData.) 
+
             // Map the data to GoalDTO using AutoMapper
             var returnObj = new
             {
                 draw,
                 recordsTotal = totalRecord,
                 recordsFiltered = filterRecord,
-                data = _mapper.Map<List<TodoDTO>>(empList)
+                data = todoData
             };
 
             // Return the result as JSON
@@ -198,6 +202,9 @@ namespace TaskMonitoringApp.Controllers
 
             // Paginate the data (skip and take)
             var empList = data.Skip(skip).Take(pageSize).ToList();
+            var todoData = _mapper.Map<List<TodoDTO>>(empList);
+
+            //if(todoData.) 
 
             // Map the data to GoalDTO using AutoMapper
             var returnObj = new
@@ -205,7 +212,7 @@ namespace TaskMonitoringApp.Controllers
                 draw,
                 recordsTotal = totalRecord,
                 recordsFiltered = filterRecord,
-                data = _mapper.Map<List<TodoDTO>>(empList)
+                data = todoData
             };
 
             // Return the result as JSON

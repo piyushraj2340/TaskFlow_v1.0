@@ -47,7 +47,8 @@ namespace TaskMonitoringApp.Mappings
             CreateMap<TodoDTO, Todo>();
             CreateMap<TodoStatusDTO, Todo>();
             CreateMap<Todo, TodoStatusDTO>();
-            CreateMap<TodoDTO, TodoDTOWithTaskDTO>().ReverseMap();
+            CreateMap<TodoDTO, TodoDTOWithTaskDTO>()
+                .ForMember(dest => dest.TaskId, opt => opt.MapFrom(src => src.Task.Id)).ReverseMap();
 
             CreateMap<RegisterViewModel, Users>();
         }
