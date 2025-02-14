@@ -90,7 +90,7 @@ namespace TaskMonitoringApp.Controllers
             }
 
 
-            var goal = await _service.GetAllTaskNameWithStatusAndGoal(userId, Id, Status.All);
+            var goal = await _goalService.GetAllTaskNameWithStatusAndGoal(userId, Id, Status.All);
 
             if (goal == null)
             {
@@ -101,11 +101,11 @@ namespace TaskMonitoringApp.Controllers
             ViewBag.tabName = tabName;
 
             var notesList = await _noteService.GetAllNotesByGoalId(userId, Id, Status.All);
-            var goalWithNoteList = _mapper.Map<GoalDTOWithNoteListDTO>(goal);
-            goalWithNoteList.NotesList = notesList;
+            var goalWithNoteList = _mapper.Map<GoalWithNotesAndTaskNameListViewModel>(goal);
+            goalWithNoteList.NotesLists = notesList;
 
 
-            return View(_mapper.Map<GoalWithNotesListViewModel>(goalWithNoteList));
+            return View(goalWithNoteList);
             // TODO: Create a view model for the notes and GoalWithTaskNameList
             //return View(_mapper.Map<GoalWithTaskNameListViewModel>(goal));
         }
@@ -120,7 +120,7 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var goal = await _service.GetAllTaskNameWithStatusAndGoal(userId, Id, Status.All);
+            var goal = await _goalService.GetAllTaskNameWithStatusAndGoal(userId, Id, Status.All);
 
             if (goal == null)
             {

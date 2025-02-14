@@ -16,9 +16,9 @@ namespace TaskMonitoringApp.Models.Services
 
         Task<GoalDTO> GetGoalById(string UserId, int Id);
 
-        Task<GoalDTOWithTaskNameDTOs> GetAllTaskNameWithStatusAndGoal(string userId, int goalId, Status goalStatus);
+        Task<GoalDTOWithTaskNameListDTO> GetAllTaskNameWithStatusAndGoal(string userId, int goalId, Status goalStatus);
 
-        Task<GoalDTOWithTaskDTOs> GetAllTaskWithStatusAndGoal(string userId, int goalId, Status goalStatus);
+        Task<GoalDTOWithTaskListDTO> GetAllTaskWithStatusAndGoal(string userId, int goalId, Status goalStatus);
 
         Task<IEnumerable<GoalDTO>> GetAllGoals(string UserId, Status status);
 
