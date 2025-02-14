@@ -144,7 +144,7 @@
 
         // Fetch goal data
         const res = await $.ajax({
-            url: `/api/v1/Goals/${currentGoalId}`,
+            url: `/Goals/GetById/${currentGoalId}`,
             method: "GET",
         });
 
@@ -351,6 +351,7 @@
     // Function to load goal data into the form for editing
     function loadDataIntoForm(goal) {
         // Load data into the form fields for editing
+
         if (isEditMode) {
             $("#goalIdContainer").removeClass("hidden");
             goalIdInput.val(goal.id);
@@ -396,17 +397,7 @@
                     data: "priority",
                     name: "priority",
                     render: function (data, type, row) {
-                        switch (data) {
-                            case 2:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
-                        }
-
+                        return  (data);
                     }
                 },
                 {
@@ -472,17 +463,7 @@
                     data: "priority",
                     name: "priority",
                     render: function (data, type, row) {
-                        switch (data) {
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
-                            case 2:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
-                        }
-
+                        return returnPriorityBadge(data);
                     }
                 },
                 {
@@ -548,17 +529,7 @@
                     data: "priority",
                     name: "priority",
                     render: function (data, type, row) {
-                        switch (data) {
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
-                            case 2:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
-                        }
-
+                        return returnPriorityBadge(data);
                     }
                 },
                 {
@@ -624,17 +595,7 @@
                     data: "priority",
                     name: "Priority",
                     render: function (data, type, row) {
-                        switch (data) {
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
-                            case 2:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
-                        }
-
+                        return returnPriorityBadge(data);
                     }
                 },
                 {
@@ -669,7 +630,6 @@
         });
     }
 
-
     function loadDeletedGoalData() {
         goalDeletedDataTableReload = deletedGoalDataTable.DataTable({
             ajax: {
@@ -700,17 +660,7 @@
                     data: "priority",
                     name: "priority",
                     render: function (data, type, row) {
-                        switch (data) {
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
-                            case 2:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
-                        }
-
+                        return returnPriorityBadge(data);
                     }
                 },
                 {
@@ -786,7 +736,7 @@
     loadCompletedGoalData();
     loadNotStartedGoalData();
     loadEndedGoalData();
-    loadDeletedGoalData();
+    //loadDeletedGoalData();
 
 
     //async function calculateProductivity() {

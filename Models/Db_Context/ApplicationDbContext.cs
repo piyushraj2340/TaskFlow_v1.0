@@ -75,6 +75,10 @@ namespace TaskMonitoringApp.Models.Data
                 .HasIndex(g => new { g.UserId, g.Name })
                 .IsUnique();
 
+            modelBuilder.Entity<Todo>()
+                .HasIndex(t => new { t.EndDate, t.TaskId })
+                .IsUnique();
+
             modelBuilder.Entity<InsertUpdateSpWithIdDTO>().ToView(null);
             modelBuilder.Entity<GoalDTO>().ToView(null);
             modelBuilder.Entity<GoalNameDTO>().ToView(null);

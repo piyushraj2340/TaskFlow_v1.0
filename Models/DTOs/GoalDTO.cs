@@ -20,14 +20,15 @@ namespace TaskMonitoringApp.Models.DTOs
         public string? UserId { get; set; }
     }
 
+
     public class GoalDTOWithTaskNameListDTO : GoalDTO
     {
         public ICollection<TaskNameDTO>? TaskLists { get; set; }
     }
 
-    public class GoalDTOWithTaskListDTO
+    public class GoalDTOWithTaskListDTO : GoalDTO
     {
-        public ICollection<TaskDTO> TaskLists{ get; set; }
+        public IEnumerable<TaskDTO> TaskLists { get; set; }
     }
 
     public class GoalStatusDTO
