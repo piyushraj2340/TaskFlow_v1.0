@@ -54,10 +54,12 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             {
                 ResponseDataMode.Model => await _context.Notes
                     .Where(n => n.UserId == userId && (status == Status.All ||  n.Status == status)&& !n.IsDeleted)
+                    .OrderByDescending(n => n.TimeStamp)
                     .ToListAsync() as IEnumerable<T>
                         ?? throw new NotFoundException("Notes with userId Not Found!"),
                 ResponseDataMode.ModelDTO => await _context.Notes
                     .Where(n => n.UserId == userId && (status == Status.All || n.Status == status) && n.IsDeleted == false)
+                    .OrderByDescending(n => n.TimeStamp)
                     .Select(n => new NoteDTO()
                     {
                         Id = n.Id,
@@ -144,6 +146,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                     .Where(n => n.UserId == userId && (status == Status.All || n.Status == status) && n.GoalId == goalId && n.IsDeleted == false)
                     .Include(g => g.Goal)
                     .AsSingleQuery()
+                    .OrderByDescending(n => n.TimeStamp)
                     .ToListAsync() as IEnumerable<T>
                         ?? throw new NotFoundException("Notes with userId Not Found!"),
                 ResponseDataMode.ModelDTO => await _context.Notes
@@ -174,6 +177,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                         }
                     })
                     .AsSingleQuery()
+                    .OrderByDescending(n => n.TimeStamp)
                     .ToListAsync() as IEnumerable<T>
                         ?? throw new NotFoundException("NoteDTOWithGoalAndTaskDTO with userId Data Not Found!"),
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Notes Data.")
@@ -188,11 +192,13 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                     .Where(n => n.UserId == userId && (status == Status.All || n.Status == status) && n.TaskId == taskId && n.IsDeleted == false)
                     .Include(t => t.Task)
                     .AsSingleQuery()
+                    .OrderByDescending(n => n.TimeStamp)
                     .ToListAsync() as IEnumerable<T>
                         ?? throw new NotFoundException("Notes with userId Not Found!"),
                 ResponseDataMode.ModelDTO => await _context.Notes
                     .Where(n => n.UserId == userId && (status == Status.All || n.Status == status) && n.TaskId == taskId && n.IsDeleted == false)
                     .Include(t => t.Task)
+                    .OrderByDescending(n => n.TimeStamp)
                     .Select(n => new NoteDTOWithTaskDTO()
                     {
                         Id = n.Id,
@@ -233,6 +239,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 case ResponseDataMode.Model:
                     var dataModel = await _context.Notes
                         .Where(n => n.UserId == userId && n.Id == id && n.IsDeleted == false)
+                        .OrderByDescending(n => n.TimeStamp)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Notes with userId Not Found!");
 
@@ -242,6 +249,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 case ResponseDataMode.ModelDTO:
                     var dataModelDTO = await _context.Notes
                        .Where(n => n.UserId == userId && n.Id == id && n.IsDeleted == false)
+                       .OrderByDescending(n => n.TimeStamp)
                        .Select(n => new NoteDTO()
                        {
                            Id = n.Id,
