@@ -24,7 +24,7 @@ namespace TaskMonitoringApp.Models.DTOs
     {
         public int Id { get; set; }
 
-        // todo end date...
+        // todo end date
         public DateTime EndDate { get; set; }
 
         // todo status 

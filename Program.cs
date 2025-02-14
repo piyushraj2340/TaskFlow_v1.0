@@ -21,6 +21,9 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITodoServices, TodoServices>();
 builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
+builder.Services.AddScoped<INotesRepository, NotesRepository>();
+builder.Services.AddScoped<INotesServices, NotesServices>();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache(); // Enable In-Memory Caching
@@ -41,6 +44,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+builder.Services.AddAutoMapper(typeof(GoalProfile));
+builder.Services.AddAutoMapper(typeof(TaskProfile));
+builder.Services.AddAutoMapper(typeof(TodoProfile));
+builder.Services.AddAutoMapper(typeof(NotesProfile));
 
 var app = builder.Build();
 
