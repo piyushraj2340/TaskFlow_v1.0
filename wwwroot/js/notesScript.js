@@ -123,6 +123,12 @@
         $("#noteModal").fadeOut();
     });
 
+    $("#noteModal").on('click', function (e) {
+        if (e.target === this) {
+            $(this).fadeOut();
+        }
+    })
+
     // Display File Name
     //$("#attachments").on('change', function () {
     //    let fileName = $(this).val().split("\\").pop();
