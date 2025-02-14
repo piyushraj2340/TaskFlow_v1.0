@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskMonitoringApp.Models.Data;
 
@@ -11,9 +12,11 @@ using TaskMonitoringApp.Models.Data;
 namespace TaskMonitoringApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250206094401_Add NotesModel")]
+    partial class AddNotesModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -217,65 +220,6 @@ namespace TaskMonitoringApp.Migrations
                     b.ToTable((string)null);
 
                     b.ToView(null, (string)null);
-                });
-
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTO", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
-
-                    b.Property<bool>("IsModified")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPinned")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ParentNoteId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.PrimitiveCollection<string>("Tags")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentNoteId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable((string)null);
-
-                    b.ToView(null, (string)null);
-
-                    b.HasDiscriminator().HasValue("NoteDTO");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.TaskDTO", b =>
@@ -519,13 +463,7 @@ namespace TaskMonitoringApp.Migrations
                     b.Property<bool>("IsPinned")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime2");
-
                     b.Property<int?>("ParentNoteId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.PrimitiveCollection<string>("Tags")
@@ -672,9 +610,6 @@ namespace TaskMonitoringApp.Migrations
                     b.HasIndex("TaskId");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("EndDate", "TaskId")
-                        .IsUnique();
 
                     b.ToTable("Todo");
                 });
@@ -872,49 +807,6 @@ namespace TaskMonitoringApp.Migrations
                     b.ToTable("TodoProgressAnalyses");
                 });
 
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO", b =>
-                {
-                    b.HasBaseType("TaskMonitoringApp.Models.DTOs.NoteDTO");
-
-                    b.Property<int>("GoalId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TaskId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("GoalId");
-
-                    b.HasIndex("TaskId");
-
-                    b.ToView(null, (string)null);
-
-                    b.HasDiscriminator().HasValue("NoteDTOWithGoalAndTaskDTO");
-                });
-
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalDTO", b =>
-                {
-                    b.HasBaseType("TaskMonitoringApp.Models.DTOs.NoteDTO");
-
-                    b.Property<int>("GoalId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("GoalId");
-
-                    b.HasDiscriminator().HasValue("NoteDTOWithGoalDTO");
-                });
-
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTOWithTaskDTO", b =>
-                {
-                    b.HasBaseType("TaskMonitoringApp.Models.DTOs.NoteDTO");
-
-                    b.Property<int>("TaskId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("TaskId");
-
-                    b.HasDiscriminator().HasValue("NoteDTOWithTaskDTO");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -964,23 +856,6 @@ namespace TaskMonitoringApp.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTO", b =>
-                {
-                    b.HasOne("TaskMonitoringApp.Models.Entities.Notes", "ParentNote")
-                        .WithMany()
-                        .HasForeignKey("ParentNoteId");
-
-                    b.HasOne("TaskMonitoringApp.Models.Entities.Users", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ParentNote");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.TodoProgressAnalysisDTO", b =>
@@ -1106,47 +981,6 @@ namespace TaskMonitoringApp.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO", b =>
-                {
-                    b.HasOne("TaskMonitoringApp.Models.DTOs.GoalDTO", "Goal")
-                        .WithMany()
-                        .HasForeignKey("GoalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TaskMonitoringApp.Models.DTOs.TaskDTO", "Task")
-                        .WithMany()
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Goal");
-
-                    b.Navigation("Task");
-                });
-
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalDTO", b =>
-                {
-                    b.HasOne("TaskMonitoringApp.Models.DTOs.GoalDTO", "Goal")
-                        .WithMany()
-                        .HasForeignKey("GoalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Goal");
-                });
-
-            modelBuilder.Entity("TaskMonitoringApp.Models.DTOs.NoteDTOWithTaskDTO", b =>
-                {
-                    b.HasOne("TaskMonitoringApp.Models.DTOs.TaskDTO", "Task")
-                        .WithMany()
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Goals", b =>

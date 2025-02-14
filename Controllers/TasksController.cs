@@ -137,6 +137,7 @@ namespace TaskMonitoringApp.Controllers
                 return NotFound();
             }
             TaskViewModel taskViewModel = _mapper.Map<TaskViewModel>(taskToEdit);
+            taskViewModel.GoalLists = taskToEdit.GoalLists;
 
             if (taskViewModel != null && taskViewModel.GoalLists != null)
             {
@@ -160,6 +161,7 @@ namespace TaskMonitoringApp.Controllers
             {
                 return NotFound();
             }
+            task.UserId = userId;
 
             ViewBag.IsEditMode = true;
             var returnUrl = string.IsNullOrWhiteSpace(TempData["ReturnUrl"]?.ToString()) ? Url.Action("Index", "Home") : TempData["ReturnUrl"]?.ToString();
