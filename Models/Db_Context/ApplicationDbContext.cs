@@ -26,9 +26,10 @@ namespace TaskMonitoringApp.Models.Data
 
         public DbSet<TodoProgressAnalysis> TodoProgressAnalyses { get; set; }
 
+        public DbSet<Notes> Notes { get; set; }
 
         // Adding the sp_entity_data
-        
+
 
         public DbSet<InsertUpdateSpWithIdDTO> InsertUpdateSpWithIdDTO { get; set; }
 
@@ -133,6 +134,12 @@ namespace TaskMonitoringApp.Models.Data
                     _logger.LogInformation("Setting UpdateOn for TodoProgressAnalysis entity with ID: {TodoProgressAnalysisId}", tpa.Id);
                     tpa.UpdatedOn = DateTime.Now;  // Use UTC to avoid time zone issues
                 }
+
+                if (entity.Entity is Notes note)
+                {
+                    _logger.LogInformation("Setting UpdateOn for Notes entity with ID: {Note}", note.Id);
+                    note.UpdatedOn = DateTime.Now;  // Use UTC to avoid time zone issues
+                }
             }
 
             return base.SaveChanges();
@@ -173,6 +180,12 @@ namespace TaskMonitoringApp.Models.Data
                 {
                     _logger.LogInformation("Setting UpdateOn for TodoProgressAnalysis entity with ID: {TodoProgressAnalysisId}", tpa.Id);
                     tpa.UpdatedOn = DateTime.Now;  // Use UTC to avoid time zone issues
+                }
+
+                if (entity.Entity is Notes note)
+                {
+                    _logger.LogInformation("Setting UpdateOn for Notes entity with ID: {Note}", note.Id);
+                    note.UpdatedOn = DateTime.Now;  // Use UTC to avoid time zone issues
                 }
             }
 

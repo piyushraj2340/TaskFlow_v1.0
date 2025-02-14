@@ -17,30 +17,17 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public Status GoalStatus { get; set; }
 
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
     }
 
-    public class GoalDTOWithTaskNameDTOs : GoalDTO
+
+    public class GoalDTOWithTaskNameListDTO : GoalDTO
     {
-        public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
+        public ICollection<TaskNameDTO>? TaskLists { get; set; }
     }
 
-    public class GoalDTOWithTaskDTOs
+    public class GoalDTOWithTaskListDTO : GoalDTO
     {
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-
-        public DateTime EndDate { get; set; }
-
-        public Priority Priority { get; set; }
-
-        public string Description { get; set; }
-
-        public Status GoalStatus { get; set; }
-
-        public string UserId { get; set; }
-
         public IEnumerable<TaskDTO> TaskLists { get; set; }
     }
 
@@ -72,5 +59,10 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public string? UserId { get; set; }
 
+    }
+
+    public class GoalDTOWithNoteListDTO : GoalDTO
+    {
+        public IEnumerable<NoteDTOWithGoalDTO> NotesList { get; set; }
     }
 }
