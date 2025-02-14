@@ -79,3 +79,27 @@ function returnStatusBadge(status) {
             return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-900 rounded-full shadow-md hover:bg-gray-950 transition duration-300 min-w-max">Unknown Type</span>';
     }
 }
+
+
+function returnPriorityBadge(status) {
+
+    // Ensure the status is a valid number (not NaN, not undefined, etc.)
+    const data = Number.parseInt(status);
+
+    // Validate if 'status' is a valid number
+    if (isNaN(data) || typeof data !== 'number') {
+        return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-900 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
+        // Return an error message or default badge if invalid
+    }
+
+    switch (data) {
+        case 2:
+            return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
+        case 1:
+            return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
+        case 0:
+            return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
+        default:
+            return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
+    }
+}

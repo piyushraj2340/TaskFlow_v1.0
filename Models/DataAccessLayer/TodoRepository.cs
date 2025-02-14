@@ -55,11 +55,11 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             return mode switch
             {
                 ResponseDataMode.Model => await _context.TodoWithTask
-                        .FromSqlRaw("EXEC usp_AddTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                        .FromSqlRaw("EXEC usp_AddAndGetTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 ResponseDataMode.ModelDTO => await _context.TodoWithTaskDTO
-                        .FromSqlRaw("EXEC usp_AddTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                        .FromSqlRaw("EXEC usp_AddAndGetTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")

@@ -111,24 +111,14 @@
                     data: "task.name",
                     name: "name",
                     render: function (data, type, row) {
-                        return `<a href="/Tasks/Details/${row?.task?.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
+                        return `<a href="/Tasks/Details/${row?.taskId}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
                     }
                 },
                 {
                     data: "task.priority",
                     name: "priority",
                     render: function (data, type, row) {
-                        switch (data) {
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
-                            case 2:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
-                        }
-
+                        return returnPriorityBadge(data);
                     }
                 },
                 {
@@ -200,24 +190,14 @@
                     data: "task.name",
                     name: "name",
                     render: function (data, type, row) {
-                        return `<a href="/Tasks/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
+                        return `<a href="/Tasks/Details/${row?.taskId}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
                     }
                 },
                 {
                     data: "task.priority",
                     name: "priority",
                     render: function (data, type, row) {
-                        switch (data) {
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full">High</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">Medium</span>';
-                            case 2:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
-                        }
-
+                        return returnPriorityBadge(data);
                     }
                 },
                 {
