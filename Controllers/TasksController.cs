@@ -55,6 +55,7 @@ namespace TaskMonitoringApp.Controllers
 
             var task = await _service.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
             TaskViewModel taskDetail = _mapper.Map<TaskViewModel>(task);
+            taskDetail.GoalLists = task.GoalLists;
 
             return View(taskDetail);
         }

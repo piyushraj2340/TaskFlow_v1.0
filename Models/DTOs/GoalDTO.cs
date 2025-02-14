@@ -23,7 +23,7 @@ namespace TaskMonitoringApp.Models.DTOs
 
     public class GoalDTOWithTaskNameListDTO : GoalDTO
     {
-        public ICollection<TaskNameDTO>? TaskLists { get; set; }
+        public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
     }
 
     public class GoalDTOWithTaskListDTO : GoalDTO
@@ -63,6 +63,13 @@ namespace TaskMonitoringApp.Models.DTOs
 
     public class GoalDTOWithNoteListDTO : GoalDTO
     {
-        public IEnumerable<NoteDTOWithGoalDTO> NotesList { get; set; }
+        public IEnumerable<NoteDTOWithGoalDTO> NotesLists { get; set; }
+    }
+
+    public class GoalDTOWithNotesAndTaskNameListDTO : GoalDTO
+    {
+        public IEnumerable<NoteDTOWithGoalDTO> NotesLists { get; set; }
+
+        public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
     }
 }

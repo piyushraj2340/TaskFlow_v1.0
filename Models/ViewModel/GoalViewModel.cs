@@ -7,7 +7,14 @@ namespace TaskMonitoringApp.Models.ViewModel
 
     public class GoalWithNotesListViewModel : GoalViewModel
     {
-        public IEnumerable<NoteDTOWithGoalDTO> NotesList { get; set; }
+        public IEnumerable<NoteDTOWithGoalDTO> NotesLists { get; set; }
+    }
+
+    public class GoalWithNotesAndTaskNameListViewModel : GoalViewModel
+    {
+        public IEnumerable<NoteDTOWithGoalDTO> NotesLists { get; set; }
+
+        public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
     }
 
     public class GoalWithTaskNameListViewModel : GoalViewModel
@@ -17,6 +24,6 @@ namespace TaskMonitoringApp.Models.ViewModel
 
     public class GoalWithTaskListViewModel : GoalViewModel
     {
-        public IEnumerable<TaskDTO> TaskList { get; set; }
+        public IEnumerable<TaskDTO> TaskLists { get; set; }
     }
 }

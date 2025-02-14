@@ -9,13 +9,6 @@ namespace TaskMonitoringApp.Mappings
     {
         public AutoMapperProfile()
         {
-
-            CreateMap<GoalNameDTO, GoalWithTaskNameListViewModel>().ReverseMap();
-            CreateMap<GoalDTOWithTaskNameDTOs, GoalWithTaskNameListViewModel>().ReverseMap();
-
-            CreateMap<TodoDTO, TodoDTOWithTaskDTO>()
-                .ForMember(dest => dest.TaskId, opt => opt.MapFrom(src => src.Task.Id)).ReverseMap();
-
             CreateMap<RegisterViewModel, Users>();
         }
     }
