@@ -12,8 +12,13 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public List<string> Tags { get; set; } = new List<string>();
 
+        // this will only update when we changed the content like title, content
+        // other updations like pinned, unpinned will not modified 
+        // true : if modified
         public bool IsModified { get; set; } = false;
 
+        // this will only update when we changed the content like title, content with the current date and time
+        // other updations like pinned, unpinned will not modified 
         public DateTime? ModifiedOn { get; set; }
 
         public int? ParentNoteId { get; set; }
@@ -22,7 +27,8 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public bool IsPinned { get; set; } = false;
 
-        public DateTime TimeStamp { get; set; } = DateTime.Now;
+        // This will only update when we create with the current date and time
+        public DateTime? TimeStamp { get; set; }
 
         public string? UserId { get; set; }
     }
