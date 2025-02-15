@@ -81,6 +81,9 @@
         $("#content").val('');
         $("#tags").val('');
         $("#IsPinned").prop("checked", false);
+        //Todo: Change the create url here into the form data....
+        // test the bellow functionality
+        $("#noteForm").data('action-note-form', 'create');
 
     });
 
