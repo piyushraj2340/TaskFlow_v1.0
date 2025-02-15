@@ -10,8 +10,13 @@
 
         public List<string> Tags { get; set; } = new List<string>();
 
+        // this will only update when we changed the content like title, content
+        // other updations like pinned, unpinned will not modified 
+        // true : if modified
         public bool IsModified { get; set; } = false;
 
+        // this will only update when we changed the content like title, content with the current date and time
+        // other updations like pinned, unpinned will not modified 
         public DateTime? ModifiedOn { get; set; }
 
         public int? ParentNoteId { get; set; }
@@ -26,6 +31,7 @@
 
         public DateTime? UpdatedOn { get; set; } = DateTime.Now;
 
+        // This will only update when we create with the current date and time
         public DateTime TimeStamp { get; set; } = DateTime.Now;
 
         public bool IsDeleted { get; set; } = false;
