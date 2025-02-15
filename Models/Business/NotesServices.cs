@@ -89,6 +89,8 @@ namespace TaskMonitoringApp.Models.Business
                 noteToUpdate.ModifiedOn = DateTime.Now;
             }
 
+            noteToUpdate.TimeStamp = getNotes.TimeStamp; // Do Not change the timestamp if we update the notes....
+
             _mapper.Map<NoteDTO, Notes>(noteToUpdate, getNotes);
 
             await _repository.UpdateNotes(userId, getNotes);

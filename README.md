@@ -204,3 +204,58 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 
 
  add include time optional to the user for end date by default it will be ending on 23:59:59
+
+ -- Notes module in the goal 
+
+ -- Form url not update if the we switch the edit to create it will update the data.....
+ -- timestemp update if we modified the content and it will cause the order issue so only modify the modified on date and ismodified as true 
+ -- test the proper logic for the timestamp and does the mapper work correctly or not....
+
+
+ # Features in the notes...
+
+	## Time Stemps
+		-- 1. timestamp will added on creating the notes after that it will not change 
+		-- 2. if we modify the timestamp : isModified will change to true and onModified will change to currentTime
+		-- 3. sort by timestam desc to the the data in most recent and then followed
+
+	## Features Notes
+		-- 1. Add the Content field to have the word formated features: use the libarar
+		-- 2. Implement the sticky notes with features
+		-- 3. Pin Notes will display as the list on the top of the list title and content in the single line 
+		-- 4. see if we want to move the state from in-active to active then we need to add notes :- This will act as the feature by which we can add or remove by the admin control panel 
+
+	## Features Sticky Notes
+		-- 1. has options to open on the selected page with configurations 
+		-- 2. show popup as the sticky notes on page with fixed positions or right side or any other place with automatic close or manual close 
+		-- 3. display and close with certain time like after 2 min or when we cut by clicking on the close button 
+		-- 4. Have repeate cycle that are used in the task with advance implementions
+
+		+------------------------+
+		|     Notes              |
+		+------------------------+
+		| - title: string        |
+		| - content: string      |
+		| - dateCreated: Date    |
+		| - timestamp: Date      |
+		+------------------------+
+		| + createNote()         |
+		| + editNote()           |
+		| + deleteNote()         |
+		| + displayNote()        |
+		+------------------------+
+				▲
+				│ (inherits)
+		+----------------------+
+		|    StickyNotes       |
+		+----------------------+
+		| - color: string      |
+		| - size: string       |
+		| - pinned: boolean    |
+		+----------------------+
+		| + pinNote()          |
+		| + setColor(color)    |
+		| + resize(size)       |
+		+----------------------+
+
+
