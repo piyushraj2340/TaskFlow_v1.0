@@ -1,5 +1,13 @@
 ﻿namespace TaskMonitoringApp.Models.Entities
 {
+    public enum NotesAttachedWith
+    {
+        All = 0,
+        Goal,
+        Task,
+        Todo,
+    }
+
     public class Notes
     {
         public int Id { get; set; }
