@@ -1,4 +1,11 @@
 ﻿$(document).ready(function () {
+    const notesActionType = Object.freeze({
+        All: 0,
+        Goal: 1,
+        Task: 2,
+        Todo: 3
+    });
+
     // Tabs changes
     $(".tab-link").on('click', function (e) {
         e.preventDefault();
@@ -28,16 +35,23 @@
         }
 
         const action = $(this).data('action-note-form');
-        const goalId = $(this).data("goalid");
+        const actionType = $("#openAddNotesModal").data('action-note-form-type');
+        const actionTypeId = $("#openAddNotesModal").data('action-note-form-type-id')
         const noteId = $(this).data("noteid");
+        console.log('action   ' + action)
+        console.log('actionType   ' + actionType)
+        console.log('actionTypeId   ' + actionTypeId)
+        console.log('noteId   ' + noteId)
+
+
 
         if (action.toString().toLowerCase() === 'create') {
             $.ajax({
-                url: `/Notes/Create/${goalId}`,
+                url: `/Notes/Create/${actionTypeId}/${actionType === 'goal' ? notesActionType.Goal : notesActionType.Task}`, // Added Staic need to be dynamic | only for task and goal...
                 method: "POST",
                 data: data,
                 success: function (response) {
-                    showSuccessNotification(response.message || "Notes Saved with Goal!");
+                    showSuccessNotification(response.message || `Notes Saved with ${actionType}!`);
 
                     setTimeout(() => {
                         $("#noteModal").fadeOut();
@@ -76,15 +90,14 @@
         $("#noteModal").removeClass("hidden").fadeIn();
         $("#note-title").html('<i class="fa-solid fa-clipboard-list"></i> Create a Progress Record in Goal');
         $("#note-id-field").addClass("hidden");
-
-        $("#title").val('');
-        $("#content").val('');
-        $("#tags").val('');
-        $("#IsPinned").prop("checked", false);
+        //$("#title").val('');
+        //$("#content").val('');
+        //$("#tags").val('');
+        //$("#IsPinned").prop("checked", false);
+        $("#noteForm")[0].reset();
         //Todo: Change the create url here into the form data....
         // test the bellow functionality
         $("#noteForm").data('action-note-form', 'create');
-
     });
 
     $(".edit-notes").on('click', function (e) {
@@ -166,7 +179,7 @@
                     data: { Id: id }
                 },
                 function (response) { // Success callback
-                    $(`button[data-id='${goalId}']`).parent().remove();
+                    $(`button[data-id='${noteId}']`).parent().remove();
 
                 },
                 function (error) { // Error callback

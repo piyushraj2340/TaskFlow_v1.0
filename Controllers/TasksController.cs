@@ -19,14 +19,16 @@ namespace TaskMonitoringApp.Controllers
     {
         private readonly ILogger<TasksController> _logger;
         private readonly IMapper _mapper;
-        private readonly ITaskServices _service;
+        private readonly ITaskServices _taskService;
+        private readonly INotesServices _notesService;
         private readonly UserManager<Users> _userManager;
 
-        public TasksController(ILogger<TasksController> logger, IMapper mapper, ITaskServices service, UserManager<Users> userManager)
+        public TasksController(ILogger<TasksController> logger, IMapper mapper, ITaskServices taskService, INotesServices notesService, UserManager<Users> userManager)
         {
             _logger = logger;
             _mapper = mapper;
-            _service = service;
+            _taskService = taskService;
+            _notesService = notesService;
             _userManager = userManager;
         }
 
@@ -40,11 +42,12 @@ namespace TaskMonitoringApp.Controllers
             }
 
 
-            TaskProductivityDTO productivity = await _service.GetTaskProductivity(userId);
+            TaskProductivityDTO productivity = await _taskService.GetTaskProductivity(userId);
             return View(productivity);
         }
 
-        public async Task<IActionResult> Details(int Id)
+        [Route("{controller}/{action}/{Id}/{tabName?}")]
+        public async Task<IActionResult> Details(int Id, string? tabName)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -53,11 +56,34 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var task = await _service.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
-            TaskViewModel taskDetail = _mapper.Map<TaskViewModel>(task);
-            taskDetail.GoalLists = task.GoalLists;
+            var task = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
 
-            return View(taskDetail);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+
+            ViewBag.tabName = tabName;
+
+            var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All);
+            var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
+
+            taskWithNoteList.NotesLists = notesList;
+            taskWithNoteList.GoalLists = task.GoalLists;
+            
+            
+
+
+            return View(taskWithNoteList);
+
+
+
+            //var task = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
+            //TaskViewModel taskDetail = _mapper.Map<TaskViewModel>(task);
+            //taskDetail.GoalLists = task.GoalLists;
+
+            //return View(taskDetail);
         }
 
         public IActionResult Create()
@@ -99,7 +125,7 @@ namespace TaskMonitoringApp.Controllers
 
                     newTask.UserId = userId;
 
-                    await _service.AddNewTask(userId, newTask, task.GoalIds);
+                    await _taskService.AddNewTask(userId, newTask, task.GoalIds);
 
                     // Log success after adding the product
                     _logger.LogInformation("Task '{TaskName}' successfully added with ID: {TaskID}", task.Name, task.Id);
@@ -132,7 +158,7 @@ namespace TaskMonitoringApp.Controllers
             ViewBag.IsEditMode = true;
             TempData["ReturnUrl"] = Request.Headers["Referer"].ToString(); // store the previous page that come from...
 
-            var taskToEdit = await _service.GetAllGoalNamesWithStatusAndTask(userId, id, Status.All);
+            var taskToEdit = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, id, Status.All);
             if (taskToEdit == null)
             {
                 return NotFound();
@@ -177,10 +203,10 @@ namespace TaskMonitoringApp.Controllers
 
                 if (string.IsNullOrWhiteSpace(task.GoalIds))
                 {
-                    await _service.UpdateTask(userId, taskDto);
+                    await _taskService.UpdateTask(userId, taskDto);
                 } else
                 {
-                    await _service.UpdateTask(userId, taskDto, task.GoalIds);
+                    await _taskService.UpdateTask(userId, taskDto, task.GoalIds);
                 }
 
                 // Log success after adding the product
@@ -212,7 +238,7 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _service.GetAllTasks(userId, Status.Running);
+            var data = await _taskService.GetAllTasks(userId, Status.Running);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -288,7 +314,7 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _service.GetAllTasks(userId, Status.Completed);
+            var data = await _taskService.GetAllTasks(userId, Status.Completed);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -364,7 +390,7 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _service.GetAllTasks(userId, Status.NotStarted);
+            var data = await _taskService.GetAllTasks(userId, Status.NotStarted);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -441,7 +467,7 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _service.GetAllTasks(userId, Status.Ended);
+            var data = await _taskService.GetAllTasks(userId, Status.Ended);
 
             // Get total count of records
             totalRecord = data.Count();
@@ -517,7 +543,7 @@ namespace TaskMonitoringApp.Controllers
         //    int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
         //    // Get all tasks from the service
-        //    var data = await _service.GetAllTasks(userId, Status.Deleted);
+        //    var data = await _taskService.GetAllTasks(userId, Status.Deleted);
 
         //    // Get total count of records
         //    totalRecord = data.Count();
@@ -582,7 +608,7 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            await _service.DeleteTask(userId, Id);
+            await _taskService.DeleteTask(userId, Id);
             return Json(new { status = true, message = $"Task with Id: ${Id} deleted successfully!." });
         }
 
@@ -600,7 +626,7 @@ namespace TaskMonitoringApp.Controllers
 
             if (ModelState.IsValid)
             {
-                await _service.UpdateTaskStatus(userId, taskUpdate.Id, taskUpdate.TaskStatus);
+                await _taskService.UpdateTaskStatus(userId, taskUpdate.Id, taskUpdate.TaskStatus);
                 return Json(new { status = true, message = $"Task with Id {Id} Status change to Completed!" });
             }
 
