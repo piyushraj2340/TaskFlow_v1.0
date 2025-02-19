@@ -17,7 +17,7 @@
     <!-- Render styles dynamically from view -->
     @RenderSection("Styles", required: false)
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal sm:hidden">
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <!-- Navigation Bar -->
     <nav class="flex items-center justify-between bg-indigo-600 p-4 text-white">
         <div class="text-xl font-bold">
@@ -49,7 +49,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    <div class="z-10 group-hover:block absolute right-0 mt-0 hidden w-48 overflow-hidden rounded-md bg-white shadow-lg">
+                    <div class="absolute right-0 z-10 mt-0 hidden w-48 overflow-hidden rounded-md bg-white shadow-lg group-hover:block">
                         <a href="@Url.ActionLink("Index", "AdminDashboard")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Admin Dashboard</a>
                         <a href="@Url.ActionLink("Index", "Profile")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Profile</a>
                         <a href="@Url.ActionLink("Logout", "Account")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Logout</a>

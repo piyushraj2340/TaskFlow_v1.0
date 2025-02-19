@@ -397,7 +397,7 @@
                     data: "priority",
                     name: "priority",
                     render: function (data, type, row) {
-                        return  (data);
+                        return returnPriorityBadge(data);
                     }
                 },
                 {
