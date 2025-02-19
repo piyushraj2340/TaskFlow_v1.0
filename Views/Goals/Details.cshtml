@@ -1,4 +1,4 @@
-@model TaskMonitoringApp.Models.ViewModel.GoalWithNotesAndTaskNameListViewModel
+﻿@model TaskMonitoringApp.Models.ViewModel.GoalWithNotesAndTaskNameListViewModel
 
 @{
     ViewData["Title"] = Model.Name + " - Goal Details";
@@ -14,7 +14,7 @@
         <button data-id="@Model.Id" class="deleteGoalBtn flex items-center rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
             <i class="fas fa-trash mr-2"></i>Delete Goal
         </button>
-        <button id="openAddNotesModal" data-id="@Model.Id" class="flex items-center rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
+        <button id="openAddNotesModal" data-action-note-form-type-id="@Model.Id" data-action-note-form-type="goal" class="flex items-center rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
             <i class="fas fa-comment mr-2"></i>Add Notes
         </button>
         <button data-id="@Model.Id" class="markAsComplete flex items-center rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
@@ -43,18 +43,18 @@
 
 
     <div class="mb-8 rounded-lg bg-white p-4 shadow-lg sm:p-6">
-        <div class="z-10 sticky top-0 h-auto border-b border-gray-300 bg-white py-1">
+        <div class="sticky top-0 z-10 h-auto border-b border-gray-300 bg-white py-1">
             <!-- Tab Navigation -->
             <ul class="flex flex-wrap items-center">
-                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/info") class="@(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-b-2 border-l-1 border-r-1 px-4 py-2" data-tab="info">Info</a></li>
-                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/notes") class="@(ViewBag.tabName == "notes" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-b-2 border-l-1 border-r-1 px-4 py-2" data-tab="notes">All Notes</a></li>
-                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/board1") class="@(ViewBag.tabName == "board1" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-b-2 border-l-1 border-r-1 px-4 py-2" data-tab="board1">Board 1</a></li>
-                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/create") class="@(ViewBag.tabName == "create" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-b-2 border-l-1 border-r-1 px-4 py-2" data-tab="create">Create Board</a></li>
+                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/info") class="@(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="info">Info</a></li>
+                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/notes") class="@(ViewBag.tabName == "notes" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="notes">All Notes</a></li>
+                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/board1") class="@(ViewBag.tabName == "board1" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="board1">Board 1</a></li>
+                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/create") class="@(ViewBag.tabName == "create" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="create">Create Board</a></li>
             </ul>
         </div>
 
         <!-- Tab Content -->
-        <div class="custom-scrollbar z-0 relative mt-4 max-h-screen overflow-y-scroll">
+        <div class="custom-scrollbar relative z-0 mt-4 max-h-screen overflow-y-scroll">
             <!-- Info Tab -->
             <div id="info" class="tab-content @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName)? "" : "hidden")" )>
                 <div class="mb-4">
@@ -113,7 +113,7 @@
 
                 <div class="ms-4 max-w-4xl ps-2 sm:ps-4 sm:ms-8">
                     <!-- Timeline Wrapper -->
-                    <div class="border-l-4 relative border-gray-300 pl-6">
+                    <div class="relative border-l-4 border-gray-300 pl-6">
 
                         <!-- Note 1 -->
                         @{
@@ -149,7 +149,7 @@
                                 <div class="relative mb-6">
                                     <!-- Timeline Dot -->
                                     <div class="absolute -left-[20px] top-4 h-0.5 w-2 bg-gray-300"></div>
-                                    <div class="border-4 absolute -left-[11px] top-2 flex h-5 w-5 items-center justify-center rounded-full border-white bg-blue-600">
+                                    <div class="absolute -left-[11px] top-2 flex h-5 w-5 items-center justify-center rounded-full border-4 border-white bg-blue-600">
                                     </div>
 
                                     <div class="rounded-lg bg-blue-100 p-4 shadow">
@@ -204,7 +204,7 @@
                 </div>
                 <div class="mx-auto max-w-6xl">
                     <!-- Notes Board Container -->
-                    <div class="grid-cols-1 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         <!-- Sample Note -->
                         <div class="rotate-[-2deg] relative transform rounded-lg bg-yellow-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
                             <div class="absolute right-2 top-2 text-gray-700">
@@ -246,7 +246,7 @@
     {
         <div class="mb-12">
             <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
-            <div class="grid-cols-1 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @{
 
                     foreach (var task in Model.TaskLists)

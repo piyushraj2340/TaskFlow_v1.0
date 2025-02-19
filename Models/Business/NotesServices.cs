@@ -35,6 +35,7 @@ namespace TaskMonitoringApp.Models.Business
 
             var notesToAdd = _mapper.Map<Notes>(notes);
             notesToAdd.TaskId = taskId;
+            notesToAdd.TimeStamp = DateTime.Now;
 
             await _repository.AddNotes(notesToAdd);
         }
