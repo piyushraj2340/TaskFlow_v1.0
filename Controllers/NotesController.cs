@@ -40,7 +40,8 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(int Id, [Bind("Title,Content,Tags,IsPinned")] NoteDTO note)
+        [Route("{controller}/{action}/{id}/{noteAddWith?}")]
+        public async Task<IActionResult> Create(int Id, NotesAttachedWith noteAddWith, [Bind("Title,Content,Tags,IsPinned")] NoteDTO note)
         {
             // Get the logged-in user's ID
             var userId = _userManager.GetUserId(User);
@@ -53,7 +54,24 @@ namespace TaskMonitoringApp.Controllers
             if (ModelState.IsValid)
             {
                 note.UserId = userId;
-                await _service.AddNotesWithGoalId(userId, note, Id);
+                switch (noteAddWith)
+                {
+                    case NotesAttachedWith.Goal:
+                        await _service.AddNotesWithGoalId(userId, note, goalId: Id);
+                        break;
+
+                    case NotesAttachedWith.Task:
+                        await _service.AddNotesWithTaskId(userId, note, taskId: Id);
+                        break;
+
+                    //case NotesAttachedWith.Todo:
+                    //    await _service.AddNotesWithGoalId(userId, note, goalId: Id);
+                    //    break;
+
+                    default:
+                        //await _service.AddNotes(userId, note, goalId: Id);
+                        return Json(new { status = false, message = "Invalid Request Type!" });
+                }
 
                 return Json(new { status = true, message = "Your Notes Saved!" });
             }
@@ -109,6 +127,6 @@ namespace TaskMonitoringApp.Controllers
             }
 
             return Json(new { status = false, message = "Your notes does not save!" });
-        } 
+        }
     }
 }
