@@ -54,6 +54,24 @@
     let isEditMode = false;  // Flag to track if it's edit mode or create mode
     let currentGoalId = null;  // Store the ID of the goal being edited
 
+    const startOptionValues = Object.freeze({
+        manual:  0,
+        scheduled: 1,
+        immediate: 2
+    })
+
+    let startOptions = startOptionValues.manual;
+
+
+    $(".goalStartRadio").on("change", function () {
+        startOptions = Number.parseInt($(this).val());
+        if (startOptions === startOptionValues.scheduled) {
+            $("#startDateContainer").removeClass("hidden");
+        } else {
+            $("#startDateContainer").addClass("hidden");
+        }
+    });
+
     // Open modal for create
     openModalButton.on("click", function () {
         isEditMode = false;  // Set to create mode
@@ -72,7 +90,9 @@
             name: goalNameInput.val(),
             endDate: $("#endDate").val(),
             priority: $("#goalPriority").val(),
-            description: $("#goalDescription").val()
+            description: $("#goalDescription").val(),
+            StartOptionType: startOptions,
+            StartDate: (startOptions === startOptionValues.scheduled) ? $("#startDate").val() : null
         };
 
         if (isEditMode) {
@@ -323,6 +343,13 @@
         modal.removeClass("hidden");
         modal.addClass("flex");
 
+        $("#startOptionsModeContainer").removeClass("hidden");
+        $("#startDateContainer").removeClass("hidden");
+
+        startOptions = startOptionValues.manual;
+        $("#startDateContainer").addClass("hidden");
+        $("#startDate").val("");
+
         // Change submit button text based on the mode
         if (isEditMode) {
             submitBtn.text("Edit Goal");
@@ -351,8 +378,16 @@
     // Function to load goal data into the form for editing
     function loadDataIntoForm(goal) {
         // Load data into the form fields for editing
+        $("#startOptionsModeContainer").removeClass("hidden");
+        $("#startDateContainer").removeClass("hidden");
 
         if (isEditMode) {
+
+            if (goal.goalStatus > 0) { // not-Started status -- 0 
+                $("#startOptionsModeContainer").addClass("hidden");
+                $("#startDateContainer").addClass("hidden");
+            }
+
             $("#goalIdContainer").removeClass("hidden");
             goalIdInput.val(goal.id);
             goalNameInput.val(goal.name);
@@ -361,6 +396,8 @@
             goalPriorityInput.val(goal.priority);
             goalDescriptionInput.val(goal.description);
             $("#goalStatusContainer").removeClass("hidden");
+            $(`input[name="goalStart"][value="${goal.startOptionType}"]`).prop('checked', true);
+            $("#startDate").val(goal.startDate);
         }
     }
 
@@ -698,7 +735,7 @@
         // Validate goal name
         if (goalNameInput.val().length < 3 || goalNameInput.val().length > 50) {
             goalNameError.removeClass("hidden");
-            throw new Error("Invalid Goal Name input field!...");
+            throw new Error("Invalid Goal Name Input Field!");
         }
         goalNameError.addClass("hidden");
 
@@ -706,19 +743,19 @@
         const endDate = new Date(goalEndDateInput.val());
         if (isNaN(endDate) || endDate <= Date.now()) {
             goalEndDateError.removeClass("hidden");
-            throw new Error("Invalid Goal DueDate input field!...");
+            throw new Error("Invalid Goal DueDate Input Field!");
         }
         goalEndDateError.addClass("hidden");
 
         if (goalDescriptionInput.val().trim() === "") {
             goalDescriptionError.removeClass("hidden");
-            throw new Error("Invalid Goal Descriptions input field!...");
+            throw new Error("Invalid Goal Descriptions Input Field!");
         }
         goalDescriptionError.addClass("hidden");
 
         if (!goalPriorityInput.val()) {
             goalPriorityError.removeClass("hidden");
-            throw new Error("Invalid Goal Priority input field!...");
+            throw new Error("Invalid Goal Priority Input Field!");
         }
         goalPriorityError.addClass("hidden");
 
@@ -754,5 +791,4 @@
     //}
 
     //calculateProductivity();
-
 });

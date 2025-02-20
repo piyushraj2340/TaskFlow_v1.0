@@ -3,7 +3,9 @@ using TaskMonitoringApp.Models.Entities;
 
 namespace TaskMonitoringApp.Models.ViewModel
 {
-    public class GoalViewModel : GoalDTO { }
+    public class GoalViewModel : GoalDTO
+    {
+    }
 
     public class GoalWithNotesListViewModel : GoalViewModel
     {
