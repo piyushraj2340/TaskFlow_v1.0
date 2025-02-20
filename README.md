@@ -259,3 +259,9 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 		+----------------------+
 
 
+
+
+* Add the notification features *
+* for example: when task or goal move to running automatically then notify the user with the message *
+* when task or goal move to ended automatically then notify the user with the message *
+* Add the feature to get the list of task or email as a notification on the email or the phone *
