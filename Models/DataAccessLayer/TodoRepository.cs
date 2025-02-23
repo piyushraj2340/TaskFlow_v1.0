@@ -296,7 +296,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             {
                 case ResponseDataMode.Model:
                     var todayAnalysisModel = await _context.TodoProgressAnalyses
-                        .Where(tpa => tpa.UserId == userId && !tpa.IsDeleted && tpa.CalculateDateFor >= forDate.Date && tpa.CalculateDateFor < forDate.Date)
+                        .Where(tpa => tpa.UserId == userId && !tpa.IsDeleted && tpa.CalculateDateFor >= forDate.Date && tpa.CalculateDateFor < forDate.AddDays(1).Date)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Analyses Not Found!");
 
@@ -305,7 +305,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
                 case ResponseDataMode.ModelDTO:
                     var todayAnalysisDTO = await _context.TodoProgressAnalyses
-                    .Where(tpa => tpa.UserId == userId && !tpa.IsDeleted && tpa.CalculateDateFor >= forDate.Date && tpa.CalculateDateFor < forDate.Date)
+                    .Where(tpa => tpa.UserId == userId && !tpa.IsDeleted && tpa.CalculateDateFor >= forDate.Date && tpa.CalculateDateFor < forDate.AddDays(1).Date)
                     .Select(tpa => new TodoProgressAnalysisDTO() { 
                         Id = tpa.Id,
                         CalculateDateFor = tpa.CalculateDateFor,
