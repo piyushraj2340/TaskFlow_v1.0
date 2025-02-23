@@ -14,7 +14,7 @@ namespace TodoMonitoringApp.Models.Entities
 
         public DateTime UpdatedOn { get; set; } = DateTime.Now;
 
-        public int IsDeleted { get; set; }
+        public bool IsDeleted { get; set; }
 
         public DateTime? DeletedOn { get; set; }
 

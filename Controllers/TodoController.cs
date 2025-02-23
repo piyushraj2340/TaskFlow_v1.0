@@ -33,12 +33,12 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            TodoProgressAnalysisDTO productivity = await _service.GetProgressForTodays(userId);
+            TodoProgressAnalysisDTO productivity = await _service.GetTodoProgressAnalyses(userId, DateTime.Now.Date);
             return View(productivity);
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetTodoProgressForTodays()
+        public async Task<IActionResult> GetTodoProgressAnalyses(DateTime forDate)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -49,7 +49,7 @@ namespace TaskMonitoringApp.Controllers
 
             try
             {
-                var productivity = await _service.GetProgressForTodays(userId);
+                var productivity = await _service.GetTodoProgressAnalyses(userId, forDate);
                 return Json(new { status = true, message = "Todo Task Progress", data = productivity });
             } catch(Exception)
             {
@@ -58,7 +58,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetRunningTodo()
+        public async Task<IActionResult> GetRunningTodo(DateTime? selectDate)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -79,7 +79,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all goals from the service
-            var data = await _service.GetAllTodo(userId, Status.Running);
+            IEnumerable<TodoDTOWithTaskDTO> data;
+
+            if (selectDate.HasValue)
+            {
+                data = await _service.GetAllTodo(userId, Status.Running, selectDate.Value);
+            }
+            else
+            {
+                data = await _service.GetAllTodo(userId, Status.Running);
+
+            }
 
             // Get total count of records
             totalRecord = data.Count();
@@ -140,7 +150,7 @@ namespace TaskMonitoringApp.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> GetCompletedTodo()
+        public async Task<IActionResult> GetCompletedTodo(DateTime? selectDate)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -161,7 +171,16 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all goals from the service
-            var data = await _service.GetAllTodo(userId, Status.Completed);
+            IEnumerable<TodoDTOWithTaskDTO> data;
+            if (selectDate.HasValue)
+            {
+                data = await _service.GetAllTodo(userId, Status.Completed, selectDate.Value);
+            }
+            else
+            {
+                data = await _service.GetAllTodo(userId, Status.Completed);
+
+            }
 
             // Get total count of records
             totalRecord = data.Count();

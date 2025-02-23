@@ -12,6 +12,25 @@
     const productivityTotoTaskPercentage = $("#productivityPercentageTodo");
 
 
+    let selectedDate = new Date();
+
+    const nextBtn = $("#nextDateBtn");
+    const prevBtn = $("#prevDateBtn");
+
+    const inputDatePicker = $('#taskDatePicker');
+
+    const datePicker = flatpickr(inputDatePicker, {
+        dateFormat: "Y-m-d",
+        defaultDate: new Date(),
+        maxDate: new Date(),
+        onChange: function (selectedDates, dateStr) {
+            selectedDate = new Date(dateStr);
+            updateDateDisplay();
+            fetchTasksByDate(dateStr);
+        }
+    });
+
+
     $(document).on("click", ".markAsCompleteToDoBtn", async function () {
         const id = $(this).data("id");
 
@@ -42,7 +61,7 @@
                 }
 
                 showSuccessNotification(res.message);
-                handelUpdateTodoProductivity();
+                handelUpdateTodoProductivity(selectedDate.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }));
             } else {
                 showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
             }
@@ -84,7 +103,7 @@
 
 
                 showSuccessNotification(res.message);
-                handelUpdateTodoProductivity();
+                handelUpdateTodoProductivity(selectedDate.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" }));
             } else {
                 showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
             }
@@ -256,25 +275,72 @@
     loadRunningTaskData();
     loadCompletedTaskData();
 
-    async function handelUpdateTodoProductivity() {
+    function formatDate(date, formatType = "long") {
+        let today = new Date();
+        let yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        let dayDifference = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+
+        if (formatType === "short") {
+            return date.toISOString().split('T')[0];
+        }
+
+        if (dayDifference === 0) return "Today";
+        if (dayDifference === 1) return "Yesterday";
+        if (dayDifference < 7) {
+            return date.toLocaleDateString('en-US', { weekday: 'long' });
+        }
+
+        return date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+    }
+
+
+    function updateDateDisplay() {
+        $("#selectedDate").text(formatDate(selectedDate));
+
+        console.log(selectedDate)
+
+        datePicker.setDate(selectedDate, false);
+
+
+        if (formatDate(selectedDate) == "Today") {
+            return nextBtn.prop("disabled", true).removeClass("bg-indigo-600").addClass("bg-gray-500");
+        }
+
+        nextBtn.prop("disabled", false).addClass("bg-indigo-600").removeClass("bg-gray-500");
+    }
+
+    async function handelUpdateTodoProductivity(date) {
         try {
             const res = await $.ajax({
-                url: "/Todo/GetTodoProgressForTodays",
+                url: `/Todo/GetTodoProgressAnalyses?forDate=${date}`,
                 method: "POST",
                 success: function (data) {
                     if (!data.status) {
                         throw new Error(data.message || "Unable to fetch the todays progress...");
                     }
 
-                    const { completedTask, productivity, runningTask, totalTask } = data.data;
+                    console.log(data);
 
-                    completedTodoTaskCount.html(completedTask);
-                    runningTodoTaskCount.html(runningTask);
-                    totalTodoTaskCount.html(totalTask);
-                    productivityTotoTaskPercentage.html(productivity+ "%");
+                    const { productivityForDay, totalCompletedTodo, totalMissedTodo, totalTodo } = data.data;
+
+                    completedTodoTaskCount.html(totalCompletedTodo);
+                    runningTodoTaskCount.html(totalMissedTodo);
+                    totalTodoTaskCount.html(totalTodo);
+                    productivityTotoTaskPercentage.html(productivityForDay + "%");
 
                 },
                 error: function (error) {
+                    completedTodoTaskCount.html(0);
+                    runningTodoTaskCount.html(0);
+                    totalTodoTaskCount.html(0);
+                    productivityTotoTaskPercentage.html(0 + "%");
                     throw error;
                 }
             })
@@ -282,4 +348,26 @@
             console.error(error);
         }
     }
-})
+
+    function fetchTasksByDate(date) {
+        $("#viewRunningTodoTableData").DataTable().ajax.url(`/Todo/GetRunningTodo?selectDate=${date}`).load();
+        $("#viewCompletedTodoTableData").DataTable().ajax.url(`/Todo/GetCompletedTodo?selectDate=${date}`).load();
+        handelUpdateTodoProductivity(date);
+    }
+
+    prevBtn.click(function () {
+        selectedDate.setDate(selectedDate.getDate() - 1);
+        updateDateDisplay();
+        fetchTasksByDate(selectedDate.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }));
+    });
+
+    nextBtn.click(function () {
+        selectedDate.setDate(selectedDate.getDate() + 1);
+        updateDateDisplay();
+        fetchTasksByDate(selectedDate.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }));
+
+    });
+
+    // Initialize display on load
+    updateDateDisplay();
+});
