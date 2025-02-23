@@ -18,6 +18,6 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public string UserId { get; set; }
 
-        public Users User { get; set; }
+        public Users? User { get; set; }
     }
 }

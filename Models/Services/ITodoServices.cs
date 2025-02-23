@@ -12,6 +12,8 @@ namespace TaskMonitoringApp.Models.Services
 
         Task<IEnumerable<TodoDTOWithTaskDTO>> GetAllTodo(string UserId, Status status);
 
+        Task<IEnumerable<TodoDTOWithTaskDTO>> GetAllTodo(string UserId, Status status, DateTime selectDate);
+
         Task<IEnumerable<TodoDTOWithTaskDTO>> GetAllTodo(string UserId);
 
         Task DeleteTodoById(string UserId, int id);
@@ -20,6 +22,6 @@ namespace TaskMonitoringApp.Models.Services
 
         Task UpdateTodoStatus(string userId, int todoId, Status statusToChange);
 
-        Task<TodoProgressAnalysisDTO> GetProgressForTodays(string UserId);
+        Task<TodoProgressAnalysisDTO> GetTodoProgressAnalyses(string userId, DateTime forDate);
     }
 }

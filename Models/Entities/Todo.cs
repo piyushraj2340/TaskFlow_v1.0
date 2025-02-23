@@ -12,9 +12,9 @@ namespace TaskMonitoringApp.Models.Entities
 
         public Status Status { get; set; } = Status.Running;
 
-        public DateTime? CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
 
-        public DateTime? UpdatedOn { get; set; } = DateTime.Now;
+        public DateTime UpdatedOn { get; set; } = DateTime.Now;
 
         public bool IsDeleted { get; set; } = false;
 
@@ -26,11 +26,11 @@ namespace TaskMonitoringApp.Models.Entities
 
         public int TaskId { get; set; }
 
-        public Tasks Task { get; set; }
+        public Tasks? Task { get; set; }
 
         public string UserId { get; set; }
 
-        public Users User { get; set; }
+        public Users? User { get; set; }
 
     }
 

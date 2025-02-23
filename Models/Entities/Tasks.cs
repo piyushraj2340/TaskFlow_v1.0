@@ -46,9 +46,9 @@ namespace TaskMonitoringApp.Models.Entities
 
         public DateTime EndDate { get; set; }
 
-        public DateTime? CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
 
-        public DateTime? UpdatedOn { get; set; } = DateTime.Now;
+        public DateTime UpdatedOn { get; set; } = DateTime.Now;
 
         public bool IsDeleted { get; set; } = false;
 
@@ -64,6 +64,6 @@ namespace TaskMonitoringApp.Models.Entities
 
         public Users? User { get; set; }
 
-        public ICollection<GoalTask>? GoalTasks { get; set; }
+        public IEnumerable<GoalTask>? GoalTasks { get; set; }
     }
 }
