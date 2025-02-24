@@ -1,7 +1,23 @@
 ﻿@model TaskMonitoringApp.Models.ViewModel.TaskViewModel;
 
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Serialization
+@using TaskMonitoringApp.Models.DTOs;
+
 @{
     ViewData["Title"] = "Create New Task";
+}
+
+@{
+
+    var settings = new JsonSerializerSettings
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        Formatting = Formatting.None // Keep JSON compact (optional)
+    };
+
+    var goalListObj = JsonConvert.SerializeObject(Model?.GoalLists ?? new List<GoalNameDTO>(), settings);
+   
 }
 
 <div class="flex min-h-screen items-center justify-center bg-gray-100">
@@ -26,246 +42,9 @@
             });
         });
 
-        // $(document).ready(function () {
-        //     const goals = [];
-
-        //     const selectedGoals = [];
-
-        //     Function to render selected goals
-        //     function renderSelectedGoals() {
-        //         const container = $("#selectedGoalsContainer");
-        //         container.empty();
-
-        //         if (selectedGoals.length === 0) {
-        //             container.append('<p class="text-gray-400" id="noGoalsMessage">No goals selected.</p>');
-        //             return;
-        //         }
-
-        //         selectedGoals.forEach((goal, index) => {
-        //             const badge = `
-        //                         <div class="flex items-center space-x-2 rounded-full bg-indigo-600 px-3 py-1 text-white">
-        //                             <span>${goal}</span>
-        //                             <button
-        //                                 class="rounded-full text-white hover:bg-indigo-800 focus:outline-none"
-        //                                 onclick="removeGoal(${index})"
-        //                             >
-        //                                 &times;
-        //                             </button>
-        //                         </div>
-        //                     `;
-        //             container.append(badge);
-        //         });
-        //     }
-
-        //     Function to render filtered goals
-        //     function renderFilteredGoals(filteredGoals) {
-        //         const list = $("#filteredGoalsList");
-        //         list.empty();
-
-        //         filteredGoals.forEach((goal) => {
-        //             const item = `
-        //                         <li class="flex cursor-pointer items-center justify-between p-3 hover:bg-indigo-50"
-        //                             onclick="addGoal('${goal}')">
-        //                             <span>${goal}</span>
-        //                         </li>
-        //                     `;
-        //             list.append(item);
-        //         });
-
-        //         if (filteredGoals.length === 0) {
-        //             list.append('<li class="p-3 text-center text-gray-500">No matching goals found.</li>');
-        //         }
-
-        //         if (filteredGoals.length > 0) {
-        //             list.removeClass("hidden");
-        //         } else {
-        //             list.addClass("hidden");
-        //         }
-        //     }
-
-        //     window.addGoal = function (goal) {
-        //         if (!selectedGoals.includes(goal)) {
-        //             selectedGoals.push(goal);
-        //             renderSelectedGoals();
-        //             filterGoals($("#searchGoal").val());
-        //         }
-        //     };
-
-        //     window.removeGoal = function (index) {
-        //         selectedGoals.splice(index, 1);
-        //         renderSelectedGoals();
-        //     };
-
-        //     const debouncedFilter = debounce(async (query) => {
-        //         const res = await $.ajax({
-        //             url: "/Goals/SearchGoalByName",
-        //             method: 'POST',
-        //             body: JSON.stringify({ searchQuery : query})
-        //            });
-
-        //         console.log("Res", res);
-
-        //            if (res.status) {
-        //                goals.push(res.data);
-        //            }
-        //         filterGoals(query);
-        //     }, 300);
-
-        //     function filterGoals(query) {
-        //         const filtered = goals.filter((goal) =>
-        //             goal.toLowerCase().includes(query.toLowerCase()) && !selectedGoals.includes(goal)
-        //         );
-        //         renderFilteredGoals(filtered);
-        //     }
-
-        //     $("#searchGoal").on("input", function () {
-        //         const query = $(this).val();
-        //         debouncedFilter(query);
-        //     });
-
-        //     function debounce(func, wait) {
-        //         let timeout;
-        //         return function (...args) {
-        //             clearTimeout(timeout);
-        //             timeout = setTimeout(() => func.apply(this, args), wait);
-        //         };
-        //     }
-        // });
-
-        // $(document).ready(function () {
-        //     const goals = []; Array to store goal names from the server
-        //     const selectedGoals = []; Array to store selected goal names
-
-        //     Function to render selected goals
-        //     function renderSelectedGoals() {
-        //         const container = $("#selectedGoalsContainer");
-        //         container.empty();
-
-        //         if (selectedGoals.length === 0) {
-        //             container.append('<p class="text-gray-400" id="noGoalsMessage">No goals selected.</p>');
-        //             return;
-        //         }
-
-        //         selectedGoals.forEach((goal) => {
-        //             const badge = `
-        //                 <div class="flex items-center space-x-2 rounded-full bg-indigo-600 px-3 py-1 text-white">
-        //                     <span>${goal.name}</span>
-        //                     <button
-        //                         class="rounded-full text-white hover:bg-indigo-800 focus:outline-none"
-        //                         onclick="removeGoal(${goal.id})"
-        //                     >
-        //                         &times;
-        //                     </button>
-        //                 </div>
-        //             `;
-        //             container.append(badge);
-        //         });
-        //     }
-
-        //     Function to render filtered goals
-        //     function renderFilteredGoals(filteredGoals) {
-
-        //         const list = $("#filteredGoalsList");
-        //         list.empty();
-
-        //         filteredGoals.forEach((goal) => {
-        //             let goalString = JSON.stringify(goal);
-        //             const item = `
-        //                 <li class="flex cursor-pointer items-center justify-between p-3 hover:bg-indigo-50"
-        //                     onclick="addGoal(${goalString})">
-        //                     <span>${goal.name}</span>
-        //                 </li>
-        //             `;
-        //             list.append(item);
-        //         });
-
-        //         if (filteredGoals.length === 0) {
-        //             list.append('<li class="p-3 text-center text-gray-500">No matching goals found.</li>');
-        //         }
-
-        //         if (filteredGoals.length > 0) {
-        //             list.removeClass("hidden");
-        //         } else {
-        //             list.addClass("hidden");
-        //         }
-        //     }
-
-        //     window.addGoal = function (goal) {
-        //         goal = JSON.parse(goal);
-        //         console.log(goal);
-
-        //         const index = selectedGoals.findIndex(g => g.id === goal.id);
-
-        //         if (index === -1) {
-        //             selectedGoals.push(goal);
-        //             let goalIds = $("#GoalIds").val();
-
-        //             goalIds += `,${goal.id}`;
-
-        //             $("#GoalIds").val(goalIds);
-
-        //             renderSelectedGoals();
-        //             filterGoals($("#searchGoal").val());
-        //         }
-        //     };
-
-        //     window.removeGoal = function (id) {
-        //         const index = selectedGoals.findIndex(g => g.id === goal.id);
-
-        //         if(index !== - 1) 
-        //         {
-        //             selectedGoals.splice(index, 1);
-        //             renderSelectedGoals();
-        //         }
-        //     };
-
-        //     const debouncedFilter = debounce(async (query) => {
-        //         try {
-        //             const res = await $.ajax({
-        //                 url: `/Goals/SearchGoalByName?searchQuery=${query}`,
-        //                 method: 'POST',
-        //                 contentType: 'application/json',
-        //                 data: { searchQuery: "Task" }
-        //             });
-
-        //             if (res && Array.isArray(res.data)) {
-        //                 goals.length = 0; Clear existing goals
-        //                 res.data.forEach(g => goals.push(g)); 
-        //             }
-
-        //             filterGoals(query);
-        //         } catch (error) {
-        //             console.error("Error fetching goals:", error);
-        //         }
-        //     }, 300);
-
-        //     function filterGoals(query) {
-
-        //         const filtered = goals.filter(
-        //             (fg) =>
-        //                 fg.name.toLowerCase().includes(query.toLowerCase()) &&
-        //                 !selectedGoals.find(g => g.name.toLowerCase().includes(query.toLowerCase()))
-        //         );
-        //         renderFilteredGoals(filtered);
-        //     }
-
-        //     $("#searchGoal").on("input", function () {
-        //         const query = $(this).val();
-        //         debouncedFilter(query);
-        //     });
-
-        //     function debounce(func, wait) {
-        //         let timeout;
-        //         return function (...args) {
-        //             clearTimeout(timeout);
-        //             timeout = setTimeout(() => func.apply(this, args), wait);
-        //         };
-        //     }
-        // });
-
         $(document).ready(function () {
             const goals = []; // Array to store goal objects from the server (id, name)
-            const selectedGoals = []; // Array to store selected goal objects (id, name)
+            const selectedGoals = @Html.Raw(goalListObj); // Array to store selected goal objects (id, name)
 
             // Function to render selected goals
             function renderSelectedGoals() {
@@ -279,16 +58,16 @@
 
                 selectedGoals.forEach((goal) => {
                     const badge = `
-                        <div class="flex items-center space-x-2 rounded-full bg-indigo-600 px-3 py-1 text-white">
-                            <span>${goal.name}</span>
-                            <button
-                                class="rounded-full text-white hover:bg-indigo-800 focus:outline-none"
-                                onclick="removeGoal(${goal.id})"
-                            >
-                                &times;
-                            </button>
-                        </div>
-                    `;
+                                <div class="flex items-center space-x-2 rounded-full bg-indigo-600 px-3 py-1 text-white">
+                                    <span>${goal.name}</span>
+                                    <button
+                                        class="rounded-full text-white hover:bg-indigo-800 focus:outline-none"
+                                        onclick="removeGoal(${goal.id})"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            `;
                     container.append(badge);
                 });
             }
@@ -300,11 +79,11 @@
 
                 filteredGoals.forEach((goal) => {
                     const item = `
-                        <li class="flex cursor-pointer items-center justify-between p-3 hover:bg-indigo-50"
-                            onclick='addGoal(${goal.id})' data-id='${goal.id}' data-name='${goal.name}'>
-                            <span>${goal.name}</span>
-                        </li>
-                    `;
+                                <li class="flex cursor-pointer items-center justify-between p-3 hover:bg-indigo-50"
+                                    onclick='addGoal(${goal.id})' data-id='${goal.id}' data-name='${goal.name}'>
+                                    <span>${goal.name}</span>
+                                </li>
+                            `;
                     list.append(item);
                 });
 
@@ -337,8 +116,9 @@
 
             // Function to remove a goal from the selectedGoals array
             window.removeGoal = function (id) {
+                console.log(id);
                 const index = selectedGoals.findIndex((g) => g.id === id);
-
+                console.log(index);
                 if (index !== -1) {
                     selectedGoals.splice(index, 1);
 
@@ -396,7 +176,5 @@
                 };
             }
         });
-
-
     </script>
 }

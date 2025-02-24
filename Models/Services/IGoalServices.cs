@@ -29,5 +29,7 @@ namespace TaskMonitoringApp.Models.Services
         Task<GoalProductivityDTO> GetGoalProductivity(string userId);
 
         Task<IEnumerable<GoalNameDTO>> GetGoalNameBySearchQuery(string userId, string searchQuery);
+
+        Task<GoalNameDTO> GetGoalNameById(string userId, int goalId);
     }
 }

@@ -45,8 +45,6 @@
             const goals = []; // Array to store goal objects from the server (id, name)
             const selectedGoals = @Html.Raw(goalListObj); // Array to store selected goal objects (id, name)
 
-            console.log(selectedGoals);
-
             // Function to render selected goals
             function renderSelectedGoals() {
                 const container = $("#selectedGoalsContainer");
