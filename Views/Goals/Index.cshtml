@@ -12,8 +12,8 @@
 <div class="container mx-auto p-8">
 
     <!-- Dashboard Stats Section (1st Row) -->
-    <div class="grid-cols-1 mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="border-l-4 rounded-lg border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+    <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
             <div class="flex items-center justify-between">
                 <div class="text-3xl text-indigo-600"><i class="fas fa-trophy"></i></div>
                 <div class="text-lg font-semibold">Running Goals</div>
@@ -21,7 +21,7 @@
             <div class="mt-4 text-xl" id="runningGoalCount">@Model.RunningGoal</div>
         </div>
 
-        <div class="border-l-4 rounded-lg border-green-600 bg-white p-6 shadow-md shadow-green-300">
+        <div class="rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
             <div class="flex items-center justify-between">
                 <div class="text-3xl text-green-600"><i class="fas fa-check"></i></div>
                 <div class="text-lg font-semibold">Goals Completed</div>
@@ -29,7 +29,7 @@
             <div class="mt-4 text-xl" id="completedGoalCount">@Model.CompletedGoal</div>
         </div>
 
-        <div class="border-l-4 rounded-lg border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
+        <div class="rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
             <div class="flex items-center justify-between">
                 <div class="text-3xl text-blue-600"><i class="fas fa-chart-line"></i></div>
                 <div class="text-lg font-semibold">Your Growth</div>
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <div class="border-l-4 rounded-lg border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
+        <div class="rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
             <div class="flex items-center justify-between">
                 <div class="text-3xl text-purple-600"><i class="fas fa-cogs"></i></div>
                 <div class="text-lg font-semibold">Productivity</div>
@@ -48,10 +48,10 @@
         </div>
     </div>
 
-    <section class="border-l-4 mb-8 rounded-lg border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+    <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
         <!-- Running Tasks Section -->
         <div class="mb-8">
-            <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
+            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                 <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Running Goals</h2>
                 <div>
                     <button id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
@@ -72,7 +72,6 @@
                             <th class="p-2 text-left text-gray-600">Goal Name</th>
                             <th class="p-2 text-left text-gray-600">Due Date</th>
                             <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Status</th>
                             <th class="p-2 text-left text-gray-600">Actions</th>
                         </tr>
                     </thead>
@@ -83,11 +82,11 @@
         
     </section>
 
-    <section class="border-l-4 mb-8 rounded-lg border-yellow-500 bg-white p-6 shadow-md shadow-yellow-300">
+    <section class="mb-8 rounded-lg border-l-4 border-yellow-500 bg-white p-6 shadow-md shadow-yellow-300">
         <!-- Not Started Tasks Section -->
         <div class="mb-8">
 
-            <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
+            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                 <h2 class="mb-4 text-xl font-semibold text-gray-700">Not Started Goals</h2>
                 @* <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
                     <i class="fas fa-angle-double-right"></i> View All
@@ -105,7 +104,6 @@
                             <th class="p-2 text-left text-gray-600">Goal Name</th>
                             <th class="p-2 text-left text-gray-600">Due Date</th>
                             <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Status</th>
                             <th class="p-2 text-left text-gray-600">Actions</th>
                         </tr>
                     </thead>
@@ -114,10 +112,10 @@
         </div>
     </section>
 
-     <section class="border-l-4 mb-8 rounded-lg border-green-500 bg-white p-6 shadow-md shadow-green-300">
+     <section class="mb-8 rounded-lg border-l-4 border-green-500 bg-white p-6 shadow-md shadow-green-300">
         <!-- Completed Tasks Section -->
         <div class="mb-8">
-            <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
+            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                 <h2 class="mb-4 text-xl font-semibold text-gray-700">Completed Goals</h2>
                @*  <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
                     <i class="fas fa-angle-double-right"></i> View All
@@ -135,7 +133,6 @@
                             <th class="p-2 text-left text-gray-600">Goal Name</th>
                             <th class="p-2 text-left text-gray-600">Due Date</th>
                             <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Status</th>
                             <th class="p-2 text-left text-gray-600">Actions</th>
                         </tr>
                     </thead>
@@ -144,10 +141,10 @@
         </div>
     </section>
     
-    <section class="border-l-4 mb-8 rounded-lg border-gray-600 bg-white p-6 shadow-md shadow-gray-500">
+    <section class="mb-8 rounded-lg border-l-4 border-gray-600 bg-white p-6 shadow-md shadow-gray-500">
         <!-- Ended Tasks Section -->
         <div class="mb-8">
-            <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
+            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                 <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Ended Goals</h2>
                 @* <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
                     <i class="fas fa-angle-double-right"></i> View All
@@ -164,7 +161,6 @@
                             <th class="p-2 text-left text-gray-600">Goal Name</th>
                             <th class="p-2 text-left text-gray-600">Due Date</th>
                             <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Status</th>
                             <th class="p-2 text-left text-gray-600">Actions</th>
                         </tr>
                     </thead>
@@ -176,10 +172,10 @@
     </section>
 
 
-    <section class="border-l-4 mb-8 rounded-lg border-red-600 bg-white p-6 shadow-md shadow-red-300">
+    <section class="mb-8 rounded-lg border-l-4 border-red-600 bg-white p-6 shadow-md shadow-red-300">
         <!-- Deleted Tasks Section -->
         <div class="mb-8">
-            <div class="border-b-2 mb-4 flex flex-col items-center justify-between border-gray-500 pb-2 sm:flex-row">
+            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                 <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Deleted Goals</h2>
 @*                  <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
                      <i class="fas fa-angle-double-right"></i> View All
@@ -196,7 +192,6 @@
                             <th class="p-2 text-left text-gray-600">Goal Name</th>
                             <th class="p-2 text-left text-gray-600">Due Date</th>
                             <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Status</th>
                             <th class="p-2 text-left text-gray-600">Actions</th>
                         </tr>
                     </thead>

@@ -205,14 +205,6 @@
                     }
                 },
                 {
-                    data: "taskStatus",
-                    name: "taskStatus",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-
-                },
-                {
                     data: "endDate",
                     name: "endDate",
                     render: function (data, type, row) {
@@ -285,14 +277,6 @@
                                 return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
                         }
                     }
-                },
-                {
-                    data: "taskStatus",
-                    name: "taskStatus",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-
                 },
                 {
                     data: "endDate",
@@ -369,14 +353,6 @@
                     }
                 },
                 {
-                    data: "taskStatus",
-                    name: "taskStatus",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-
-                },
-                {
                     data: "endDate",
                     name: "endDate",
                     render: function (data, type, row) {
@@ -449,14 +425,6 @@
                                 return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
                         }
                     }
-                },
-                {
-                    data: "taskStatus",
-                    name: "taskStatus",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-
                 },
                 {
                     data: "endDate",

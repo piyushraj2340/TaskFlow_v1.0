@@ -401,13 +401,6 @@
                     }
                 },
                 {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-                },
-                {
                     data: null, // This column will not contain data directly
                     name: "Action",
                     defaultContent: "",
@@ -464,13 +457,6 @@
                     name: "priority",
                     render: function (data, type, row) {
                         return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
                     }
                 },
                 {
@@ -533,13 +519,6 @@
                     }
                 },
                 {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-                },
-                {
                     data: null, // This column will not contain data directly
                     name: "Action",
                     defaultContent: "",
@@ -596,13 +575,6 @@
                     name: "Priority",
                     render: function (data, type, row) {
                         return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
                     }
                 },
                 {

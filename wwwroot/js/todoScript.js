@@ -37,7 +37,6 @@
                 method: "POST",
                 data,
                 success: function (data) {
-                    debugger;
                     if (!data.status) {
                         throw new Error(data.message || "Unable to fetch the todays progress...");
                     }
@@ -137,14 +136,6 @@
                     }
                 },
                 {
-                    data: "status",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-
-                },
-                {
                     data: "endDate",
                     name: "endDate",
                     render: function (data, type, row) {
@@ -214,14 +205,6 @@
                                 return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
                         }
                     }
-                },
-                {
-                    data: "status",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-
                 },
                 {
                     data: "endDate",
