@@ -21,14 +21,16 @@ namespace TaskMonitoringApp.Controllers
         private readonly IMapper _mapper;
         private readonly ITaskServices _taskService;
         private readonly INotesServices _notesService;
+        private readonly IGoalServices _goalsService;
         private readonly UserManager<Users> _userManager;
 
-        public TasksController(ILogger<TasksController> logger, IMapper mapper, ITaskServices taskService, INotesServices notesService, UserManager<Users> userManager)
+        public TasksController(ILogger<TasksController> logger, IMapper mapper, ITaskServices taskService, INotesServices notesService, IGoalServices goalsService, UserManager<Users> userManager)
         {
             _logger = logger;
             _mapper = mapper;
             _taskService = taskService;
             _notesService = notesService;
+            _goalsService = goalsService;
             _userManager = userManager;
         }
 
@@ -71,8 +73,8 @@ namespace TaskMonitoringApp.Controllers
 
             taskWithNoteList.NotesLists = notesList;
             taskWithNoteList.GoalLists = task.GoalLists;
-            
-            
+
+
 
 
             return View(taskWithNoteList);
@@ -86,10 +88,35 @@ namespace TaskMonitoringApp.Controllers
             //return View(taskDetail);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create(int? goalId)
         {
             ViewBag.IsEditMode = false;
             TempData["ReturnUrl"] = Request.Headers["Referer"].ToString(); // store the previous page that come from...
+
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                if (goalId.HasValue)
+                {
+                    TaskViewModel emptyTask = new TaskViewModel();
+                    var goalName = await _goalsService.GetGoalNameById(userId, goalId.Value);
+
+                    emptyTask.GoalIds = goalId.Value.ToString();
+                    emptyTask.GoalLists = new[] { goalName };
+
+                    return View(emptyTask);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
 
             return View();
         }
@@ -204,7 +231,8 @@ namespace TaskMonitoringApp.Controllers
                 if (string.IsNullOrWhiteSpace(task.GoalIds))
                 {
                     await _taskService.UpdateTask(userId, taskDto);
-                } else
+                }
+                else
                 {
                     await _taskService.UpdateTask(userId, taskDto, task.GoalIds);
                 }

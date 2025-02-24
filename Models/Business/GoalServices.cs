@@ -185,5 +185,11 @@ namespace TaskMonitoringApp.Models.Business
 
             return goalNameWithTask;
         }
+
+
+        public async Task<GoalNameDTO> GetGoalNameById(string UserId, int Id)
+        {
+            return await _goalRepository.GetGoalByIdAsync<GoalNameDTO>(UserId, Id, ResponseDataMode.ModelNameDTO);
+        }
     }
 }

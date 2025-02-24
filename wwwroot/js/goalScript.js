@@ -406,6 +406,9 @@
                     defaultContent: "",
                     render: function (data, type, row) {
                         return `
+                            <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
+                                <i class="fas fa-plus"></i> Add Task
+                            </a>
                             <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
@@ -524,6 +527,9 @@
                     defaultContent: "",
                     render: function (data, type, row) {
                         return `
+                            <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
+                                <i class="fas fa-plus"></i> Add Task
+                            </a>
                             <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
