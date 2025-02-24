@@ -13,18 +13,27 @@
 }
 
 <div class="container mx-auto p-8">
-    <div class="mb-6 flex items-center justify-between rounded-lg border-l-4 border-gray-600 bg-white p-6 shadow-md shadow-gray-300">
-        <h2 class="text-xl font-semibold text-gray-700">Select Date: <span id="selectedDate" class="inline-flex min-w-max items-center rounded bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md transition duration-300 hover:bg-gray-500 sm:text-sm"></span></h2>
-        <div class="mb-4 flex items-center justify-between space-x-2">
-            <button id="prevDateBtn" class="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-gray-600">
+    <div class="mb-6 flex flex-col items-start justify-between rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-300 md:flex-row md:items-center md:p-6">
+        <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">
+            Select Date:
+            <span id="selectedDate" class="inline-flex min-w-max items-center rounded bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md transition duration-300 hover:bg-gray-500 sm:text-sm">
+            </span>
+        </h2>
+
+        <!-- Container for Buttons & Date Picker -->
+        <div class="mt-4 flex w-full flex-col items-center justify-between space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 sm:w-auto md:mt-0">
+            <button id="prevDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
                 <i class="fas fa-arrow-left"></i> Previous
             </button>
-            <button id="nextDateBtn" class="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-gray-600">
+
+            <button id="nextDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
                 Next <i class="fas fa-arrow-right"></i>
             </button>
-            <input type="text" id="taskDatePicker" class="rounded-md border p-2 shadow-sm" placeholder="Pick a date">
+
+            <input type="text" id="taskDatePicker" class="w-full rounded-md border p-2 shadow-sm sm:w-auto" placeholder="Pick a date">
         </div>
     </div>
+
 
 
     <!-- Dashboard Stats Section (1st Row) -->
@@ -127,13 +136,13 @@
 
     @section Scripts
     {
-        @* DataTable *@
+    @* DataTable *@
         <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-        @* sweetalert *@
+    @* sweetalert *@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        @* Client side Script *@
+    @* Client side Script *@
         <script src="~/js/sweetAlertScript.js"></script>
         <script src="~/js/utils.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

@@ -30,6 +30,41 @@
         }
     });
 
+    async function handelStatusChange(data) {
+        try {
+            await $.ajax({
+                url: "/Todo/ChangeTodoStatus",
+                method: "POST",
+                data,
+                success: function (data) {
+                    debugger;
+                    if (!data.status) {
+                        throw new Error(data.message || "Unable to fetch the todays progress...");
+                    }
+
+                    if (runningdataTableReload !== null) {
+                        runningdataTableReload.draw();
+                    }
+
+                    if (completedDataTableReload !== null) {
+                        completedDataTableReload.draw();
+                    }
+
+                    showSuccessNotification(data.message);
+                    handelUpdateTodoProductivity(selectedDate.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }));
+
+                },
+                error: function (error) {
+                    throw error;
+                }
+            })
+        }
+        catch (error) {
+            showErrorNotification(error.message || "Error: while changing the status of Goal with Id: " + data.Id);
+            console.error(error.message || "Failed while changing the status of Goal with Id: " + data.Id);
+        }
+
+    }
 
     $(document).on("click", ".markAsCompleteToDoBtn", async function () {
         const id = $(this).data("id");
@@ -39,37 +74,10 @@
             return;
         }
 
-        try {
-
-            const res = await $.ajax({
-                url: "/Todo/ChangeTodoStatus",
-                method: "POST",
-                data: {
-                    Id: id,
-                    Status: 2 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
-                }
-            })
-
-            if (res.status) {
-
-                if (runningdataTableReload !== null) {
-                    runningdataTableReload.draw();
-                }
-
-                if (completedDataTableReload !== null) {
-                    completedDataTableReload.draw();
-                }
-
-                showSuccessNotification(res.message);
-                handelUpdateTodoProductivity(selectedDate.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }));
-            } else {
-                showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
-            }
-        }
-        catch (error) {
-            console.log(error);
-            showErrorNotification(error.message || "Error: while changing the status of Goal with Id: " + id);
-        }
+        handelStatusChange({
+            Id: id,
+            Status: 2 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+        });
     })
 
     $(document).on("click", ".moveToRunningToDoBtn", async function () {
@@ -80,38 +88,10 @@
             return;
         }
 
-        try {
-
-            const res = await $.ajax({
-                url: "/Todo/ChangeTodoStatus",
-                method: "POST",
-                data: {
-                    Id: id,
-                    Status: 1 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
-                }
-            })
-
-            if (res.status) {
-
-                if (runningdataTableReload !== null) {
-                    runningdataTableReload.draw();
-                }
-
-                if (completedDataTableReload !== null) {
-                    completedDataTableReload.draw();
-                }
-
-
-                showSuccessNotification(res.message);
-                handelUpdateTodoProductivity(selectedDate.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" }));
-            } else {
-                showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
-            }
-        }
-        catch (error) {
-            console.log(error);
-            showErrorNotification(error.message || "Error: while changing the status of Goal with Id: " + id);
-        }
+        handelStatusChange({
+            Id: id,
+            Status: 1 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+        });
     })
 
     function loadRunningTaskData() {
@@ -304,10 +284,7 @@
     function updateDateDisplay() {
         $("#selectedDate").text(formatDate(selectedDate));
 
-        console.log(selectedDate)
-
         datePicker.setDate(selectedDate, false);
-
 
         if (formatDate(selectedDate) == "Today") {
             return nextBtn.prop("disabled", true).removeClass("bg-indigo-600").addClass("bg-gray-500");
@@ -318,15 +295,13 @@
 
     async function handelUpdateTodoProductivity(date) {
         try {
-            const res = await $.ajax({
+            await $.ajax({
                 url: `/Todo/GetTodoProgressAnalyses?forDate=${date}`,
                 method: "POST",
                 success: function (data) {
                     if (!data.status) {
                         throw new Error(data.message || "Unable to fetch the todays progress...");
                     }
-
-                    console.log(data);
 
                     const { productivityForDay, totalCompletedTodo, totalMissedTodo, totalTodo } = data.data;
 
@@ -337,14 +312,15 @@
 
                 },
                 error: function (error) {
-                    completedTodoTaskCount.html(0);
-                    runningTodoTaskCount.html(0);
-                    totalTodoTaskCount.html(0);
-                    productivityTotoTaskPercentage.html(0 + "%");
                     throw error;
                 }
             })
         } catch (error) {
+            completedTodoTaskCount.html(0);
+            runningTodoTaskCount.html(0);
+            totalTodoTaskCount.html(0);
+            productivityTotoTaskPercentage.html(0 + "%");
+
             console.error(error);
         }
     }
