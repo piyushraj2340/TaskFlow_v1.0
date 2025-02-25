@@ -21,8 +21,6 @@ function useDataState(initialData) {
     const setData = (updateData, reRender) => {
         data.value = updateData;
 
-        console.log("value", data.value);
-        console.log("copy", data.copy);
         if (reRender) {
             reRender();
         }
@@ -49,22 +47,18 @@ function Modal() {
 
     // 🔐 Private HTML template
     const modalHtml =
-        `<div id="Modal" class="fixed inset-0 z-20 flex hidden w-full max-h-[100vh] items-center justify-center bg-gray-800 bg-opacity-50">
+        `<div id="Modal" class="fixed inset-0 z-20 flex hidden w-full max-h-full items-center justify-center bg-gray-800 bg-opacity-50">
     </div>`;
 
     const modalLoadingHtml = `
         <div class="flex h-full w-full flex-col items-center justify-center space-y-4 bg-white">
             <div class="flex items-center space-x-3">
                 <div class="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
-                <h2 class="text-xl font-semibold text-gray-700">Loading getData()...</h2>
+                <h2 class="text-xl font-semibold text-gray-700">Loading Model Data...</h2>
             </div>
             <p class="text-sm text-gray-500">Please wait while we fetch the latest updates.</p>
         </div>
     `;
-
-    //1. Add - Remove Components inside the components we will manage the getData()....
-    //2. re-draw - re-render the components....
-    //3. handel all the other functionality related to the event will mange by the component itself....
 
     const config = (parrentSellector) => {
         if (!isModalInit && !modalContainer) {
@@ -141,20 +135,6 @@ function Modal() {
         }
     }
 
-    const toggleModal = function () {
-        if (isModalInit && modalContainer?.length) {
-            modalContainer.toggleClass("hidden");
-
-            isModalOpen = !isModalOpen;
-
-            console.log(`Modal is now ${isModalOpen ? "open" : "closed"}`);
-        } else {
-            console.warn("Modal is not initialized! Call modal.init() first.");
-        }
-    };
-
-    this.toggleModal = toggleModal;
-
     this.openModal = function (ComponentClass, id) {
         if (isModalInit && modalContainer?.length) {
 
@@ -202,30 +182,19 @@ function Modal() {
                 });
             }
         }
-
-        //resetState();
     }
 
-    this.closeModal = closeModal;
+    this.closeModal = function () {
+        if (isModalInit && modalContainer?.length) {
+            isModalOpen = false;
+            modalContainer.addClass("hidden");
+            modalContainer.empty
+        }
+    };
 
     this.isModalOpen = function () {
         return isModalOpen;
     };
-
-
-    resetModal = function () {
-        isModalInit = false;
-        isModalOpen = false;
-
-        modalContainer.remove();
-        modalContainer = null;
-        Modal.instance = null;
-    }
-
-    resetData = function () {
-        isModalInit = false;
-        isModalOpen = false;
-    }
 
     // ✅ Store the instance in the constructor function itself
     Modal.instance = this;
