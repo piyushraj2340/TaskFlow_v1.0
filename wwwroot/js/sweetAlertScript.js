@@ -66,3 +66,28 @@ function showConfirmationDialog(options, ajaxConfig, successCallback, errorCallb
         }
     });
 }
+
+
+function showModelCloseAlert(resetCallBack) {
+    // Set default SweetAlert2 options
+    const defaultOptions = {
+        title: 'Are you sure?',
+        text: 'Do you want to close the modal? You will lose all the changes!!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Close it!',
+        cancelButtonText: 'Cancel',
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mr-2',
+            cancelButton: 'bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded',
+        }
+    };
+
+    // Show SweetAlert2 dialog
+    Swal.fire(defaultOptions).then((result) => {
+        if (result.isConfirmed) {
+            resetCallBack();
+        }
+    });
+}
