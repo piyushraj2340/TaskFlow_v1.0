@@ -1,7 +1,12 @@
 ﻿$(document).ready(function () {
-    // JavaScript to toggle goalModal visibility
-    const openModalButton = $("#openModalButton");
- 
+
+    const goalStatusEnum = Object.freeze({
+        notStarted: 0,
+        running: 1,
+        completed: 2,
+        ended: 3
+    })
+
     // Running task...
     const runningGoalDataTable = $('#viewRunningGoalTableData');
     let goalRunningDataTableReload = null;
@@ -16,9 +21,13 @@
 
     // Not Started Task...
     const endedGoalDataTable = $('#viewEndedGoalTableData');
+    let goalEndedDataTableReload = null;
 
     // Not Started Task...
     const deletedGoalDataTable = $('#viewDeletedTableData');
+
+    // JavaScript to toggle goalModal visibility
+    const openModalButton = $("#openModalButton");
 
     // Open goalModal for create
     openModalButton.on("click", function () {
@@ -31,8 +40,9 @@
     });
 
     // delete goal
-    $(document).on("click", ".deleteGoalBtn", async function () {
+    $("table").on("click", ".deleteGoalBtn", async function () {
         const id = $(this).data("id");
+        let parentTable = $(this).closest("table");
 
         if (!id) {
             showErrorNotification("Missing Id parameters!");
@@ -52,7 +62,7 @@
                     data: { Id: id }
                 },
                 function (response) { // Success callback
-                    
+                    parentTable.DataTable().ajax.reload();
                 },
                 function (error) { // Error callback
                     console.error('Error deleting goal:', error);
@@ -66,7 +76,7 @@
     })
 
     // Mark goal as completed...
-    $(document).on("click", ".markAsComplete", async function () {
+    $("table").on("click", ".markAsComplete", async function () {
         const id = $(this).data("id");
 
         if (!id) {
@@ -74,89 +84,90 @@
             return;
         }
 
-        try {
+        $.ajax({
+            url: "/Goals/ChangeGoalStatus",
+            method: "POST",
+            data: {
+                Id: id,
+                GoalStatus: 2 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+            },
+            success: function (response) {
+                if (response.status) {
 
-            const res = await $.ajax({
-                url: "/Goals/ChangeGoalStatus",
-                method: "POST",
-                data: {
-                    Id: id,
-                    GoalStatus: 2 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+                    if (goalRunningDataTableReload !== null) {
+                        goalRunningDataTableReload.draw();
+                    }
+
+                    if (goalCompletedDataTableReload !== null) {
+                        goalCompletedDataTableReload.draw();
+                    }
+
+                    showSuccessNotification(response.message);
+                } else {
+                    throw new Error(response.message || "Error: while changing the status of Goal with Id: " + id);
                 }
-            })
-
-            if (res.status) {
-
-                if (goalRunningDataTableReload !== null) {
-                    goalRunningDataTableReload.draw();
-                }
-
-                if (goalCompletedDataTableReload !== null) {
-                    goalCompletedDataTableReload.draw();
-                }
-
-                showSuccessNotification(res.message);
-            } else {
-                showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                console.error("Error:", error);
             }
-        }
-        catch (error) {
-            console.log(error);
-            showErrorNotification(error.message || "Error: while changing the status of Goal with Id: " + id);
-        }
+        })
     })
 
     // Move to runnings
-    $(document).on("click", ".moveToRunning", async function () {
+    $("table").on("click", ".moveToRunning", async function () {
         const id = $(this).data("id");
+        let goalStatus = $(this).closest("table").data("goal-status");
+
+        console.log(goalStatus);
 
         if (!id) {
             showErrorNotification("Missing Id parameters!");
             return;
         }
 
-        try {
+        $.ajax({
+            url: "/Goals/ChangeGoalStatus",
+            method: "POST",
+            data: {
+                Id: id,
+                GoalStatus: 1 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+            },
+            success: function (response) {
+                if (response.status) {
 
-            const res = await $.ajax({
-                url: "/Goals/ChangeGoalStatus",
-                method: "POST",
-                data: {
-                    Id: id,
-                    GoalStatus: 1 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+                    if (goalRunningDataTableReload !== null) {
+                        goalRunningDataTableReload.draw();
+                    }
+
+                    if (goalStatus === "notStarted" && goalNotStartedDataTableReload !== null) {
+                        goalNotStartedDataTableReload.draw();
+                    }
+
+                    if (goalStatus === "completed" && goalCompletedDataTableReload !== null) {
+                        goalCompletedDataTableReload.draw();
+                    }
+
+                    if (goalStatus === "ended" && goalEndedDataTableReload !== null) {
+                        goalEndedDataTableReload.draw();
+                    }
+
+                    showSuccessNotification(response.message);
+                } else {
+                    showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
                 }
-            })
-
-            if (res.status) {
-
-                if (goalRunningDataTableReload !== null) {
-                    goalRunningDataTableReload.draw();
-                }
-
-                if (goalCompletedDataTableReload !== null) {
-                    goalCompletedDataTableReload.draw();
-                }
-
-                if (goalNotStartedDataTableReload !== null) {
-                    goalNotStartedDataTableReload.draw();
-                }
-
-                showSuccessNotification(res.message);
-            } else {
-                showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                console.error("Error:", error);
             }
-        }
-        catch (error) {
-            console.log(error);
-            showErrorNotification(error.message || "Error: while changing the status of Goal with Id: " + id);
-        }
+        })
     })
 
-
-    // Running Goal Data...
-    function loadRunningGoalData() {
-        goalRunningDataTableReload = runningGoalDataTable.DataTable({
+    const dataTableObject = (url, renderCallBack) => {
+        return {
             ajax: {
-                url: "/Goals/GetAllRunningGoals",
+                url,
                 type: "POST",
             },
             responsive: true,
@@ -197,223 +208,101 @@
                     data: null, // This column will not contain data directly
                     name: "Action",
                     defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="markAsComplete my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
-                                 <i class="fas fa-check"></i> Mark as Complete
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
+                    render: renderCallBack
                 }
             ],
             "order": [[0, 'asc']],
             info: true,
             pageLength: 5
-        });
+        }
+    }
+
+    // Running Goal Data...
+    function loadRunningGoalData() {
+        let url = "/Goals/GetAllRunningGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="markAsComplete my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
+                        <i class="fas fa-check"></i> Mark as Complete
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+        goalRunningDataTableReload = runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
     function loadCompletedGoalData() {
-        goalCompletedDataTableReload = completedGoalDataTable.DataTable({
-            ajax: {
-                url: "/Goals/GetAllCompletedGoals",
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                                 <i class="fas fa-check"></i> Move to Running
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            pageLength: 5
-        });
+
+        let url = "/Goals/GetAllCompletedGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                        <i class="fas fa-check"></i> Move to Running
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+
+        goalCompletedDataTableReload = completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
     function loadNotStartedGoalData() {
-        goalNotStartedDataTableReload = notStartedGoalDataTable.DataTable({
-            ajax: {
-                url: "/Goals/GetAllNotStartedGoals",
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                                 <i class="fas fa-check"></i> Move to Running
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            pageLength: 5
-        });
+
+        let url = "/Goals/GetAllNotStartedGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                        <i class="fas fa-check"></i> Move to Running
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+        goalNotStartedDataTableReload = notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
     function loadEndedGoalData() {
-        goalEndedDataTableReload = endedGoalDataTable.DataTable({
-            ajax: {
-                url: "/Goals/GetAllEndedGoals",
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "Priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                                 <i class="fas fa-check"></i> Move to Running
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            pageLength: 5
-        });
+
+        let url = "/Goals/GetAllEndedGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                        <i class="fas fa-check"></i> Move to Running
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+        goalEndedDataTableReload = endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     function loadDeletedGoalData() {
@@ -501,70 +390,67 @@
 
     //calculateProductivity();
 
-});
 
+    function GoalModelComponent({ getData, setData }) {
+        let isEditMode = false;
+        let isComponentInit = false;
 
+        this.init = function () {
+            if (!isComponentInit) {
+                setData({
+                    id: "",
+                    goalStatus: 0,
+                    name: "",
+                    endDate: "",
+                    priority: 0,
+                    description: ""
+                });
 
-function GoalModelComponent({ getData, setData}) {
-    let isEditMode = false;
-    let isComponentInit = false;
-
-    this.init = function () {
-        if (!isComponentInit) {
-            setData({
-                id: "",
-                goalStatus: 0,
-                name: "",
-                endDate: "",
-                priority: 0,
-                description: ""
-            });
-
-            isEditMode = false;
-            isComponentInit = true;
-        }
-
-        return getData();
-    }
-
-    this.initAsync = function (id) {
-        if (!isComponentInit) {
-            return new Promise((resolve, reject) => {
-                isEditMode = true;
+                isEditMode = false;
                 isComponentInit = true;
-                try {
-                    $.ajax({
-                        url: `/Goals/GetById/${id}`,
-                        method: "GET",
-                        success: function (response) {
-                            if (response.status) {
-                                setData(response.data);
-                                console.log(getData());
-                                return resolve(response.data);
-                            }
-                            else {
-                                setErrorData(response?.data)
-                                throw new Error(response.message);
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            setErrorData(error);
-                            throw error;
-                        }
-                    });
-                }
-                catch (error) {
-                    console.error("Error:", error);
-                    return reject(error);
-                }
-            });
-        } else {
+            }
+
             return getData();
         }
-    };
 
-    const reRender = function (parrentElement) {
-        const contentWithData = `
+        this.initAsync = function (id) {
+            if (!isComponentInit) {
+                return new Promise((resolve, reject) => {
+                    isEditMode = true;
+                    isComponentInit = true;
+                    try {
+                        $.ajax({
+                            url: `/Goals/GetById/${id}`,
+                            method: "GET",
+                            success: function (response) {
+                                if (response.status) {
+                                    setData(response.data);
+                                    console.log(getData());
+                                    return resolve(response.data);
+                                }
+                                else {
+                                    setErrorData(response?.data)
+                                    throw new Error(response.message);
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                setErrorData(error);
+                                throw error;
+                            }
+                        });
+                    }
+                    catch (error) {
+                        console.error("Error:", error);
+                        return reject(error);
+                    }
+                });
+            } else {
+                return getData();
+            }
+        };
+
+        const reRender = function (parrentElement) {
+            const contentWithData = `
             
             <h2 id="form-label" class="mb-3 text-2xl font-semibold text-gray-700"></h2>
 
@@ -621,10 +507,10 @@ function GoalModelComponent({ getData, setData}) {
                 <div id="goalStatusContainer" class="mb-4 ${isEditMode ? "" : 'hidden'}">
                     <label for="goalStatus" class="block text-sm font-medium text-gray-600">Goal Status</label>
                     <select id="goalStatus" name="goalStatus" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.goalStatus}" onchange="onChangeGoalInput(this)">
-                        <option value="0">Not Started</option>
-                        <option value="1">Running</option>
-                        <option value="2">Completed</option>
-                        <option value="3">End</option>
+                        <option value="0" ${getData()?.goalStatus == 0 ? "selected" : ""}>Not Started</option>
+                        <option value="1" ${getData()?.goalStatus == 1 ? "selected" : ""}>Running</option>
+                        <option value="2" ${getData()?.goalStatus == 2 ? "selected" : ""}>Completed</option>
+                        <option value="3" ${getData()?.goalStatus == 3 ? "selected" : ""}>End</option>
                     </select>
                     <span id="goalStatusError" class="hidden text-sm text-red-500">GoalStatus field is required.</span>
                 </div>
@@ -632,18 +518,18 @@ function GoalModelComponent({ getData, setData}) {
 
                 <!-- Submit Button -->
                 <div class="flex justify-end">
-                    <button id="submit-btn" type="submit" class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">${isEditMode? 'Edit': 'Save'} Goal</button>
+                    <button id="submit-btn" type="submit" class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">${isEditMode ? 'Edit' : 'Save'} Goal</button>
                 </div>
             </form>
             
         `;
 
-        const content = getData() ? contentWithData : noContentHtml;
-        parrentElement.html(`
-            <div class="custom-scrollbar relative h-full sm:max-h-[90vh] w-full max-w-xl overflow-auto rounded-lg bg-white shadow-xl sm:w-4/5 lg:w-1/2 xl:w-1/3">
+            const content = getData() ? contentWithData : noContentHtml;
+            parrentElement.html(`
+            <div class="custom-scrollbar relative sm:max-h-[90vh] w-full max-w-xl overflow-auto rounded-lg bg-white shadow-xl sm:w-4/5 lg:w-1/2 xl:w-1/3">
                 <div class="flex items-center justify-between bg-indigo-600 px-6 py-4 text-white">
                     <h2 id="model-title" class="text-xl font-semibold tracking-wide">
-                        <i class="fa-solid fa-clipboard-list"></i> ${isEditMode? 'Update': 'Create'} Your Progress Record in Goal
+                        <i class="fa-solid fa-clipboard-list"></i> ${isEditMode ? 'Update' : 'Create'} Your Progress Record in Goal
                     </h2>
                     <button class="text-2xl text-white hover:text-gray-200" id="closeModal">
                         <i class="fa-solid fa-xmark"></i>
@@ -655,20 +541,36 @@ function GoalModelComponent({ getData, setData}) {
             </div>
         `);
 
-        window.onChangeGoalInput = function (e) {
-            setData({ ...getData(), [e.name]: e.value, ["isModified"]: true  });
-            console.log(getData());
-        }
+            window.onChangeGoalInput = function (e) {
+                setData({ ...getData(), [e.name]: e.value, ["isModified"]: true });
+                console.log(getData());
+            }
 
-        $("#goalForm").on('submit', function (e) {
-            e.preventDefault();
-            try {
+            $("#goalForm").on('submit', function (e) {
+                e.preventDefault();
                 $.ajax({
                     url: isEditMode ? "/Goals/Edit" : "/Goals/Create",
-                    method: isEditMode ? "PUT" : "POST", 
+                    method: isEditMode ? "PUT" : "POST",
                     data: getData(),
                     success: function (response) {
                         if (response.status) {
+                            const { goalStatus } = getData();
+                            
+                            switch (+goalStatus) {
+                                case goalStatusEnum.notStarted:
+                                    goalNotStartedDataTableReload && goalNotStartedDataTableReload.draw();
+                                    break
+                                case goalStatusEnum.running:
+                                    goalRunningDataTableReload && goalRunningDataTableReload.draw();
+                                    break;
+                                case goalStatusEnum.completed:
+                                    goalCompletedDataTableReload && goalCompletedDataTableReload.draw();
+                                    break;
+                                case goalStatusEnum.ended:
+                                    goalEndedDataTableReload && goalEndedDataTableReload.draw();
+                                    break;
+                            }
+
                             setTimeout(() => {
                                 modal.closeModal();
                             }, 500)
@@ -681,19 +583,19 @@ function GoalModelComponent({ getData, setData}) {
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error("error", error)
-                        throw error;
+                        showErrorNotification(error || "Notes Saved Failed!");
+                        console.error("Error:", error);
                     }
                 });
-            } catch (error) {
-                showErrorNotification(error.message || "Notes Saved Failed!");
-                console.error("Error:", error);
-            }
-        })
+            })
+        }
 
+        this.load = function (selector) {
+            reRender(selector);
+        }
     }
 
-    this.load = function (selector) {
-        reRender(selector);
-    }
-}
+});
+
+
+
