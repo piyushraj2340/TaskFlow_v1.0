@@ -1,6 +1,6 @@
 ﻿
-CREATE PROCEDURE [dbo].[usp_UpdateGoalState](
-@UserId nvarchar(256)
+CREATE OR ALTER PROCEDURE [dbo].[usp_UpdateGoalState](
+@UserId NVARCHAR(256)
 )
 AS
 BEGIN 
@@ -19,25 +19,25 @@ BEGIN
 	DECLARE @Ended INT = 3;    -- Ended
 
 	UPDATE Goals
-	SET GoalStatus = case
-			when EndDate < @currentDateTime and GoalStatus NOT IN (@Completed, @Ended)
-				then @Ended
-			when IsScheduled = 1 and StartDate < @currentDateTime and GoalStatus != @Completed
-				Then @Running 
-			end, 
+	SET GoalStatus = CASE
+			WHEN EndDate < @currentDateTime AND GoalStatus NOT IN (@Completed, @Ended)
+				THEN @Ended
+			WHEN IsScheduled = 1 AND StartDate < @currentDateTime AND GoalStatus != @Completed
+				THEN @Running 
+			END, 
 		UpdatedOn = @currentDateTime,
-		IsStarted = case 
-			when IsScheduled = 1 and StartDate < @currentDateTime and GoalStatus != @Completed 
-				Then 1
-			end,
-		StartedOn = case
-			when IsScheduled = 1 and StartDate < @currentDateTime and GoalStatus != @Completed 
-				Then @currentDateTime
-			end,
-		EndedOn = case 
-			when EndDate < @currentDateTime and GoalStatus NOT IN (@Completed, @Ended)
-				then @currentDateTime
-			end
+		IsStarted = CASE 
+			WHEN IsScheduled = 1 AND StartDate < @currentDateTime AND GoalStatus != @Completed 
+				THEN 1
+			END,
+		StartedOn = CASE
+			WHEN IsScheduled = 1 AND StartDate < @currentDateTime AND GoalStatus != @Completed 
+				THEN @currentDateTime
+			END,
+		EndedOn = CASE 
+			WHEN EndDate < @currentDateTime AND GoalStatus NOT IN (@Completed, @Ended)
+				THEN @currentDateTime
+			END
 	WHERE UserId = @UserId
 		AND IsDeleted = 0 -- Goal should not be deleted
 END
