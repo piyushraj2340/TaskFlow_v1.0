@@ -1,167 +1,46 @@
 ﻿$(document).ready(function () {
-    // JavaScript to toggle modal visibility
-    const openModalButton = $("#openModalButton");
-    const modal = $("#addEditGoalModal");
 
-    // Goal Id Input Field and Error Handling..
-    const goalIdInput = $("#goalId");
-    const goalIdError = $("#goalIdError");
+    const goalStatusEnum = Object.freeze({
+        notStarted: 0,
+        running: 1,
+        completed: 2,
+        ended: 3
+    });
 
-    // Name Input Field and Error Handling..
-    const goalNameInput = $("#goalName");
-    const goalNameError = $("#goalNameError");
-
-    // Description Input Field and error handling...
-    const goalDescriptionInput = $("#goalDescription");
-    const goalDescriptionError = $("#goalDescriptionError");
-
-    const goalPriorityInput = $("#goalPriority");
-    const goalPriorityError = $("#goalPriorityError");
-
-    const goalStatusInput = $("#goalStatus");
-    const goalStatusError = $("#goalStatusError");
-
-    // End Date Input Field and Errror Handling..
-    const goalEndDateInput = $("#endDate");
-    const goalEndDateError = $("#goalDueDateError");
-
-    const goalForm = $("#goalForm");
-    const submitBtn = $("#submit-btn");
+    const startOptionValues = Object.freeze({
+        manual: 0,
+        scheduled: 1,
+        immediate: 2
+    });
 
     // Running task...
     const runningGoalDataTable = $('#viewRunningGoalTableData');
-    let goalRunningDataTableReload = null;
-
     // Compleated Task...
     const completedGoalDataTable = $('#viewCompletedGoalTableData');
-    let goalCompletedDataTableReload = null;
-
     // Not Started Task...
     const notStartedGoalDataTable = $('#viewNotStartedGoalTableData');
-    let goalNotStartedDataTableReload = null;
-
     // Not Started Task...
     const endedGoalDataTable = $('#viewEndedGoalTableData');
-    let goalEndedDataTableReload = null;
-
     // Not Started Task...
     const deletedGoalDataTable = $('#viewDeletedTableData');
-    let goalDeletedDataTableReload = null;
 
-    let totalGoal = 0; // completed + end
-    let completedGoal = 0;
+    // JavaScript to toggle goalModal visibility
+    const openModalButton = $("#openModalButton");
 
-    let isEditMode = false;  // Flag to track if it's edit mode or create mode
-    let currentGoalId = null;  // Store the ID of the goal being edited
-
-    // Open modal for create
+    // Open goalModal for create
     openModalButton.on("click", function () {
-        isEditMode = false;  // Set to create mode
-        currentGoalId = null;  // Clear the current goal ID
-        openModal();
+        modal.openModal(GoalModelComponent)
     });
 
-    // Close modal
-    $("#closeModalButton").on("click", closeModal);
-
-    // Handle form submission
-    goalForm.on("submit", async function (e) {
-        e.preventDefault(); // Prevent default form submission
-
-        const goalData = {
-            name: goalNameInput.val(),
-            endDate: $("#endDate").val(),
-            priority: $("#goalPriority").val(),
-            description: $("#goalDescription").val()
-        };
-
-        if (isEditMode) {
-            // Edit mode: Include goal ID
-            goalData.id = currentGoalId;
-            goalData.goalStatus = $("#goalStatus").val();  // Include status for edit
-        }
-
-        try {
-            const url = isEditMode ? "/Goals/Edit" : "/Goals/Create";
-            const method = isEditMode ? "PUT" : "POST";
-
-            validateData(isEditMode ? 'edit' : 'add');
-
-            // Send request to create or edit goal
-            const res = await $.ajax({
-                url: url,
-                method: method,
-                data: goalData
-            });
-
-            if (res.status) {
-                // If successful, reload the goal data
-                /*runningGoalDataTable.DataTable({ responsive: true }).ajax.reload();*/
-
-                if (goalRunningDataTableReload !== null) {
-                    goalRunningDataTableReload.draw();
-                }
-
-                if (goalNotStartedDataTableReload !== null) {
-                    goalNotStartedDataTableReload.draw();
-                }
-
-                if (goalCompletedDataTableReload !== null) {
-                    goalCompletedDataTableReload.draw();
-                }
-
-                if (goalEndedDataTableReload !== null) {
-                    goalEndedDataTableReload.draw();
-                }
-
-                //loadRunningGoalData();
-                closeModal();
-
-                //Show Alert message of success...
-                showSuccessNotification(res.message);
-            } else {
-                //Show Alert message of success...
-                showErrorNotification(res.message);
-            }
-        } catch (error) {
-            //Show Alert message of success...
-            showErrorNotification(error.message);
-            console.log(error);
-        }
-    });
-
-    // Modal background click close
-    modal.on("click", function (e) {
-        if (e.target === this) {
-            closeModal();
-        }
-    });
-
-    // Open modal for edit
+    // Open goalModal for edit
     $(document).on("click", ".editGoalBtn", async function () {
-        isEditMode = true;  // Set to edit mode
-        currentGoalId = $(this).data("id");
-
-        // Fetch goal data
-        const res = await $.ajax({
-            url: `/Goals/GetById/${currentGoalId}`,
-            method: "GET",
-        });
-
-        if (res.status) {
-            // Load the data into the form for editing
-            openModal();
-            loadDataIntoForm(res.data);
-
-        } else {
-            //Show Alert message of success...
-            showErrorNotification(res.message);
-        }
+        modal.openModal(GoalModelComponent, $(this).data("id"));
     });
 
     // delete goal
-    $(document).on("click", ".deleteGoalBtn", async function () {
+    $("table").on("click", ".deleteGoalBtn", async function () {
         const id = $(this).data("id");
+        let parentTable = $(this).closest("table");
 
         if (!id) {
             showErrorNotification("Missing Id parameters!");
@@ -169,7 +48,6 @@
         }
 
         try {
-
             // Call reusable confirmation function
             showConfirmationDialog(
                 {
@@ -182,58 +60,21 @@
                     data: { Id: id }
                 },
                 function (response) { // Success callback
-                    $(`button[data-id='${goalId}']`).parent().remove();
-                    //if (goalRunningDataTableReload !== null) {
-                    //    goalRunningDataTableReload.draw();
-                    //}
-
-                    //if (goalCompletedDataTableReload !== null) {
-                    //    goalCompletedDataTableReload.draw();
-                    //}
-
-                    //if (goalNotStartedDataTableReload !== null) {
-                    //    goalNotStartedDataTableReload.draw();
-                    //}
-
-                    //if (goalEndedDataTableReload !== null) {
-                    //    goalEndedDataTableReload.draw();
-                    //}
-
-                    //if (goalDeletedDataTableReload !== null) {
-                    //    goalDeletedDataTableReload.draw();
-                    //}
+                    parentTable.DataTable().ajax.reload();
                 },
                 function (error) { // Error callback
                     console.error('Error deleting goal:', error);
                 }
             );
-
-            //const res = await $.ajax({
-            //    url: "/Goals/DeleteGoal",
-            //    method: "DELETE",
-            //    data: { Id: id }
-            //})
-
-            //if (res.status) {
-
-            //    if (goalRunningDataTableReload !== null) {
-            //        goalRunningDataTableReload.draw();
-            //    }
-
-            //    showSuccessNotification(res.message);
-
-            //} else {
-            //    showErrorNotification(res.message || "Error: while deleting Goal with Id: " + id);
-            //}
         }
         catch (error) {
             showErrorNotification(error.message || "Error: while deleting Goal with Id: " + id);
-            console.log(error);
+            console.error(error);
         }
     })
 
     // Mark goal as completed...
-    $(document).on("click", ".markAsComplete", async function () {
+    $("table").on("click", ".markAsComplete", async function () {
         const id = $(this).data("id");
 
         if (!id) {
@@ -241,136 +82,77 @@
             return;
         }
 
-        try {
+        $.ajax({
+            url: "/Goals/ChangeGoalStatus",
+            method: "POST",
+            data: {
+                Id: id,
+                GoalStatus: 2 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+            },
+            success: function (response) {
+                if (response.status) {
 
-            const res = await $.ajax({
-                url: "/Goals/ChangeGoalStatus",
-                method: "POST",
-                data: {
-                    Id: id,
-                    GoalStatus: 2 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+                    runningGoalDataTable?.DataTable().ajax.reload();
+
+                    completedGoalDataTable?.DataTable().ajax.reload();
+
+                    showSuccessNotification(response.message);
+                } else {
+                    throw new Error(response.message || "Error: while changing the status of Goal with Id: " + id);
                 }
-            })
-
-            if (res.status) {
-
-                if (goalRunningDataTableReload !== null) {
-                    goalRunningDataTableReload.draw();
-                }
-
-                if (goalCompletedDataTableReload !== null) {
-                    goalCompletedDataTableReload.draw();
-                }
-
-                showSuccessNotification(res.message);
-            } else {
-                showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                console.error("Error:", error);
             }
-        }
-        catch (error) {
-            console.log(error);
-            showErrorNotification(error.message || "Error: while changing the status of Goal with Id: " + id);
-        }
+        })
     })
 
     // Move to runnings
-    $(document).on("click", ".moveToRunning", async function () {
+    $("table").on("click", ".moveToRunning", async function () {
         const id = $(this).data("id");
+        let goalStatus = $(this).closest("table").data("goal-status");
 
         if (!id) {
             showErrorNotification("Missing Id parameters!");
             return;
         }
 
-        try {
+        $.ajax({
+            url: "/Goals/ChangeGoalStatus",
+            method: "POST",
+            data: {
+                Id: id,
+                GoalStatus: 1 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+            },
+            success: function (response) {
+                if (response.status) {
 
-            const res = await $.ajax({
-                url: "/Goals/ChangeGoalStatus",
-                method: "POST",
-                data: {
-                    Id: id,
-                    GoalStatus: 1 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+                    runningGoalDataTable.DataTable().ajax.reload(); 
+
+                    goalStatus === "notStarted" && notStartedGoalDataTable?.DataTable().ajax.reload();
+
+                    goalStatus === "completed" && completedGoalDataTable?.DataTable().ajax.reload();
+
+                    goalStatus === "ended" && endedGoalDataTable?.DataTable().ajax.reload();
+
+
+                    showSuccessNotification(response.message);
+                } else {
+                    showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
                 }
-            })
-
-            if (res.status) {
-
-                if (goalRunningDataTableReload !== null) {
-                    goalRunningDataTableReload.draw();
-                }
-
-                if (goalCompletedDataTableReload !== null) {
-                    goalCompletedDataTableReload.draw();
-                }
-
-                if (goalNotStartedDataTableReload !== null) {
-                    goalNotStartedDataTableReload.draw();
-                }
-
-                showSuccessNotification(res.message);
-            } else {
-                showErrorNotification(res.message || "Error: while changing the status of Goal with Id: " + id);
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                console.error("Error:", error);
             }
-        }
-        catch (error) {
-            console.log(error);
-            showErrorNotification(error.message || "Error: while changing the status of Goal with Id: " + id);
-        }
+        })
     })
 
-    // Function to open modal
-    function openModal() {
-        modal.removeClass("hidden");
-        modal.addClass("flex");
-
-        // Change submit button text based on the mode
-        if (isEditMode) {
-            submitBtn.text("Edit Goal");
-        } else {
-            submitBtn.text("Save Goal");
-            $("#goalIdContainer").addClass("hidden");
-            $("#goalStatusContainer").addClass("hidden");
-        }
-
-        // Reset the form
-        goalForm[0].reset();
-    }
-
-    // Close modal and reset form
-    function closeModal() {
-        // Hide the validations error...
-        goalIdError.addClass("hidden");
-        goalNameError.addClass("hidden");
-        goalEndDateError.addClass("hidden");
-
-
-        modal.addClass("hidden");
-        goalForm[0].reset();
-    }
-
-    // Function to load goal data into the form for editing
-    function loadDataIntoForm(goal) {
-        // Load data into the form fields for editing
-
-        if (isEditMode) {
-            $("#goalIdContainer").removeClass("hidden");
-            goalIdInput.val(goal.id);
-            goalNameInput.val(goal.name);
-            goalEndDateInput.val(goal.endDate);
-            goalStatusInput.val(goal.goalStatus);
-            goalPriorityInput.val(goal.priority);
-            goalDescriptionInput.val(goal.description);
-            $("#goalStatusContainer").removeClass("hidden");
-        }
-    }
-
-    // Load goal data into DataTable
-
-    // Running Goal Data...
-    function loadRunningGoalData() {
-        goalRunningDataTableReload = runningGoalDataTable.DataTable({
+    const dataTableObject = (url, renderCallBack) => {
+        return {
             ajax: {
-                url: "/Goals/GetAllRunningGoals",
+                url,
                 type: "POST",
             },
             responsive: true,
@@ -404,208 +186,105 @@
                     data: null, // This column will not contain data directly
                     name: "Action",
                     defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
-                                <i class="fas fa-plus"></i> Add Task
-                            </a>
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="markAsComplete my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
-                                 <i class="fas fa-check"></i> Mark as Complete
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
+                    render: renderCallBack
                 }
             ],
             "order": [[0, 'asc']],
             info: true,
             pageLength: 5
-        });
+        }
+    }
+
+    // Running Goal Data...
+    function loadRunningGoalData() {
+        let url = "/Goals/GetAllRunningGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
+                    <i class="fas fa-plus"></i> Add Task
+                </a>
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="markAsComplete my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
+                        <i class="fas fa-check"></i> Mark as Complete
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+         runningGoalDataTable?.length && runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
     function loadCompletedGoalData() {
-        goalCompletedDataTableReload = completedGoalDataTable.DataTable({
-            ajax: {
-                url: "/Goals/GetAllCompletedGoals",
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                                 <i class="fas fa-check"></i> Move to Running
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            pageLength: 5
-        });
+        let url = "/Goals/GetAllCompletedGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                        <i class="fas fa-check"></i> Move to Running
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+
+        completedGoalDataTable?.length && completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
     function loadNotStartedGoalData() {
-        goalNotStartedDataTableReload = notStartedGoalDataTable.DataTable({
-            ajax: {
-                url: "/Goals/GetAllNotStartedGoals",
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
-                                <i class="fas fa-plus"></i> Add Task
-                            </a>
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                                 <i class="fas fa-check"></i> Move to Running
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            pageLength: 5
-        });
+
+        let url = "/Goals/GetAllNotStartedGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
+                    <i class="fas fa-plus"></i> Add Task
+                </a>
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                        <i class="fas fa-check"></i> Move to Running
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+        notStartedGoalDataTable.length && notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
     function loadEndedGoalData() {
-        goalEndedDataTableReload = endedGoalDataTable.DataTable({
-            ajax: {
-                url: "/Goals/GetAllEndedGoals",
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "Priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                                 <i class="fas fa-check"></i> Move to Running
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            pageLength: 5
-        });
+        let url = "/Goals/GetAllEndedGoals";
+
+        function renderCallBack(data, type, row) {
+            return `
+                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
+                        <i class="fas fa-check"></i> Move to Running
+                </button>
+                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
+        }
+
+        endedGoalDataTable.length && endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     function loadDeletedGoalData() {
@@ -670,50 +349,10 @@
         });
     }
 
-    // client-side-validations...
-    function validateData(formAction) { // formAction: 'add' || 'edit' 
-        // Common....
-        // Validate goal name
-        if (goalNameInput.val().length < 3 || goalNameInput.val().length > 50) {
-            goalNameError.removeClass("hidden");
-            throw new Error("Invalid Goal Name input field!...");
-        }
-        goalNameError.addClass("hidden");
-
-        // Validate Goal End Error...
-        const endDate = new Date(goalEndDateInput.val());
-        if (isNaN(endDate) || endDate <= Date.now()) {
-            goalEndDateError.removeClass("hidden");
-            throw new Error("Invalid Goal DueDate input field!...");
-        }
-        goalEndDateError.addClass("hidden");
-
-        if (goalDescriptionInput.val().trim() === "") {
-            goalDescriptionError.removeClass("hidden");
-            throw new Error("Invalid Goal Descriptions input field!...");
-        }
-        goalDescriptionError.addClass("hidden");
-
-        if (!goalPriorityInput.val()) {
-            goalPriorityError.removeClass("hidden");
-            throw new Error("Invalid Goal Priority input field!...");
-        }
-        goalPriorityError.addClass("hidden");
-
-        if (formAction === 'edit') {
-            // validations for the IdGoalField...
-            if (goalIdInput.val().length === 0) {
-                goalIdError.removeClass("hidden");
-                throw new Error("Editing Model, Missing Id...");
-            }
-            goalIdError.addClass("hidden");
-        }
-    }
-
-    loadRunningGoalData();
-    loadCompletedGoalData();
-    loadNotStartedGoalData();
-    loadEndedGoalData();
+    runningGoalDataTable?.length && loadRunningGoalData();
+    completedGoalDataTable?.length && loadCompletedGoalData();
+    notStartedGoalDataTable?.length && loadNotStartedGoalData();
+    endedGoalDataTable?.length && loadEndedGoalData();
     //loadDeletedGoalData();
 
 
@@ -733,4 +372,231 @@
 
     //calculateProductivity();
 
+
+    function GoalModelComponent({ getData, setData }) {
+        let isEditMode = false;
+        let isComponentInit = false;
+        let parrentElementModel;
+
+        const [isLoading, setIsLoading] = useDataState(false);
+
+        let oldGoalStatus = -1;
+
+        this.init = function () {
+            if (!isComponentInit) {
+                setData({
+                    id: "",
+                    goalStatus: goalStatusEnum.notStarted,
+                    name: "",
+                    endDate: "",
+                    priority: 0,
+                    description: "",
+                    startOptionType: startOptionValues.manual,
+                    startDate: ""
+                });
+
+                isEditMode = false;
+                isComponentInit = true;
+            }
+
+            return getData();
+        }
+
+        this.initAsync = function (id) {
+            if (!isComponentInit) {
+                return new Promise((resolve, reject) => {
+                    isEditMode = true;
+                    isComponentInit = true;
+
+                    $.ajax({
+                        url: `/Goals/GetById/${id}`,
+                        method: "GET",
+                        success: function (response) {
+                            if (response.status) {
+                                setData(response.data);
+                                oldGoalStatus = response.data.goalStatus; //Storeing the Old status and check for if the status changes or not then need to re-draw the table
+                                return resolve(response.data);
+                            }
+                            else {
+                                showErrorNotification(response.message || "Failed to load goal data!")
+                                return reject(new Error(response.message || "Failed to load goal data!"));
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            showErrorNotification(error || "Failed to load goal data!")
+                            return reject(new Error(error || "Failed to load goal data!"));
+                        }
+                    });
+
+                });
+            } else {
+                return getData();
+            }
+        };
+
+        const reRender = function (parrentElement) {
+            parrentElementModel = parrentElement;
+            const contentWithData = `
+            <!-- Modal Form -->
+            <form id="goalForm">
+                <!-- Goal Id Field -->
+                <div id="goalIdContainer" class="mb-4 ${isEditMode ? '' : 'hidden'}">
+                    <label for="goalId" class="block text-sm font-medium text-gray-600">Goal Id</label>
+                    <input type="text" id="goalId" name="Id" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.id}" onchange="onChangeGoalInput(this)" placeholder="Enter your goal id" disabled>
+                    <span class="hidden text-xs text-red-500" id="goalIdError">
+                        Goal Id is required!
+                    </span>
+                </div>
+
+                <!-- Goal Name Field -->
+                <div class="mb-4">
+                    <label for="goalName" class="block text-sm font-medium text-gray-600">Goal Name</label>
+                    <input type="text" id="goalName" name="name" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.name}" onchange="onChangeGoalInput(this)" required minlength="3" maxlength="50" placeholder="Enter your goal name" />
+                    <span class="hidden text-xs text-red-500" id="goalNameError">Goal name must be between 3 and 50 characters.</span>
+                </div>
+
+                <!-- Task Description Input -->
+                <div class="mb-4">
+                    <label for="goalDescription" class="block text-sm font-medium text-gray-600">Goal Descriptions</label>
+                    <textarea id="goalDescription" name="description" rows="4" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="onChangeGoalInput(this)" required>${getData()?.description}</textarea>
+                    <span id="goalDescriptionError" class="hidden text-sm text-red-500">Description field is required.</span>
+                </div>
+
+
+                <!-- Priority Dropdown -->
+                <div class="mb-4">
+                    <label for="goalPriority" class="block text-sm font-medium text-gray-600">Goal Priority</label>
+                    <select id="goalPriority" name="priority" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" value="${getData()?.priority}" onchange="onChangeGoalInput(this)">
+                        <option value="0">Low</option>
+                        <option value="1">Medium</option>
+                        <option value="2">High</option>
+                    </select>
+                    <span id="goalPriorityError" class="hidden text-sm text-red-500">Priority field is required.</span>
+                </div>
+
+                <!-- Goal Start Options -->
+                <div id="startOptionsModeContainer" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-600">Goal Start</label>
+                    <div class="mt-2 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="startOptionType" value="0" onchange="onChangeGoalInput(this)"  class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.manual ? "checked" : ""}>
+                            <span>Manual</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="startOptionType" value="1" onchange="onChangeGoalInput(this)" class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.scheduled ? "checked" : ""}>
+                            <span>Scheduled</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="startOptionType" value="2" onchange="onChangeGoalInput(this)" class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.immediate ? "checked" : ""}>
+                            <span>Start Immediately</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Scheduled Start Date Field -->
+                <div id="startDateContainer" class="mb-4 ${+getData()?.startOptionType === startOptionValues.scheduled ? '' : 'hidden'}">
+                    <label for="startDate" class="block text-sm font-medium text-gray-600">Start Date</label>
+                    <input type="datetime-local" id="startDate" name="startDate" onchange="onChangeGoalInput(this)" value="${getData()?.startDate}" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
+                    <span class="hidden text-xs text-red-500" id="startDateError">Start date is required when scheduling.</span>
+                </div>
+
+                <!-- End Date Field -->
+                <div class="mb-4">
+                    <label for="endDate" class="block text-sm font-medium text-gray-600">End Date</label>
+                    <input type="datetime-local" id="endDate" name="endDate" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.endDate}" onchange="onChangeGoalInput(this)" placeholder="Select Due Date." required />
+                    <span class="hidden text-xs text-red-500" id="goalDueDateError">The selected date and time must be in the future.</span>
+                </div>
+
+                <!-- Goal Status Field -->
+                <div id="goalStatusContainer" class="mb-4 ${isEditMode ? "" : 'hidden'}">
+                    <label for="goalStatus" class="block text-sm font-medium text-gray-600">Goal Status</label>
+                    <select id="goalStatus" name="goalStatus" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.goalStatus}" onchange="onChangeGoalInput(this)">
+                        <option value="0" ${getData()?.goalStatus == 0 ? "selected" : ""}>Not Started</option>
+                        <option value="1" ${getData()?.goalStatus == 1 ? "selected" : ""}>Running</option>
+                        <option value="2" ${getData()?.goalStatus == 2 ? "selected" : ""}>Completed</option>
+                        <option value="3" ${getData()?.goalStatus == 3 ? "selected" : ""}>End</option>
+                    </select>
+                    <span id="goalStatusError" class="hidden text-sm text-red-500">GoalStatus field is required.</span>
+                </div>
+
+
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button id="goal-submit-btn" type="submit" ${isLoading() ? 'disabled' : ''} class="flex items-center justify-center gap-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed">
+                        <i class="icon fa-solid ${isEditMode ? 'fa-edit' : 'fa-save'}"></i>
+                        <span class="button-text">${isEditMode ? 'Edit' : 'Save'} Goal</span>
+                    </button>
+                </div>
+            </form>
+        `;
+
+            const content = getData() ? contentWithData : noContentHtml;
+            parrentElementModel.html(`
+            <div class="custom-scrollbar relative w-full sm:w-4/5 lg:w-1/2 xl:w-1/3 h-full sm:h-auto sm:max-h-[90vh] overflow-auto rounded-lg bg-white shadow-xl">
+                <div class="flex items-center justify-between bg-indigo-600 px-6 py-4 text-white">
+                    <h2 id="model-title" class="text-xl font-semibold tracking-wide">
+                        <i class="fa-solid fa-clipboard-list"></i> ${isEditMode ? 'Update' : 'Create'} Your Progress Record in Goal
+                    </h2>
+                    <button class="text-2xl text-white hover:text-gray-200" id="closeModal">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    ${content}
+                </div>
+            </div>
+        `);
+
+            window.onChangeGoalInput = function (e) {
+                setData({ ...getData(), [e.name]: e.value, ["isModified"]: true }, () => reRender(parrentElementModel));
+            }
+
+            $("#goalForm").on('submit', function (e) {
+                e.preventDefault();
+                setIsLoading(true, () => reRender(parrentElementModel));
+                $.ajax({
+                    url: isEditMode ? "/Goals/Edit" : "/Goals/Create",
+                    method: isEditMode ? "PUT" : "POST",
+                    data: getData(),
+                    success: function (response) {
+                        if (response.status) {
+                            const { goalStatus } = getData();
+
+                            (goalStatusEnum.notStarted === +goalStatus || goalStatusEnum.notStarted === +oldGoalStatus) && notStartedGoalDataTable?.DataTable().ajax.reload();
+
+                            (goalStatusEnum.running === +goalStatus || goalStatusEnum.running === +oldGoalStatus) && runningGoalDataTable?.DataTable().ajax.reload();
+
+                            (goalStatusEnum.completed === +goalStatus || goalStatusEnum.completed === +oldGoalStatus) && completedGoalDataTable?.DataTable().ajax.reload();
+
+                            (goalStatusEnum.ended === +goalStatus || goalStatusEnum.ended === +oldGoalStatus) && endedGoalDataTable?.DataTable().ajax.reload();
+
+
+                            setTimeout(() => {
+                                modal.closeModal();
+                            }, 500)
+                            showSuccessNotification(response.message || "Notes Saved with Goal!");
+
+                        } else {
+                            setIsLoading(false, () => reRender(parrentElementModel));
+                            showErrorNotification(response.message || "Notes Saved Failed!");
+                            console.error(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        setIsLoading(false, () => reRender(parrentElementModel));
+                        showErrorNotification(error || "Notes Saved Failed!");
+                        console.error("Error:", error);
+                    }
+                });
+            })
+        }
+
+        this.load = function (selector) {
+            reRender(selector);
+        }
+    }
+
 });
+
+
+

@@ -15,7 +15,8 @@ namespace TaskMonitoringApp.Models.Entities
     {
         Low = 0, 
         Medium,
-        High
+        High,
+        Highest
     }
 
     public enum Weekly

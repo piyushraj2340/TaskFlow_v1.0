@@ -17,7 +17,7 @@
     <!-- Render styles dynamically from view -->
     @RenderSection("Styles", required: false)
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+<body class="bg-gray-100 font-sans leading-normal tracking-normal sm:hidden">
     <!-- Navigation Bar -->
     <nav class="flex items-center justify-between bg-indigo-600 p-4 text-white">
         <div class="text-xl font-bold">
@@ -127,8 +127,10 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @* todo: chart.js need to refactor *@
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/app.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

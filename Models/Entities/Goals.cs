@@ -22,6 +22,13 @@ namespace TaskMonitoringApp.Models.Entities
         ModelNameDTO
     }
 
+    public enum StartOptions
+    {
+        Manual = 0,
+        Scheduled,
+        Immediate
+    }
+
     public class Goals
     {
         public int Id { get; set; }
@@ -37,6 +44,16 @@ namespace TaskMonitoringApp.Models.Entities
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
         public DateTime UpdatedOn { get; set; } = DateTime.Now;
+
+        public bool IsScheduled { get; set; } = false;
+
+        public StartOptions StartOptionType { get; set; } = StartOptions.Manual;
+
+        public DateTime? StartDate { get; set; }
+
+        public bool IsStarted { get; set; } = false;
+
+        public DateTime? StartedOn { get; set; }
 
         public bool IsDeleted { get; set; } = false;
 

@@ -11,6 +11,14 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public DateTime EndDate { get; set; }
 
+        public DateTime? StartDate { get; set; }
+
+        public bool IsScheduled { get; set; } = false;
+
+        public StartOptions StartOptionType { get; set; }
+
+        public bool IsStarted { get; set; } = false;
+
         public Priority Priority { get; set; }
 
         public string Description { get; set; }

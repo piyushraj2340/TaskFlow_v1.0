@@ -111,6 +111,10 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         /// <exception cref="ArgumentException"></exception>
         public async Task AddGoalAsync(string UserId, Goals goal)
         {
+            if(goal.UserId != UserId)
+            {
+                throw new ArgumentException("UserId and Goals.UserId must be same!.");
+            }
             // Saving the data into the database...
             await _context.Goals.AddAsync(goal);
             await _context.SaveChangesAsync();

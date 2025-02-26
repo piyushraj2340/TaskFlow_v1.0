@@ -36,18 +36,18 @@ namespace TaskMonitoringApp.Controllers
             // Get the logged-in user's ID
             var userId = _userManager.GetUserId(User);
 
-            if(userId == null)
+            if (userId == null)
             {
                 return RedirectToAction("Login", "Account");
             }
-            
+
             GoalProductivityDTO productivity = await _goalService.GetGoalProductivity(userId);
 
             return View(productivity);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("Name,EndDate,Priority,Description")] GoalViewModel goal)
+        public async Task<IActionResult> Create([Bind("Name,EndDate,Priority,Description,StartOptionType,StartDate")] GoalViewModel goal)
         {
 
             // Get the logged-in user's ID
@@ -60,13 +60,27 @@ namespace TaskMonitoringApp.Controllers
 
             goal.UserId = userId;
 
+            if (goal.StartOptionType == StartOptions.Scheduled && goal.StartDate == null)
+            {
+                ModelState.AddModelError("", "Start Date Must be required for scheduled!");
+            }
+
             if (ModelState.IsValid)
             {
-
                 // Log before adding the product
                 _logger.LogInformation("Attempting to add a new Goal: {GoalName}", goal.Name);
 
-                await _goalService.AddNewGoal(userId, _mapper.Map<GoalDTO>(goal)); 
+                if (goal.StartOptionType == StartOptions.Immediate)
+                {
+                    goal.IsScheduled = true;
+                    goal.StartDate = DateTime.Now;
+                }
+                else if (goal.StartOptionType == StartOptions.Scheduled)
+                {
+                    goal.IsScheduled = true;
+                }
+
+                await _goalService.AddNewGoal(userId, _mapper.Map<GoalDTO>(goal));
 
                 // Log success after adding the product
                 _logger.LogInformation("Goal '{GoalName}' successfully added with ID: {GoalID}", goal.Name, goal.Id);
@@ -75,10 +89,10 @@ namespace TaskMonitoringApp.Controllers
             }
 
             // If the model is invalid, return failure response
-            return Json(new { status = false, message = "ModelState is not valid!" });
+            return Json(new { status = false, message = "ModelState is not valid!", ErrormessageList = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList() });
         }
 
-        [Route("Goals/Details/{Id}/{tabName?}")]    
+        [Route("Goals/Details/{Id}/{tabName?}")]
         public async Task<IActionResult> Details(int Id, string? tabName)
         {
             // Get the logged-in user's ID
@@ -131,7 +145,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority")] GoalViewModel goalData)
+        public async Task<IActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority,StartOptionType,StartDate")] GoalViewModel goalData)
         {
             // Get the logged-in user's ID
             var userId = _userManager.GetUserId(User);
@@ -141,16 +155,35 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            if (goalData.StartOptionType == StartOptions.Scheduled && goalData.StartDate == null)
+            {
+                ModelState.AddModelError("", "Start Date Must be required for scheduled!");
+            }
+
             if (ModelState.IsValid)
             {
                 var goal = _mapper.Map<GoalDTO>(goalData);
                 goal.UserId = userId;
 
-                await _goalService.UpdateGoal(userId,goal);
+                if (goal.StartOptionType == StartOptions.Immediate)
+                {
+                    goal.IsScheduled = true;
+                    goal.StartDate = DateTime.Now;
+                }
+                else if (goal.StartOptionType == StartOptions.Scheduled)
+                {
+                    goal.IsScheduled = true;
+                }
+                else if (goal.StartOptionType == StartOptions.Manual)
+                {
+                    goal.IsScheduled = false;
+                }
 
-                return Json(new { status = true, message = "Goal updated successfully" });
+                await _goalService.UpdateGoal(userId, goal);
+
+                return Json(new { status = true, message = "Goal updated successfully!" });
             }
-            return Json(new { status = false, message = "ModelState Invalid" });
+            return Json(new { status = false, message = "ModelState Invalid!" });
         }
 
         [HttpPost]
@@ -601,7 +634,7 @@ namespace TaskMonitoringApp.Controllers
             if (ModelState.IsValid)
             {
                 await _goalService.UpdateGoalStatus(userId, goalUpdate.Id, goalUpdate.GoalStatus);
-                return Json(new { status = true, message = $"Goal with Id {Id} Status changed to { goalUpdate.GoalStatus.ToString() }!" });
+                return Json(new { status = true, message = $"Goal with Id {Id} Status changed to {goalUpdate.GoalStatus.ToString()}!" });
             }
 
             return Json(new { status = false, message = "ModelState is not valid!" });

@@ -32,6 +32,19 @@ namespace TaskMonitoringApp.Models.Business
             }
 
             var goalToAdd = _mapper.Map<Goals>(goals);
+
+            if (goals.IsScheduled && goals.StartDate <= DateTime.Now)
+            {
+                goalToAdd.IsStarted = true;
+                goalToAdd.StartedOn = DateTime.Now;
+                goalToAdd.GoalStatus = Status.Running;
+            }
+
+            if (goalToAdd.StartDate >= goalToAdd.EndDate)
+            {
+                throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(goals.EndDate));
+            }
+
             await _goalRepository.AddGoalAsync(UserId, goalToAdd);
         }
 
@@ -66,12 +79,29 @@ namespace TaskMonitoringApp.Models.Business
             var findAndUpdateGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.Id, ResponseDataMode.Model);
 
             // update the date...
-            if(goals.EndDate != findAndUpdateGoal.EndDate)
+            if (goals.EndDate != findAndUpdateGoal.EndDate)
             {
                 goals.EndDate = goals.EndDate.AddDays(1).Date.AddMinutes(-1);
             }
 
+
+            if (findAndUpdateGoal.IsStarted)
+            {
+                goals.IsScheduled = findAndUpdateGoal.IsScheduled;
+                goals.IsStarted = findAndUpdateGoal.IsStarted;
+                goals.StartDate = findAndUpdateGoal.StartDate;
+                goals.StartOptionType = findAndUpdateGoal.StartOptionType;
+            }
+
+
             _mapper.Map(goals, findAndUpdateGoal);
+
+            if (findAndUpdateGoal.IsScheduled && findAndUpdateGoal.StartDate <= DateTime.Now)
+            {
+                findAndUpdateGoal.IsStarted = true;
+                findAndUpdateGoal.StartedOn = DateTime.Now;
+                findAndUpdateGoal.GoalStatus = Status.Running;
+            }
 
             await _goalRepository.UpdateGoalAsync(UserId, findAndUpdateGoal);
         }

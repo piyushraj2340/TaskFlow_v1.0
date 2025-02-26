@@ -1,6 +1,6 @@
 ﻿<!-- Modal -->
 @* <div id="addEditGoalModal" class="fixed inset-0 hidden max-h-full items-center justify-center bg-gray-800 bg-opacity-50"> *@
-<div id="addEditGoalModal" class="z-20 fixed inset-0 hidden items-center justify-center bg-gray-800 bg-opacity-50">
+<div id="addEditGoalModal" class="fixed inset-0 z-20 hidden items-center justify-center bg-gray-800 bg-opacity-50">
     @* <div class="w-full rounded-lg bg-white p-6 sm:w-4/5 md:w-1/2 lg:w-1/3 xl:w-1/4"> *@
     <div class="custom-scrollbar relative max-h-[90vh] w-full overflow-auto rounded-lg bg-white p-6 shadow-lg sm:w-4/5 lg:w-1/2 xl:w-1/3">
         <h2 id="form-label" class="mb-3 text-2xl font-semibold text-gray-700">Add Goal</h2>
@@ -46,6 +46,32 @@
                 <span id="goalPriorityError" class="hidden text-sm text-red-500">Priority field is required.</span>
             </div>
 
+            <!-- Goal Start Options -->
+            <div id="startOptionsModeContainer" class="mb-4">
+                <label class="block text-sm font-medium text-gray-600">Goal Start</label>
+                <div class="mt-2 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
+                    <label class="flex items-center space-x-2">
+                        <input type="radio" name="goalStart" value="0" class="goalStartRadio text-indigo-600 focus:ring-indigo-500" checked>
+                        <span>Manual</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="radio" name="goalStart" value="1" class="goalStartRadio text-indigo-600 focus:ring-indigo-500">
+                        <span>Scheduled</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="radio" name="goalStart" value="2" class="goalStartRadio text-indigo-600 focus:ring-indigo-500">
+                        <span>Start Immediately</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Scheduled Start Date Field -->
+            <div id="startDateContainer" class="mb-4 hidden">
+                <label for="startDate" class="block text-sm font-medium text-gray-600">Start Date</label>
+                <input type="datetime-local" id="startDate" name="startDate" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
+                <span class="hidden text-xs text-red-500" id="startDateError">Start date is required when scheduling.</span>
+            </div>
+
 
             <!-- End Date Field -->
             <div class="mb-4">
@@ -64,13 +90,6 @@
                     <option value="3">End</option>
                 </select>
                 <span id="goalStatusError" class="hidden text-sm text-red-500">Priority field is required.</span>
-
-                @*                  <select id="goalStatus" name="goalStatus" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
-                @foreach (var status in Enum.GetValues(typeof(Status)))
-                {
-                <option value="@((int)status)">@status</option>
-                }
-                </select> *@
             </div>
 
 
