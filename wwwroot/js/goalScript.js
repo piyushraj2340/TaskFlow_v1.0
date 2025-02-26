@@ -9,20 +9,12 @@
 
     // Running task...
     const runningGoalDataTable = $('#viewRunningGoalTableData');
-    let goalRunningDataTableReload = null;
-
     // Compleated Task...
     const completedGoalDataTable = $('#viewCompletedGoalTableData');
-    let goalCompletedDataTableReload = null;
-
     // Not Started Task...
     const notStartedGoalDataTable = $('#viewNotStartedGoalTableData');
-    let goalNotStartedDataTableReload = null;
-
     // Not Started Task...
     const endedGoalDataTable = $('#viewEndedGoalTableData');
-    let goalEndedDataTableReload = null;
-
     // Not Started Task...
     const deletedGoalDataTable = $('#viewDeletedTableData');
 
@@ -71,7 +63,7 @@
         }
         catch (error) {
             showErrorNotification(error.message || "Error: while deleting Goal with Id: " + id);
-            console.log(error);
+            console.error(error);
         }
     })
 
@@ -94,13 +86,9 @@
             success: function (response) {
                 if (response.status) {
 
-                    if (goalRunningDataTableReload !== null) {
-                        goalRunningDataTableReload.draw();
-                    }
+                    runningGoalDataTable?.DataTable().ajax.reload();
 
-                    if (goalCompletedDataTableReload !== null) {
-                        goalCompletedDataTableReload.draw();
-                    }
+                    completedGoalDataTable?.DataTable().ajax.reload();
 
                     showSuccessNotification(response.message);
                 } else {
@@ -119,8 +107,6 @@
         const id = $(this).data("id");
         let goalStatus = $(this).closest("table").data("goal-status");
 
-        console.log(goalStatus);
-
         if (!id) {
             showErrorNotification("Missing Id parameters!");
             return;
@@ -136,21 +122,14 @@
             success: function (response) {
                 if (response.status) {
 
-                    if (goalRunningDataTableReload !== null) {
-                        goalRunningDataTableReload.draw();
-                    }
+                    runningGoalDataTable.DataTable().ajax.reload(); 
 
-                    if (goalStatus === "notStarted" && goalNotStartedDataTableReload !== null) {
-                        goalNotStartedDataTableReload.draw();
-                    }
+                    goalStatus === "notStarted" && notStartedGoalDataTable?.DataTable().ajax.reload();
 
-                    if (goalStatus === "completed" && goalCompletedDataTableReload !== null) {
-                        goalCompletedDataTableReload.draw();
-                    }
+                    goalStatus === "completed" && completedGoalDataTable?.DataTable().ajax.reload();
 
-                    if (goalStatus === "ended" && goalEndedDataTableReload !== null) {
-                        goalEndedDataTableReload.draw();
-                    }
+                    goalStatus === "ended" && endedGoalDataTable?.DataTable().ajax.reload();
+
 
                     showSuccessNotification(response.message);
                 } else {
@@ -235,7 +214,7 @@
             `;
         }
 
-        goalRunningDataTableReload = runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+         runningGoalDataTable?.length && runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
@@ -258,7 +237,7 @@
         }
 
 
-        goalCompletedDataTableReload = completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+        completedGoalDataTable?.length && completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
@@ -280,7 +259,7 @@
             `;
         }
 
-        goalNotStartedDataTableReload = notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+        notStartedGoalDataTable.length && notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     // Completed Goal data....
@@ -302,7 +281,7 @@
             `;
         }
 
-        goalEndedDataTableReload = endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+        endedGoalDataTable.length && endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
     }
 
     function loadDeletedGoalData() {
@@ -367,10 +346,10 @@
         });
     }
 
-    loadRunningGoalData();
-    loadCompletedGoalData();
-    loadNotStartedGoalData();
-    loadEndedGoalData();
+    runningGoalDataTable?.length && loadRunningGoalData();
+    completedGoalDataTable?.length && loadCompletedGoalData();
+    notStartedGoalDataTable?.length && loadNotStartedGoalData();
+    endedGoalDataTable?.length && loadEndedGoalData();
     //loadDeletedGoalData();
 
 
@@ -394,6 +373,11 @@
     function GoalModelComponent({ getData, setData }) {
         let isEditMode = false;
         let isComponentInit = false;
+        let parrentElementModel;
+
+        const [isLoading, setIsLoading] = useDataState(false);
+
+        let oldGoalStatus = -1;
 
         this.init = function () {
             if (!isComponentInit) {
@@ -418,31 +402,27 @@
                 return new Promise((resolve, reject) => {
                     isEditMode = true;
                     isComponentInit = true;
-                    try {
-                        $.ajax({
-                            url: `/Goals/GetById/${id}`,
-                            method: "GET",
-                            success: function (response) {
-                                if (response.status) {
-                                    setData(response.data);
-                                    console.log(getData());
-                                    return resolve(response.data);
-                                }
-                                else {
-                                    setErrorData(response?.data)
-                                    throw new Error(response.message);
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                setErrorData(error);
-                                throw error;
+
+                    $.ajax({
+                        url: `/Goals/GetById/${id}`,
+                        method: "GET",
+                        success: function (response) {
+                            if (response.status) {
+                                setData(response.data);
+                                oldGoalStatus = response.data.goalStatus; //Storeing the Old status and check for if the status changes or not then need to re-draw the table
+                                return resolve(response.data);
                             }
-                        });
-                    }
-                    catch (error) {
-                        console.error("Error:", error);
-                        return reject(error);
-                    }
+                            else {
+                                showErrorNotification(response.message || "Failed to load goal data!")
+                                return reject(new Error(response.message || "Failed to load goal data!"));
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            showErrorNotification(error || "Failed to load goal data!")
+                            return reject(new Error(error || "Failed to load goal data!"));
+                        }
+                    });
+
                 });
             } else {
                 return getData();
@@ -450,14 +430,8 @@
         };
 
         const reRender = function (parrentElement) {
+            parrentElementModel = parrentElement;
             const contentWithData = `
-            
-            <h2 id="form-label" class="mb-3 text-2xl font-semibold text-gray-700"></h2>
-
-            <div id="goalMessageDisplay" class="hidden">
-                <span class="text-xs text-red-500"></span>
-            </div>
-
             <!-- Modal Form -->
             <form id="goalForm">
                 <!-- Goal Id Field -->
@@ -518,15 +492,17 @@
 
                 <!-- Submit Button -->
                 <div class="flex justify-end">
-                    <button id="submit-btn" type="submit" class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">${isEditMode ? 'Edit' : 'Save'} Goal</button>
+                    <button id="goal-submit-btn" type="submit" ${isLoading() ? 'disabled' : ''} class="flex items-center justify-center gap-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed">
+                        <i class="icon fa-solid ${isEditMode ? 'fa-edit' : 'fa-save'}"></i>
+                        <span class="button-text">${isEditMode ? 'Edit' : 'Save'} Goal</span>
+                    </button>
                 </div>
             </form>
-            
         `;
 
             const content = getData() ? contentWithData : noContentHtml;
-            parrentElement.html(`
-            <div class="custom-scrollbar relative sm:max-h-[90vh] w-full max-w-xl overflow-auto rounded-lg bg-white shadow-xl sm:w-4/5 lg:w-1/2 xl:w-1/3">
+            parrentElementModel.html(`
+            <div class="custom-scrollbar relative w-full sm:w-4/5 lg:w-1/2 xl:w-1/3 h-full sm:h-auto sm:max-h-[90vh] overflow-auto rounded-lg bg-white shadow-xl">
                 <div class="flex items-center justify-between bg-indigo-600 px-6 py-4 text-white">
                     <h2 id="model-title" class="text-xl font-semibold tracking-wide">
                         <i class="fa-solid fa-clipboard-list"></i> ${isEditMode ? 'Update' : 'Create'} Your Progress Record in Goal
@@ -543,11 +519,11 @@
 
             window.onChangeGoalInput = function (e) {
                 setData({ ...getData(), [e.name]: e.value, ["isModified"]: true });
-                console.log(getData());
             }
 
             $("#goalForm").on('submit', function (e) {
                 e.preventDefault();
+                setIsLoading(true, () => reRender(parrentElementModel));
                 $.ajax({
                     url: isEditMode ? "/Goals/Edit" : "/Goals/Create",
                     method: isEditMode ? "PUT" : "POST",
@@ -555,34 +531,29 @@
                     success: function (response) {
                         if (response.status) {
                             const { goalStatus } = getData();
-                            
-                            switch (+goalStatus) {
-                                case goalStatusEnum.notStarted:
-                                    goalNotStartedDataTableReload && goalNotStartedDataTableReload.draw();
-                                    break
-                                case goalStatusEnum.running:
-                                    goalRunningDataTableReload && goalRunningDataTableReload.draw();
-                                    break;
-                                case goalStatusEnum.completed:
-                                    goalCompletedDataTableReload && goalCompletedDataTableReload.draw();
-                                    break;
-                                case goalStatusEnum.ended:
-                                    goalEndedDataTableReload && goalEndedDataTableReload.draw();
-                                    break;
-                            }
+
+                            (goalStatusEnum.notStarted === +goalStatus || goalStatusEnum.notStarted === +oldGoalStatus) && notStartedGoalDataTable?.DataTable().ajax.reload();
+
+                            (goalStatusEnum.running === +goalStatus || goalStatusEnum.running === +oldGoalStatus) && runningGoalDataTable?.DataTable().ajax.reload();
+
+                            (goalStatusEnum.completed === +goalStatus || goalStatusEnum.completed === +oldGoalStatus) && completedGoalDataTable?.DataTable().ajax.reload();
+
+                            (goalStatusEnum.ended === +goalStatus || goalStatusEnum.ended === +oldGoalStatus) && endedGoalDataTable?.DataTable().ajax.reload();
+
 
                             setTimeout(() => {
                                 modal.closeModal();
                             }, 500)
                             showSuccessNotification(response.message || "Notes Saved with Goal!");
 
-                            console.log(response.message || "Notes Saved with Goal!")
-
                         } else {
-                            throw new Error(response.message);
+                            setIsLoading(false, () => reRender(parrentElementModel));
+                            showErrorNotification(response.message || "Notes Saved Failed!");
+                            console.error(response.message);
                         }
                     },
                     error: function (xhr, status, error) {
+                        setIsLoading(false, () => reRender(parrentElementModel));
                         showErrorNotification(error || "Notes Saved Failed!");
                         console.error("Error:", error);
                     }
