@@ -40,8 +40,8 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        [Route("{controller}/{action}/{id}/{noteAddWith?}")]
-        public async Task<IActionResult> Create(int Id, NotesAttachedWith noteAddWith, [Bind("Title,Content,Tags,IsPinned")] NoteDTO note)
+        [Route("{controller}/{action}/{AddedWithId}/{noteAddWith?}")]
+        public async Task<IActionResult> Create(int AddedWithId, NotesAttachedWith noteAddWith, [Bind("Title,Content,Tags,IsPinned")] NoteDTO note)
         {
             // Get the logged-in user's ID
             var userId = _userManager.GetUserId(User);
@@ -57,11 +57,11 @@ namespace TaskMonitoringApp.Controllers
                 switch (noteAddWith)
                 {
                     case NotesAttachedWith.Goal:
-                        await _service.AddNotesWithGoalId(userId, note, goalId: Id);
+                        await _service.AddNotesWithGoalId(userId, note, goalId: AddedWithId);
                         break;
 
                     case NotesAttachedWith.Task:
-                        await _service.AddNotesWithTaskId(userId, note, taskId: Id);
+                        await _service.AddNotesWithTaskId(userId, note, taskId: AddedWithId);
                         break;
 
                     //case NotesAttachedWith.Todo:

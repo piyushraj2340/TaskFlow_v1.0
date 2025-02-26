@@ -102,6 +102,8 @@ namespace TaskMonitoringApp.Models.Business
                 task.EndDate = task.EndDate?.AddDays(1).Date.AddMinutes(-1);
             }
 
+            _mapper.Map<TaskDTO, Tasks>(task, oldTask);
+
             await _taskRepository.UpdateTasksAsync(userId, oldTask, goalIds);
         }
 
@@ -125,6 +127,8 @@ namespace TaskMonitoringApp.Models.Business
             {
                 task.EndDate = task.EndDate?.AddDays(1).Date.AddMinutes(-1);
             }
+
+            _mapper.Map<TaskDTO, Tasks>(task, oldTask);
 
             await _taskRepository.UpdateTasksAsync(userId, oldTask, String.Empty);
         }
