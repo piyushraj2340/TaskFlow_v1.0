@@ -1,4 +1,4 @@
-﻿CREATE procedure [dbo].[usp_GetAllGoalsWithStatusByTaskId] 
+﻿CREATE OR ALTER PROCEDURE [dbo].[usp_GetAllGoalsWithStatusByTaskId] 
 (
     @UserId NVARCHAR(450), -- The unique identifier of the user.
     @Status INT,            -- The status of the task. Possible values:
@@ -6,14 +6,14 @@
                            -- 1 = Running
                            -- 2 = Completed
                            -- 3 = Ended
-	@TaskId int,
-	@Mode int              -- The mode 
+	@TaskId INT,
+	@Mode INT              -- The mode 
 					       -- 0 = Tasks - Model
 						   -- 1 = TaskDTO - Model
 						   -- 2 = TaskNameDTO - Model
 )
-as 
-begin
+AS 
+BEGIN
 SET NOCOUNT ON;
 
 	DECLARE @currentDateTime DATETIME = GETDATE()
@@ -21,51 +21,51 @@ SET NOCOUNT ON;
 
 	BEGIN TRY
 
-	-- Change the status of the ended tasks as Date has passed but taskStatus has not changed....
+	-- Change the status of the ENDed tasks as Date has passed but taskStatus has not changed....
 	EXEC usp_UpdateEndedGoal @UserId;
 
 	if(@Mode = 0) 
-		begin 
-			select g.* 
-			from Goals g
-			right join GoalTasks gt on gt.GoalId = g.id
-			where gt.TaskId = @TaskId
-			and (@Status = 4 or g.GoalStatus = @Status)
-			and gt.UserId = g.UserId
-			and g.UserId = @UserId
-			and g.IsDeleted = 0
-			and g.EndDate > @currentDateTime
+		BEGIN 
+			SELECT g.* 
+			FROM Goals g
+			RIGHT JOIN GoalTasks gt ON gt.GoalId = g.id
+			WHERE gt.TaskId = @TaskId
+			AND (@Status = 4 OR g.GoalStatus = @Status)
+			AND gt.UserId = g.UserId
+			AND g.UserId = @UserId
+			AND g.IsDeleted = 0
+			AND g.EndDate > @currentDateTime
 
-		end
-	else if (@Mode = 1)
-		begin
-			select g.Id, g.Name, g.EndDate, g.Priority, g.Description,  g.GoalStatus, g.UserId, g.IsScheduled, g.StartDate, g.IsStarted, g.StartOptionType
-			from Goals g
-			right join GoalTasks gt on gt.GoalId = g.id
-			where gt.TaskId = @TaskId
-			and (@Status = 4 or g.GoalStatus = @Status)
-			and gt.UserId = g.UserId
-			and g.UserId = @UserId
-			and g.IsDeleted = 0
-			and g.EndDate > @currentDateTime
-		end
-	else if (@Mode = 2)
-		begin 
-			select g.Id, g.Name, g.UserId
-			from Goals g
-			right join GoalTasks gt on gt.GoalId = g.id
-			where gt.TaskId = @TaskId
-			and (@Status = 4 or g.GoalStatus = @Status)
-			and gt.UserId = g.UserId
-			and g.UserId = @UserId
-			and g.IsDeleted = 0
-			and g.EndDate > @currentDateTime
-		end
-	else 
-		begin
+		END
+	ELSE IF (@Mode = 1)
+		BEGIN
+			SELECT g.Id, g.Name, g.EndDate, g.Priority, g.Description,  g.GoalStatus, g.UserId, g.IsScheduled, g.StartDate, g.IsStarted, g.StartOptionType
+			FROM Goals g
+			RIGHT JOIN GoalTasks gt ON gt.GoalId = g.id
+			WHERE gt.TaskId = @TaskId
+			AND (@Status = 4 OR g.GoalStatus = @Status)
+			AND gt.UserId = g.UserId
+			AND g.UserId = @UserId
+			AND g.IsDeleted = 0
+			AND g.EndDate > @currentDateTime
+		END
+	ELSE IF (@Mode = 2)
+		BEGIN 
+			SELECT g.Id, g.Name, g.UserId
+			FROM Goals g
+			RIGHT JOIN GoalTasks gt ON gt.GoalId = g.id
+			WHERE gt.TaskId = @TaskId
+			AND (@Status = 4 OR g.GoalStatus = @Status)
+			AND gt.UserId = g.UserId
+			AND g.UserId = @UserId
+			AND g.IsDeleted = 0
+			AND g.EndDate > @currentDateTime
+		END
+	ELSE 
+		BEGIN
 			RAISERROR ('Invalid @Mode To Access Data From usp_GetAllTasksWithStatusByGoalId', 16, 1);
 			RETURN;
-		end
+		END
 	
 		COMMIT;
 	END TRY
@@ -81,7 +81,7 @@ SET NOCOUNT ON;
 
         -- Raise the error
         RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
-		return;
+		RETURN;
 	END CATCH
-end
+END
 GO
