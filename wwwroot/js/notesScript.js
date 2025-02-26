@@ -38,10 +38,7 @@
         const actionType = $("#openAddNotesModal").data('action-note-form-type');
         const actionTypeId = $("#openAddNotesModal").data('action-note-form-type-id')
         const noteId = $(this).data("noteid");
-        console.log('action   ' + action)
-        console.log('actionType   ' + actionType)
-        console.log('actionTypeId   ' + actionTypeId)
-        console.log('noteId   ' + noteId)
+
 
 
 

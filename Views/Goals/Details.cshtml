@@ -70,7 +70,7 @@
                     <!-- Description -->
                     <div class="flex flex-col sm:flex-row">
                         <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Description</div>
-                        <div class="w-full text-left text-gray-600 sm:w-3/4">@(string.IsNullOrWhiteSpace(Model.Description) ? "No Descriptions found" : Model.Description)</div>
+                        <div class="w-full whitespace-pre-wrap text-left text-gray-600 sm:w-3/4">@(string.IsNullOrWhiteSpace(Model.Description) ? "No Descriptions found" : Model.Description)</div>
                     </div>
                     <!-- Priority -->
                     <div class="flex flex-col sm:flex-row">
@@ -156,7 +156,7 @@
                                         <h3 class="flex items-center font-semibold text-blue-700">
                                             @noteList.Title
                                         </h3>
-                                        <p class="text-gray-700">@noteList.Content</p>
+                                        <p class="whitespace-pre-wrap text-gray-700">@noteList.Content</p>
                                         <div class="relative mb-4">
                                             <div class="flex py-2 text-sm text-gray-500">
                                                 <i class="fas fa-link mr-2"></i> Attached Files
@@ -298,6 +298,7 @@
 
     @* Client side Script *@
     <script src="~/js/sweetAlertScript.js"></script>
+    <script src="~/js/modelScript.js"></script>
     <script src="~/js/utils.js"></script>
     <script src="~/js/goalScript.js"></script>
     <script src="~/js/notesScript.js"></script>
