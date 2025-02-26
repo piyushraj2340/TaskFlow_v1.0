@@ -26,7 +26,7 @@ function useDataState(initialData) {
         }
     }
 
-    return { getData, setData };
+    return [ getData, setData ];
 }
 
 function Modal() {
@@ -43,7 +43,7 @@ function Modal() {
     let modalContainer = null;
 
     // Handel the state...
-    const { getData, setData } = useDataState(null); // state data...
+    const [ getData, setData ] = useDataState(null); // state data...
 
     // 🔐 Private HTML template
     const modalHtml =
@@ -80,11 +80,9 @@ function Modal() {
                     }
                 });
             }
-
-            console.log("Modal initialized, With Config!");
         }
         else {
-            console.log("Modal is already initialized.");
+            console.error("Modal is already initialized.");
         }
     }
 
@@ -107,9 +105,10 @@ function Modal() {
             const component = new ComponentClass({ getData, setData }); // pass data as props
 
             const data = await component?.initAsync(id);
-            console.log(data);
             if (data) {
                 component?.load(modalContainer)
+            } else {
+                showErrorNotification("Falied To Goal Data Model!");
             }
         } catch (error) {
             console.error(error);
@@ -126,7 +125,7 @@ function Modal() {
             const component = new ComponentClass({ getData, setData }); // pass data as props
 
             const data = await component?.init();
-            console.log(data);
+
             if (data) {
                 component?.load(modalContainer);
             }
@@ -202,174 +201,3 @@ function Modal() {
 
 const modal = new Modal();
 modal.init();
-
-
-function NotesComponentsTesting() {
-    let [getData, setData] = useDataState(null);
-
-    let isEditMode = false;
-
-    this.init = function () {
-        setData({
-            id: "",
-            title: "",
-            content: "",
-            tags: "",
-            isPinned: false,
-        });
-
-        isEditMode = false;
-
-        return true;
-    }
-
-    this.initAsync = function () {
-        return new Promise((resolve, reject) => {
-            isEditMode = true;
-
-            $.ajax({
-                url: `/Notes/Details/8`,
-                method: "POST",
-                success: function (response) {
-                    setData(response.data);
-                    console.log(getData());
-                    return resolve(response.data);
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error:", error);
-                    return reject(error);
-                }
-            });
-        });
-    };
-
-    const reRender = function (parrentElement) {
-        const contentWithData = `
-            <p class="mb-4 text-sm text-gray-600">${getData()?.title}</p>
-            <form asp-action="Create" asp-controller="Notes" data-action-note-form="create" data-noteId="${getData()?.id}" method="post" enctype="multipart/form-data" id="noteForm">
-                <input type="hidden" name="__RequestVerificationToken" value="@Html.AntiForgeryToken()" />
-                <div class="mb-4" id="note-id-field">
-                    <label for="noteid" class="mb-1 block font-semibold text-gray-700">Note Id</label>
-                    <input id="noteid" name="id" class="w-full rounded-md border border-gray-300 p-2" value="${getData()?.id}" readonly>
-                </div>
-                <div class="mb-4">
-                    <label for="title" class="mb-1 block font-semibold text-gray-700">Title</label>
-                    <input id="title" name="title" class="w-full rounded-md border border-gray-300 p-2" onchange="onChangeNotesInput(this)" value="${getData()?.title}" required>
-                </div>
-                <div class="mb-4">
-                    <label for="content" class="mb-1 block font-semibold text-gray-700">Content</label>
-                    <textarea id="content" name="content" rows="4" class="w-full rounded-md border border-gray-300 p-2" onchange="onChangeNotesInput(this)" required>${getData()?.content}</textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="tags" class="mb-1 block font-semibold text-gray-700">Tags (Comma separated)</label>
-                    <input type="text" id="tags" name="tags" class="w-full rounded-md border border-gray-300 p-2" onchange="onChangeNotesInput(this)" value="${getData()?.tags}">
-                </div>
-                <div class="mb-4 flex items-center">
-                    <input id="IsPinned" name="IsPinned" type="checkbox" onchange="onChangeNotesInput(this)" ${getData()?.isPinned ? 'checked' : ''}>
-                    <label for="IsPinned" class="font-semibold text-gray-700">
-                        <i class="fa-solid fa-thumbtack"></i> Pin this note
-                    </label>
-                </div>
-                <div class="mb-4">
-                    <label class="mb-1 block font-semibold text-gray-700">
-                        <i class="fa-solid fa-paperclip"></i> Attachments
-                    </label>
-                    <div class="flex items-center">
-                        <label class="flex cursor-pointer items-center space-x-2 rounded-md bg-indigo-600 px-4 py-2 text-white">
-                            <i class="fa-solid fa-upload"></i>
-                            <span>Upload File</span>
-                            <input type="file" id="attachments" name="attachments" class="hidden" value="${getData()?.attachments}">
-                        </label>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label class="mb-1 block font-semibold text-gray-700">
-                        <i class="fa-solid fa-palette"></i> Choose Color
-                    </label>
-                    <div class="flex items-center space-x-3">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="theme" value="theme-red" ${getData()?.theme === 'theme-red' ? 'checked' : ''}>
-                            <div class="h-10 w-10 rounded-full bg-red-500"></div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="theme" value="theme-blue" ${getData()?.theme === 'theme-blue' ? 'checked' : ''}>
-                            <div class="h-10 w-10 rounded-full bg-blue-500"></div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="theme" value="theme-green" ${getData()?.theme === 'theme-green' ? 'checked' : ''}>
-                            <div class="h-10 w-10 rounded-full bg-green-500"></div>
-                        </label>
-                    </div>
-                </div>
-                <div class="flex justify-end rounded-b-lg border-t p-4">
-                    <button type="submit" id="saveNotesBtn" class="flex items-center space-x-2 rounded-md bg-indigo-600 px-6 py-2 text-white">
-                        <i class="fa-solid fa-save"></i>
-                        <span>Save Note</span>
-                    </button>
-                </div>
-            </form>
-        `;
-
-        const content = getData() ? contentWithData : noContentHtml;
-        parrentElement.html(`
-            <div class="custom-scrollbar relative h-full sm:max-h-[90vh] w-full max-w-xl overflow-auto rounded-lg bg-white shadow-xl sm:w-4/5 lg:w-1/2 xl:w-1/3">
-                <div class="flex items-center justify-between bg-indigo-600 px-6 py-4 text-white">
-                    <h2 id="note-title" class="text-xl font-semibold tracking-wide">
-                        <i class="fa-solid fa-clipboard-list"></i> Create a Progress Record in Goal
-                    </h2>
-                    <button class="text-2xl text-white hover:text-gray-200" id="closeModal">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-                    ${content}
-                </div>
-            </div>
-        `);
-
-        window.onChangeNotesInput = function (e) {
-            if (e.name === "IsPinned") {
-                setData({ ...getData(), [e.name]: e.checked });
-            } else {
-                setData({ ...getData(), [e.name]: e.value });
-            }
-
-            console.log(getData())
-        }
-
-        $("#noteForm").on('submit', function (e) {
-            e.preventDefault();
-            try {
-                $.ajax({
-                    url: isEditMode ? `/Notes/Edit/8` : "/Notes/Create/10/2",
-                    method: "POST",
-                    data: getData(),
-                    success: function (response) {
-                        if (response.status) {
-                            setTimeout(() => {
-                                modal.closeModal();
-                            }, 500)
-                            showSuccessNotification(response.message || "Notes Saved with Goal!");
-
-                            console.log(response.message || "Notes Saved with Goal!")
-
-                        } else {
-                            throw new Error(response.message);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        throw error;
-                    }
-                });
-            } catch (error) {
-                showErrorNotification(error.message || "Notes Saved Failed!");
-                console.error("Error:", error);
-            }
-        })
-
-    }
-
-    this.load = function (selector) {
-        reRender(selector);
-    }
-}
