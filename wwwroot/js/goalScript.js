@@ -5,7 +5,13 @@
         running: 1,
         completed: 2,
         ended: 3
-    })
+    });
+
+    const startOptionValues = Object.freeze({
+        manual: 0,
+        scheduled: 1,
+        immediate: 2
+    });
 
     // Running task...
     const runningGoalDataTable = $('#viewRunningGoalTableData');
@@ -383,11 +389,13 @@
             if (!isComponentInit) {
                 setData({
                     id: "",
-                    goalStatus: 0,
+                    goalStatus: goalStatusEnum.notStarted,
                     name: "",
                     endDate: "",
                     priority: 0,
-                    description: ""
+                    description: "",
+                    startOptionType: startOptionValues.manual,
+                    startDate: ""
                 });
 
                 isEditMode = false;
@@ -469,6 +477,31 @@
                     <span id="goalPriorityError" class="hidden text-sm text-red-500">Priority field is required.</span>
                 </div>
 
+                <!-- Goal Start Options -->
+                <div id="startOptionsModeContainer" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-600">Goal Start</label>
+                    <div class="mt-2 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="startOptionType" value="0" onchange="onChangeGoalInput(this)"  class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.manual ? "checked" : ""}>
+                            <span>Manual</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="startOptionType" value="1" onchange="onChangeGoalInput(this)" class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.scheduled ? "checked" : ""}>
+                            <span>Scheduled</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="startOptionType" value="2" onchange="onChangeGoalInput(this)" class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.immediate ? "checked" : ""}>
+                            <span>Start Immediately</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Scheduled Start Date Field -->
+                <div id="startDateContainer" class="mb-4 ${+getData()?.startOptionType === startOptionValues.scheduled ? '' : 'hidden'}">
+                    <label for="startDate" class="block text-sm font-medium text-gray-600">Start Date</label>
+                    <input type="datetime-local" id="startDate" name="startDate" onchange="onChangeGoalInput(this)" value="${getData()?.startDate}" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
+                    <span class="hidden text-xs text-red-500" id="startDateError">Start date is required when scheduling.</span>
+                </div>
 
                 <!-- End Date Field -->
                 <div class="mb-4">
@@ -518,7 +551,7 @@
         `);
 
             window.onChangeGoalInput = function (e) {
-                setData({ ...getData(), [e.name]: e.value, ["isModified"]: true });
+                setData({ ...getData(), [e.name]: e.value, ["isModified"]: true }, () => reRender(parrentElementModel));
             }
 
             $("#goalForm").on('submit', function (e) {
