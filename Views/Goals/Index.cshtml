@@ -65,7 +65,7 @@
 
             <!-- Running Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewRunningGoalTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewRunningGoalTableData" data-goal-status="running" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Id</th>
@@ -97,7 +97,7 @@
 
             <!-- Not Started Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewNotStartedGoalTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewNotStartedGoalTableData" data-goal-status="notStarted" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Id</th>
@@ -126,7 +126,7 @@
 
             <!-- Completed Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewCompletedGoalTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewCompletedGoalTableData" data-goal-status="completed" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Id</th>
@@ -154,7 +154,7 @@
 
             <!-- Ended Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewEndedGoalTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewEndedGoalTableData" data-goal-status="ended" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Id</th>
@@ -183,9 +183,9 @@
             </div>
 
 
-            <!-- Ended Task List (Table) -->
+            <!-- Deleted Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewDeletedTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewDeletedTableData" data-goal-status="deleted" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Id</th>
@@ -213,6 +213,7 @@
 
         @* Client side Script *@
         <script src="~/js/sweetAlertScript.js"></script>
+        <script src="~/js/modelScript.js"></script>
         <script src="~/js/utils.js"></script>
         <script src="~/js/goalScript.js"></script>
     }
