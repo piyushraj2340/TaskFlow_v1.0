@@ -23,6 +23,7 @@ SET NOCOUNT ON;
 
 	-- Change the status of the ENDed tasks as Date has passed but taskStatus has not changed....
 	EXEC usp_UpdateEndedGoal @UserId;
+	EXEC usp_UpdateAutoStartedGoal @UserId;
 
 	if(@Mode = 0) 
 		BEGIN 

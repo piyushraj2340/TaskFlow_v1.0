@@ -21,6 +21,7 @@ BEGIN
 
 	-- Change the status of the ended tasks as Date has passed but taskStatus has not changed....
 	EXEC usp_UpdateEndedTask @UserId;
+	EXEC usp_UpdateAutoStartedTask @UserId;
 
 	IF(@Mode = 0) 
 		BEGIN
