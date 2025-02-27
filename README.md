@@ -265,3 +265,20 @@ formula - (((Presend week productivity - past week productivity ) / past week pr
 * for example: when task or goal move to running automatically then notify the user with the message *
 * when task or goal move to ended automatically then notify the user with the message *
 * Add the feature to get the list of task or email as a notification on the email or the phone *
+
+
+
+correct
+usp_AddAndGetTodoFromTask.sql
+usp_AddTodoFromTask.sql
+usp_AddUpdateTaskWithGoals.sql
+usp_ChangeGoalStatus.sql
+usp_ChangeTaskStatus.sql
+usp_DashboardAnalyses.sql
+usp_GetAllGoalsWithStatus.sql
+usp_GetAllTasksWithStatus.sql
+usp_GetAllTasksWithStatusByGoalId.sql
+usp_GetGoalById.sql
+usp_GetTaskById.sql
+usp_TodoProgressAnalyses
+usp_UpdateEndedTask
