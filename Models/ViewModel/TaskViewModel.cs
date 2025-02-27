@@ -33,6 +33,15 @@ namespace TaskMonitoringApp.Models.ViewModel
         [Display(Name = "Task Due Date")]
         public DateTime? EndDate { get; set; }
 
+        [Display(Name = "Task Start Date")]
+        public DateTime? StartDate { get; set; }
+
+        public bool IsScheduled { get; set; } = false;
+
+        public StartOptions StartOptionType { get; set; }
+
+        public bool IsStarted { get; set; } = false;
+
         [Display(Name = "Task Task Status")]
         public Status TaskStatus { get; set; } = Status.NotStarted;
 

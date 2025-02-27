@@ -22,6 +22,9 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             var listOfParam = new List<SqlParameter>
             {
                 new SqlParameter("@Name", tasks.Name),
+                new SqlParameter("@StartDate", tasks.StartDate),
+                new SqlParameter("@StartOptionType", tasks.StartOptionType),
+                new SqlParameter("@IsScheduled", tasks.IsScheduled),
                 new SqlParameter("@EndDate", tasks.EndDate),
                 new SqlParameter("@TaskStatus", tasks.TaskStatus),
                 new SqlParameter("@Description", tasks.Description),
@@ -37,7 +40,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             // Use the corrected parameter names without prefixes
             await _context.InsertUpdateSpWithIdDTO
                 .FromSqlRaw(
-                    "EXEC usp_AddUpdateTaskWithGoals @Name, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId, @Mode",
+                    "EXEC usp_AddUpdateTaskWithGoals @Name, @StartDate,@StartOptionType,@IsScheduled, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId, @Mode",
                     listOfParam.ToArray()
                 )
                 .ToListAsync();
@@ -151,6 +154,9 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             var listOfParam = new List<SqlParameter>
             {
                 new SqlParameter("@Name", tasks.Name),
+                new SqlParameter("@StartDate", tasks.StartDate),
+                new SqlParameter("@StartOptionType", tasks.StartOptionType),
+                new SqlParameter("@IsScheduled", tasks.IsScheduled),
                 new SqlParameter("@EndDate", tasks.EndDate),
                 new SqlParameter("@TaskStatus", tasks.TaskStatus),
                 new SqlParameter("@Description", tasks.Description),
@@ -166,7 +172,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             // Use the corrected parameter names without prefixes
             await _context.InsertUpdateSpWithIdDTO
                 .FromSqlRaw(
-                    "EXEC usp_AddUpdateTaskWithGoals @Name, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId, @Mode",
+                    "EXEC usp_AddUpdateTaskWithGoals @Name, @StartDate,@StartOptionType,@IsScheduled, @EndDate, @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @TaskId, @GoalIds, @UserId, @Mode",
                     listOfParam.ToArray()
                 )
                 .ToListAsync();

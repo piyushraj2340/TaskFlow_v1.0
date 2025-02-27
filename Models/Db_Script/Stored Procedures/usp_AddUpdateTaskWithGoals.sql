@@ -1,6 +1,9 @@
 ﻿CREATE OR ALTER PROCEDURE [dbo].[usp_AddUpdateTaskWithGoals]
 (
     @Name NVARCHAR(MAX),
+	@StartDate DATETIME,
+	@StartOptionType INT,
+	@IsScheduled BIT,
     @EndDate DATETIME,
     @TaskStatus INT,
     @Description NVARCHAR(MAX),
@@ -42,8 +45,40 @@ BEGIN
 		IF @Mode = 1
 			BEGIN 
 				---------------------- Insert TASK --------------------------
-				INSERT INTO Tasks(Name, EndDate, CreatedOn, UpdatedOn, TaskStatus, Description, Priority,	Repeat, RepeatWeekList, UserId)
-				VALUES(@Name, @EndDate, GETDATE(), GETDATE(), @TaskStatus, @Description, @Priority, @Repeat, @RepeatWeekList, @UserId);
+				INSERT INTO Tasks(
+					Name,
+					StartDate,
+					IsScheduled,
+					StartOptionType,
+					IsStarted,
+					StartedOn,
+					EndDate,
+					CreatedOn,
+					UpdatedOn,
+					TaskStatus, 
+					Description,
+					Priority,
+					Repeat,
+					RepeatWeekList,
+					UserId
+				)
+				VALUES(
+					@Name, 
+					@StartDate, 
+					@IsScheduled,
+					@StartOptionType,
+					CASE WHEN @IsScheduled = 1 AND @StartDate <= @currentDateTime THEN 1 ELSE 0 END, -- IsStarted
+					CASE WHEN @IsScheduled = 1 AND @StartDate <= @currentDateTime THEN @currentDateTime ELSE NULL END, --StartedOn
+					@EndDate, 
+					@currentDateTime, -- CreatedOn
+					@currentDateTime, -- UpdatedOn
+					CASE WHEN @IsScheduled = 1 AND @StartDate <= @currentDateTime THEN @Running ELSE @TaskStatus END, -- TaskStatus
+					@Description,
+					@Priority,
+					@Repeat,
+					@RepeatWeekList,
+					@UserId
+				);
 
 				----------------------- UPDATE TASKID ----------------------
 				SET @TaskId = SCOPE_IDENTITY();

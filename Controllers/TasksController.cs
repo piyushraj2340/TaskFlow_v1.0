@@ -122,7 +122,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("Name,Description,Repeat,RepeatWeekList,Priority,EndDate,TasksList,GoalIds")] TaskViewModel task)
+        public async Task<IActionResult> Create([Bind("Name,Description,Repeat,RepeatWeekList,Priority,EndDate,TasksList,GoalIds,StartOptionType,StartDate")] TaskViewModel task)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -131,22 +131,45 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+
+
             try
             {
                 ViewBag.IsEditMode = false;
                 var returnUrl = string.IsNullOrWhiteSpace(TempData["ReturnUrl"]?.ToString()) ? Url.Action("Index", "Home") : TempData["ReturnUrl"]?.ToString();
 
                 //Validations
-                if (DateTime.Now > task.EndDate)
+                if (task.StartOptionType == StartOptions.Scheduled && task.StartDate == null)
+                {
+                    ModelState.AddModelError("StartDate", "Start Date Must be required for scheduled!");
+                }
+
+                if (task.StartDate >= task?.EndDate?.Date)
+                {
+                    ModelState.AddModelError("StartDate", "Oops! The end date cannot be before or the same as the start date. Please select a later date.");
+                }
+
+                if (DateTime.Now > task?.EndDate)
                 {
                     ModelState.AddModelError("EndDate", "The end date must be in the future.");
                 }
 
+
                 if (ModelState.IsValid)
                 {
 
-                    _logger.LogInformation("Attempting to Add new Task: {TaskName}", task.Name);
+                    _logger.LogInformation("Attempting to Add new Task: {TaskName}", task?.Name);
 
+
+                    if (task?.StartOptionType == StartOptions.Immediate)
+                    {
+                        task.IsScheduled = true;
+                        task.StartDate = DateTime.Now;
+                    }
+                    else if (task?.StartOptionType == StartOptions.Scheduled)
+                    {
+                        task.IsScheduled = true;
+                    }
 
                     var newTask = _mapper.Map<TaskDTO>(task);
 
@@ -202,7 +225,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Repeat,TaskStatus,RepeatWeekList,Priority,EndDate,TasksList,GoalIds")] TaskViewModel task)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Repeat,TaskStatus,RepeatWeekList,Priority,EndDate,TasksList,GoalIds,StartOptionType,StartDate")] TaskViewModel task)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -220,10 +243,42 @@ namespace TaskMonitoringApp.Controllers
             ViewBag.IsEditMode = true;
             var returnUrl = string.IsNullOrWhiteSpace(TempData["ReturnUrl"]?.ToString()) ? Url.Action("Index", "Home") : TempData["ReturnUrl"]?.ToString();
 
+
+            //Validations
+            if (task.StartOptionType == StartOptions.Scheduled && task.StartDate == null)
+            {
+                ModelState.AddModelError("StartDate", "Start Date Must be required for scheduled!");
+            }
+
+            if (task.StartDate >= task?.EndDate?.Date)
+            {
+                ModelState.AddModelError("StartDate", "Oops! The end date cannot be before or the same as the start date. Please select a later date.");
+            }
+
+            if (DateTime.Now > task?.EndDate)
+            {
+                ModelState.AddModelError("EndDate", "The end date must be in the future.");
+            }
+
+
             if (ModelState.IsValid) //Todo: check for this conditions 
             {
 
                 _logger.LogInformation("Attempting to Update new Task: {TaskName}", task.Name);
+
+                if (task.StartOptionType == StartOptions.Immediate)
+                {
+                    task.IsScheduled = true;
+                    task.StartDate = DateTime.Now;
+                }
+                else if (task.StartOptionType == StartOptions.Scheduled)
+                {
+                    task.IsScheduled = true;
+                }
+                else if (task.StartOptionType == StartOptions.Manual)
+                {
+                    task.IsScheduled = false;
+                }
 
                 var taskDto = _mapper.Map<TaskDTO>(task);
                 taskDto.UserId = userId;

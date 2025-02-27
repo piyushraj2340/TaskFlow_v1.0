@@ -18,6 +18,14 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public DateTime? EndDate { get; set; }
 
+        public DateTime? StartDate { get; set; }
+
+        public bool IsScheduled { get; set; } = false;
+
+        public StartOptions StartOptionType { get; set; }
+
+        public bool IsStarted { get; set; } = false;
+
         public string UserId { get; set; }
 
         public Status TaskStatus { get; set; } = Status.NotStarted;

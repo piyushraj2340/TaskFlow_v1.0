@@ -84,7 +84,12 @@ namespace TaskMonitoringApp.Models.Business
                 goals.EndDate = goals.EndDate.AddDays(1).Date.AddMinutes(-1);
             }
 
+            if (goals.StartDate >= goals.EndDate)
+            {
+                throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(goals.StartDate));
+            }
 
+            // Do not re-Scheduled if started 
             if (findAndUpdateGoal.IsStarted)
             {
                 goals.IsScheduled = findAndUpdateGoal.IsScheduled;
@@ -96,6 +101,7 @@ namespace TaskMonitoringApp.Models.Business
 
             _mapper.Map(goals, findAndUpdateGoal);
 
+            // if the goal is scheduled and the start date is less than the current date then the goal is started...
             if (findAndUpdateGoal.IsScheduled && findAndUpdateGoal.StartDate <= DateTime.Now)
             {
                 findAndUpdateGoal.IsStarted = true;
