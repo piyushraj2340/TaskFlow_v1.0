@@ -31,17 +31,6 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Handle Repeat Dropdown Change
-            $('#Repeat').on('change', function () {
-                if ($(this).val() == 2) {
-                    $('#RepeatWeekList').removeClass('hidden');
-                } else {
-                    $('#RepeatWeekList').addClass('hidden');
-                }
-            });
-        });
-
-        $(document).ready(function () {
             const goals = []; // Array to store goal objects from the server (id, name)
             const selectedGoals = @Html.Raw(goalListObj); // Array to store selected goal objects (id, name)
 

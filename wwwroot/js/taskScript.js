@@ -7,6 +7,12 @@
         ended: 3
     });
 
+    const startOptionValues = Object.freeze({
+        manual: 0,
+        scheduled: 1,
+        immediate: 2
+    });
+
     // running data table 
     const taskRunningDataTable = $("#viewRunningTaskTableData");
 
@@ -361,4 +367,28 @@
     taskNotStartedDataTable?.length && loadNotStartedTaskData();
     taskNotStartedDataTable?.length && loadEndedTaskData();
     //loadDeletedTaskData();
+
+    $(document).ready(function () {
+        // Handle Repeat Dropdown Change
+        $('#Repeat').on('change', function () {
+            if ($(this).val() == 2) {
+                $('#RepeatWeekList').removeClass('hidden');
+            } else {
+                $('#RepeatWeekList').addClass('hidden');
+            }
+        });
+    });
+
+    $('input[name="StartOptionType"]').on('change', function () {
+        // Get the selected value
+        var selectedValue = $('input[name="StartOptionType"]:checked').val();
+
+        if (+selectedValue === startOptionValues.scheduled) {
+            $('#startDateContainer').removeClass('hidden');
+        } else {
+            $('#startDateContainer').addClass('hidden');
+            $('#startDate').val(''); 
+            $('#startDateError').addClass('hidden');
+        }
+    });
 })

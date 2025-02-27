@@ -26,7 +26,7 @@ SET NOCOUNT ON;
 			END
 		ELSE IF(@Mode = 1)
 			BEGIN
-				SELECT t.Id, t.Name, t.EndDate, t.Priority, t.Repeat, t.RepeatWeekList, t.Description,  t.TaskStatus, t.UserId
+				SELECT t.Id, t.Name, t.EndDate, t.Priority, t.Repeat, t.RepeatWeekList, t.Description,  t.TaskStatus, t.UserId ,  t.IsScheduled, t.StartDate, t.IsStarted, t.StartOptionType
 				FROM Tasks t
 				WHERE t.UserId = @UserId AND t.Id = @TaskId AND IsDeleted = 0;
 			END
