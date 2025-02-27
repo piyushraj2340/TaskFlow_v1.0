@@ -16,6 +16,7 @@ SET NOCOUNT ON;
 
 		-- Change the status of the ended goals as Date has passed but goalStatus has not changed....
 		EXEC usp_UpdateEndedGoal @UserId;
+		EXEC usp_UpdateAutoStartedGoal @UserId;
 
 		IF(@Mode = 0)
 			BEGIN
