@@ -62,7 +62,7 @@
 
             <!-- Running Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewRunningTaskTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewRunningTaskTableData" data-task-status="running" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Task Id</th>
@@ -82,15 +82,15 @@
 
     <!-- not-started task section -->
     <section class="mb-8 rounded-lg border-l-4 border-yellow-500 bg-white p-6 shadow-md shadow-yellow-300">
-        <!-- Completed Tasks Section -->
+        <!-- not-started Tasks Section -->
         <div class="mb-8">
             <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                 <h2 class="mb-4 text-xl font-semibold text-gray-700">Not Started Tasks</h2>
             </div>
 
-            <!-- Completed Task List (Table) -->
+            <!-- not-started Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewNotStartedTaskTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewNotStartedTaskTableData" data-task-status="notStarted" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Task Id</th>
@@ -118,7 +118,7 @@
 
             <!-- completed Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewCompletedTaskTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewCompletedTaskTableData" data-task-status="completed" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Task Id</th>
@@ -147,7 +147,7 @@
 
             <!-- Ended Task List (Table) -->
             <div class="overflow-x-auto">
-                <table id="viewEndedTaskTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                <table id="viewEndedTaskTableData" data-task-status="ended" class="min-w-full rounded-lg border border-gray-300 bg-white">
                     <thead>
                         <tr>
                             <th class="p-2 text-left text-gray-600">Task Id</th>
