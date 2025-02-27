@@ -38,7 +38,7 @@
     });
 
     // delete goal
-    $("table").on("click", ".deleteGoalBtn", async function () {
+    $(document).on("click", ".deleteGoalBtn", async function () {
         const id = $(this).data("id");
         let parentTable = $(this).closest("table");
 
@@ -60,7 +60,7 @@
                     data: { Id: id }
                 },
                 function (response) { // Success callback
-                    parentTable.DataTable().ajax.reload();
+                    parentTable?.DataTable().ajax.reload();
                 },
                 function (error) { // Error callback
                     console.error('Error deleting goal:', error);
@@ -74,7 +74,7 @@
     })
 
     // Mark goal as completed...
-    $("table").on("click", ".markAsComplete", async function () {
+    $(document).on("click", ".markAsComplete", async function () {
         const id = $(this).data("id");
 
         if (!id) {
@@ -87,7 +87,7 @@
             method: "POST",
             data: {
                 Id: id,
-                GoalStatus: 2 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+                GoalStatus: goalStatus.completed 
             },
             success: function (response) {
                 if (response.status) {
@@ -109,7 +109,7 @@
     })
 
     // Move to runnings
-    $("table").on("click", ".moveToRunning", async function () {
+    $(document).on("click", ".moveToRunning", async function () {
         const id = $(this).data("id");
         let goalStatus = $(this).closest("table").data("goal-status");
 
@@ -123,7 +123,7 @@
             method: "POST",
             data: {
                 Id: id,
-                GoalStatus: 1 // 0 is for NotStarted, 1 is for Running, 2 is for Completed, 3 is for End
+                GoalStatus: goalStatusEnum.running 
             },
             success: function (response) {
                 if (response.status) {
