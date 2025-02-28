@@ -123,7 +123,7 @@ namespace TaskMonitoringApp.Models.Business
             _mapper.Map<TaskDTO, Tasks>(task, oldTask);
 
             // if the goal is scheduled and the start date is less than the current date then the goal is started...
-            if (oldTask.IsScheduled && oldTask.StartDate <= DateTime.Now)
+            if (oldTask.IsScheduled && oldTask.StartDate <= DateTime.Now && !oldTask.IsStarted)
             {
                 oldTask.IsStarted = true;
                 oldTask.StartedOn = DateTime.Now;
@@ -155,7 +155,28 @@ namespace TaskMonitoringApp.Models.Business
                 task.EndDate = task.EndDate?.AddDays(1).Date.AddMinutes(-1);
             }
 
+            if (task.StartDate >= task.EndDate)
+            {
+                throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(task.StartDate));
+            }
+
+            // Do not re-Scheduled if started 
+            if (oldTask.IsStarted)
+            {
+                task.IsScheduled = oldTask.IsScheduled;
+                task.IsStarted = oldTask.IsStarted;
+                task.StartDate = oldTask.StartDate;
+                task.StartOptionType = oldTask.StartOptionType;
+            }
+
             _mapper.Map<TaskDTO, Tasks>(task, oldTask);
+
+            if (oldTask.IsScheduled && oldTask.StartDate <= DateTime.Now && !oldTask.IsStarted)
+            {
+                oldTask.IsStarted = true;
+                oldTask.StartedOn = DateTime.Now;
+                oldTask.TaskStatus = Status.Running;
+            }
 
             await _taskRepository.UpdateTasksAsync(userId, oldTask, String.Empty);
         }

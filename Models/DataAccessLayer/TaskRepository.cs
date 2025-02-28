@@ -22,7 +22,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             var listOfParam = new List<SqlParameter>
             {
                 new SqlParameter("@Name", tasks.Name),
-                new SqlParameter("@StartDate", tasks.StartDate),
+                new SqlParameter("@StartDate", tasks.StartDate ?? (object)DBNull.Value),
                 new SqlParameter("@StartOptionType", tasks.StartOptionType),
                 new SqlParameter("@IsScheduled", tasks.IsScheduled),
                 new SqlParameter("@EndDate", tasks.EndDate),
@@ -154,7 +154,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             var listOfParam = new List<SqlParameter>
             {
                 new SqlParameter("@Name", tasks.Name),
-                new SqlParameter("@StartDate", tasks.StartDate),
+                new SqlParameter("@StartDate", tasks.StartDate ?? (object)DBNull.Value),
                 new SqlParameter("@StartOptionType", tasks.StartOptionType),
                 new SqlParameter("@IsScheduled", tasks.IsScheduled),
                 new SqlParameter("@EndDate", tasks.EndDate),

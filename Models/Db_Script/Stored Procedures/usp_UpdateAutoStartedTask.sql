@@ -23,6 +23,7 @@ BEGIN
 		StartedOn = @currentDateTime
 	WHERE UserId = @UserId
 		AND IsScheduled = 1 
+		AND IsStarted = 0
 		AND StartDate < @currentDateTime
 		AND TaskStatus = @NotStartedStatus
 		AND IsDeleted = 0 -- Goal should not be deleted

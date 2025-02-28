@@ -157,7 +157,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             var goalIdParam = new SqlParameter("@GoalId", goalId);
             var statusToChangeParam = new SqlParameter("@StatusToUpdate", statusToChange);
 
-            await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeGoalStatus @UserId, @GoalId, @StatusToUpdate", userIdParam, goalIdParam, statusToChangeParam)
+            var data = await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeGoalStatus @UserId, @GoalId, @StatusToUpdate", userIdParam, goalIdParam, statusToChangeParam)
                 .ToListAsync();
         }
 

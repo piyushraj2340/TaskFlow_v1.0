@@ -87,7 +87,7 @@
             method: "POST",
             data: {
                 Id: id,
-                GoalStatus: goalStatus.completed 
+                GoalStatus: goalStatusEnum.completed 
             },
             success: function (response) {
                 if (response.status) {

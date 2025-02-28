@@ -171,31 +171,34 @@
         <span asp-validation-for="Priority" class="text-sm text-red-500"></span>
     </div>
 
-    <!-- Task Start Options -->
-    <div id="startOptionsModeContainer" class="mb-4">
-        <label class="block text-sm font-medium text-gray-600">Task Start</label>
-        <div class="mt-2 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
-            <label class="flex items-center space-x-2">
-                <input type="radio" name="StartOptionType" value="0" class="taskStartRadio text-indigo-600 focus:ring-indigo-500" checked="@(ViewBag.IsEditMode && Model.StartOptionType == StartOptions.Manual ? "checked" : "")">
-                <span>Manual</span>
-            </label>
-            <label class="flex items-center space-x-2">
-                <input type="radio" name="StartOptionType" value="1" class="taskStartRadio text-indigo-600 focus:ring-indigo-500" checked="@(ViewBag.IsEditMode && Model.StartOptionType == StartOptions.Scheduled)">
-                <span>Scheduled</span>
-            </label>
-            <label class="flex items-center space-x-2">
-                <input type="radio" name="StartOptionType" value="2" class="taskStartRadio text-indigo-600 focus:ring-indigo-500" checked="@(ViewBag.IsEditMode && Model.StartOptionType == StartOptions.Immediate)">
-                <span>Start Immediately</span>
-            </label>
+    @if (!ViewBag.IsEditMode || (ViewBag.IsEditMode && !Model?.IsStarted))
+    {
+        <!-- Task Start Options -->
+        <div id="startOptionsModeContainer" class="mb-4">
+            <label class="block text-sm font-medium text-gray-600">Task Start</label>
+            <div class="mt-2 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="StartOptionType" value="0" class="taskStartRadio text-indigo-600 focus:ring-indigo-500" checked="@(ViewBag.IsEditMode && Model?.StartOptionType == StartOptions.Manual ? "checked" : !ViewBag.IsEditMode? "checked": "")">
+                    <span>Manual</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="StartOptionType" value="1" class="taskStartRadio text-indigo-600 focus:ring-indigo-500" checked="@(ViewBag.IsEditMode && Model?.StartOptionType == StartOptions.Scheduled)">
+                    <span>Scheduled</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="StartOptionType" value="2" class="taskStartRadio text-indigo-600 focus:ring-indigo-500" checked="@(ViewBag.IsEditMode && Model?.StartOptionType == StartOptions.Immediate)">
+                    <span>Start Immediately</span>
+                </label>
+            </div>
         </div>
-    </div>
 
-    <!-- Scheduled Start Date Field -->
-    <div id="startDateContainer" class="mb-4 @(ViewBag.IsEditMode && Model.StartOptionType == StartOptions.Scheduled ? "" : "hidden")">
-        <label asp-for="StartDate" class="block text-sm font-medium text-gray-600">Start Date</label>
-        <input asp-for="StartDate" type="datetime-local" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
-        <span asp-validation-for="StartDate" class="text-xs text-red-500" id="startDateError">Start date is required when scheduling.</span>
-    </div>
+        <!-- Scheduled Start Date Field -->
+        <div id="startDateContainer" class="mb-4 @(ViewBag.IsEditMode && Model?.StartOptionType == StartOptions.Scheduled ? "" : "hidden")">
+            <label asp-for="StartDate" class="block text-sm font-medium text-gray-600">Start Date</label>
+            <input asp-for="StartDate" type="datetime-local" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
+            <span asp-validation-for="StartDate" class="text-xs text-red-500" id="startDateError">Start date is required when scheduling.</span>
+        </div>
+    }
 
     <!-- Due Date Input -->
     <div>
