@@ -124,7 +124,7 @@ namespace TaskMonitoringApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([Bind("Name,Description,Repeat,RepeatWeekList,Priority,EndDate,TasksList,GoalIds,StartOptionType,StartDate")] TaskViewModel task)
         {
-            var userId = _userManager.GetUserId(User);
+                var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {

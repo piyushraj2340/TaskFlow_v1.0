@@ -102,7 +102,7 @@ namespace TaskMonitoringApp.Models.Business
             _mapper.Map(goals, findAndUpdateGoal);
 
             // if the goal is scheduled and the start date is less than the current date then the goal is started...
-            if (findAndUpdateGoal.IsScheduled && findAndUpdateGoal.StartDate <= DateTime.Now)
+            if (findAndUpdateGoal.IsScheduled && findAndUpdateGoal.StartDate <= DateTime.Now && !findAndUpdateGoal.IsStarted)
             {
                 findAndUpdateGoal.IsStarted = true;
                 findAndUpdateGoal.StartedOn = DateTime.Now;
