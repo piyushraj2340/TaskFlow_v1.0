@@ -10,6 +10,13 @@
 
 AS 
 BEGIN
+ -- RepeatType posible values
+	--	RunOnce = 0,
+	--  Daily = 1,
+	--  Weekly = 2
+
+	DECLARE @RunOnce INT = 0;
+
 	   -- Declare status constants
     DECLARE @Running INT = 1,
             @Completed INT = 2,
@@ -24,6 +31,10 @@ BEGIN
 	-- 3. todo move to running if -> task is in running and not deleted
 							-- else -> Not Allowed stay in the completed...
 	-- 4. Allow to change the status for today and yesterday
+	-- 5. if task repeat type is runonce and we change the todo status to completed then the task status also change to the completed 
+			-- but runOnce task should not be move to the running as the task is completed...
+	-- 6. what if the task is completed and does the todo itself move to completed on that day or manualy move to running 
+			-- if the task and todo already completed then the todo should not be allowed to change the status...?....
 
 
 	DECLARE @TodoCurrentStatus iNt;
@@ -31,11 +42,16 @@ BEGIN
 	DECLARE @TaskEndDate DATETIME;
 	DECLARE @TaskIsDeleted BIT;
 
-	SELECT @TodoCurrentStatus = td.Status, @TaskCurrentStatus =  t.TaskStatus, @TaskEndDate =  t.EndDate, @TaskIsDeleted = t.IsDeleted
+	SELECT
+		@TodoCurrentStatus = td.Status, 
+		@TaskCurrentStatus =  t.TaskStatus,
+		@TaskEndDate =  t.EndDate,
+		@TaskIsDeleted = t.IsDeleted
 	FROM Todo td
 	LEFT JOIN Tasks t ON t.Id = td.TaskId
 	WHERE td.UserId = t.UserId
 	AND t.UserId = @UserId
+	AND t.TaskStatus = @Running -- only able to change the status of todo if the task is in running state
 	AND td.IsDeleted = 0
 	AND td.Id = @TodoId
 	AND td.EndDate > @YesterdayDate
@@ -54,12 +70,38 @@ BEGIN
 
 	IF(@StatusToUpdate = @Completed)
 	BEGIN 
-		UPDATE Todo
-		SET UpdatedOn = @CurrentDateTime,
-			CompletedOn = CASE WHEN @IsTaskActive = 1 THEN @CurrentDateTime END,
-			EndedOn = CASE WHEN @IsTaskActive = 0 THEN @CurrentDateTime END,
-			Status = CASE WHEN @IsTaskActive = 1 THEN @Completed ELSE @Ended END
-		WHERE ID = @TodoId AND UserId = @UserId
+		BEGIN TRANSACTION;
+
+		BEGIN TRY
+			-- UPDATE THE TASK STATUS TO COMPLETED IF THE TASK IS OF REPEATE TYPE RUNONCE
+			UPDATE t
+			SET t.TaskStatus = @Completed,
+				t.UpdatedOn = @CurrentDateTime, 
+				t.CompletedOn = @CurrentDateTime
+			FROM Tasks t
+			JOIN Todo td ON td.TaskId = t.Id
+			WHERE td.id = @TodoId
+			AND td.UserId = t.UserId
+			AND t.UserId = @UserId
+			AND t.Repeat = @RunOnce
+
+
+			UPDATE Todo
+			SET UpdatedOn = @CurrentDateTime,
+				CompletedOn = CASE WHEN @IsTaskActive = 1 THEN @CurrentDateTime END,
+				EndedOn = CASE WHEN @IsTaskActive = 0 THEN @CurrentDateTime END,
+				Status = CASE WHEN @IsTaskActive = 1 THEN @Completed ELSE @Ended END
+			WHERE ID = @TodoId AND UserId = @UserId
+
+			COMMIT TRANSACTION;
+		END TRY
+		BEGIN CATCH
+			ROLLBACK TRANSACTION;
+
+			RAISERROR ('Error while updating the status!', 16, 1);
+			RETURN;
+		END CATCH
+
 	END
 	ELSE IF(@StatusToUpdate = @Running)
 	BEGIN
