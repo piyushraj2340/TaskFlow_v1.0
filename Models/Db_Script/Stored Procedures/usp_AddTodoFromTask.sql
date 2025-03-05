@@ -16,6 +16,7 @@ BEGIN
 	-- 4 = All
 DECLARE @RunningStatus INT = 1; -- status as running
 
+DECLARE @RunOnce INT = 0;
 DECLARE @RepeateDaily INT = 1; -- Repeating daily
 DECLARE @RepeateWeekly INT = 2;
 
@@ -33,6 +34,8 @@ BEGIN TRANSACTION;
 			WHERE t.UserId = @UserId
 				And t.TaskStatus = @RunningStatus -- runnig status 
 				AND (
+					t.Repeat = @RunOnce -- run once
+					OR
 					t.Repeat = @RepeateDaily -- repeate daily
 					OR (t.Repeat = @RepeateWeekly -- repeate weekly
 						AND t.RepeatWeekList 
@@ -43,8 +46,8 @@ BEGIN TRANSACTION;
 				AND t.id NOT IN (
 					select td.TaskId from Todo td
 					where
-					td.CreatedOn >= @Today
-					AND td.CreatedOn < @Tomorrow
+					(td.CreatedOn >= @Today
+					AND td.CreatedOn < @Tomorrow) or (t.TaskStatus = @RunOnce)
 					AND td.UserId = @UserId
 					AND td.IsDeleted = 0
 				)
