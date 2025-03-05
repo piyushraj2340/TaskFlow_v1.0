@@ -15,6 +15,8 @@ BEGIN
             @Completed INT = 2,
             @Ended INT = 3;
 
+	DECLARE @CurrentDateTime DATETIME = GETDATE();
+
 	DECLARE @CurrentTaskStatus INT;
 
 	SELECT @CurrentTaskStatus = TaskStatus 
@@ -22,7 +24,7 @@ BEGIN
 	WHERE UserId = @UserId
 		AND Id = @TaskId
 		AND IsDeleted = 0
-		AND EndDate > GETDATE();
+		AND EndDate > @CurrentDateTime;
 
 	IF(@CurrentTaskStatus IS NULL) 
 	BEGIN 
@@ -39,7 +41,7 @@ BEGIN
 				IF(@CurrentTaskStatus = @Running) -- IF Task is in running state then only change allowed... 
 					BEGIN 
 						update Tasks
-						SET TaskStatus = @NotStarted, UpdatedOn = GETDATE()
+						SET TaskStatus = @NotStarted, UpdatedOn = @CurrentDateTime
 						WHERE Id = @TaskId
 						AND UserId = @UserId
 					END
@@ -53,8 +55,12 @@ BEGIN
 			BEGIN 
 				IF(@CurrentTaskStatus IN (@NotStarted, @Completed, @Ended)) -- either in complete, notstarted amd Ended state
 					BEGIN 
-						update Tasks
-						SET TaskStatus = @Running, UpdatedOn = GETDATE()
+						update t
+						SET t.TaskStatus = @Running, 
+							t.UpdatedOn = @CurrentDateTime,
+							t.IsStarted = CASE WHEN @CurrentTaskStatus = @NotStarted AND t.IsStarted = 0 THEN 1 ELSE t.IsStarted END,
+							t.StartedOn = CASE WHEN @CurrentTaskStatus = @NotStarted AND t.IsStarted = 0 THEN @CurrentDateTime ELSE t.StartedOn END
+						FROM Tasks t
 						WHERE Id = @TaskId
 						AND UserId = @UserId
 					END
@@ -69,7 +75,7 @@ BEGIN
 				IF(@CurrentTaskStatus = @Running) -- IF Task is in running state then only change allowed... 
 					BEGIN 
 						update Tasks
-						SET TaskStatus = @Completed, UpdatedOn = GETDATE(), CompletedOn = GETDATE()
+						SET TaskStatus = @Completed, UpdatedOn = @CurrentDateTime, CompletedOn = @CurrentDateTime
 						WHERE Id = @TaskId
 						AND UserId = @UserId
 					END
@@ -85,7 +91,7 @@ BEGIN
 				IF(@CurrentTaskStatus = @Running) -- IF Task is in running state then only change allowed... 
 					BEGIN 
 						update Tasks
-						SET TaskStatus = @Ended, UpdatedOn = GETDATE(), EndedOn = GETDATE()
+						SET TaskStatus = @Ended, UpdatedOn = @CurrentDateTime, EndedOn = @CurrentDateTime
 						WHERE Id = @TaskId
 						AND UserId = @UserId
 					END

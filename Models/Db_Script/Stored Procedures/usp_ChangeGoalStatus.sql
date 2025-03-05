@@ -55,8 +55,12 @@ BEGIN
 			BEGIN 
 				IF @CurrentGoalStatus in (@NotStarted, @Completed, @Ended) -- either in complete, notstarted amd Ended state
 					BEGIN 
-						UPDATE Goals
-						SET GoalStatus = @Running, UpdatedOn = @CurrentDateTime
+						UPDATE g
+						SET g.GoalStatus = @Running,
+							g.UpdatedOn = @CurrentDateTime,
+							g.IsStarted = CASE WHEN @CurrentGoalStatus = @NotStarted AND g.IsStarted = 0 THEN 1 ELSE g.IsStarted END,
+							g.StartedOn = CASE WHEN @CurrentGoalStatus = @NotStarted AND g.IsStarted = 0 THEN @CurrentDateTime ELSE g.StartedOn END
+						FROM Goals g
 						WHERE Id = @GoalId
 						AND UserId = @UserId
 					END
