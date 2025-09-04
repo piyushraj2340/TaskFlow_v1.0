@@ -124,17 +124,29 @@
 <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+           document.addEventListener("DOMContentLoaded", function () {
       tinymce.init({
         selector: 'textarea[name="content"]',
         menubar: false,
         height: 800,
         plugins: 'link lists code codesample media image table autoresize',
         toolbar: [
-          'undo redo | blocks | bold italic underline | blockquote codesample code',
+          'undo redo | blocks fontfamily fontsize | bold italic underline forecolor backcolor | blockquote codesample code',
           '| alignleft aligncenter alignright | bullist numlist',
           '| link image media | table | removeformat'
         ].join(' '),
+
+        // ——— Font family & size options ———
+        font_family_formats: `
+          Arial=arial,helvetica,sans-serif;
+          Courier New=courier new,courier,monospace;
+          Georgia=georgia,palatino;
+          Times New Roman=times new roman,times;
+          Tahoma=tahoma,arial,helvetica,sans-serif;
+          Verdana=verdana,geneva;
+          Roboto=roboto,sans-serif
+        `,
+        fontsize_formats: '10px 12px 14px 16px 18px 24px 36px 48px',
 
         // ——— Content style (optional, for nicer in-editor look) ———
         content_style: `
@@ -152,45 +164,44 @@
 
         // ——— Image & file uploads ———
         automatic_uploads: true,
-        images_upload_url: '/uploads/image',        // Controller action (see below)
+        images_upload_url: '/uploads/image',
         file_picker_types: 'image file media',
 
-          codesample_global_prismjs: true, // let TinyMCE know we're using Prism
-              codesample_languages: [
-                  { text: 'C', value: 'c' },
-                  { text: 'C++', value: 'cpp' },
-                  { text: 'C#', value: 'csharp' },
-                  { text: 'Java', value: 'java' },
-                  { text: 'JavaScript', value: 'javascript' },
-                  { text: 'TypeScript', value: 'typescript' },
-                  { text: 'HTML/XML', value: 'markup' },
-                  { text: 'CSS', value: 'css' },
-                  { text: 'JSON', value: 'json' },
-                  { text: 'Python', value: 'python' },
-                  { text: 'PHP', value: 'php' },
-                  { text: 'Ruby', value: 'ruby' },
-                  { text: 'Go', value: 'go' },
-                  { text: 'Rust', value: 'rust' },
-                  { text: 'Kotlin', value: 'kotlin' },
-                  { text: 'Swift', value: 'swift' },
-                  { text: 'Objective-C', value: 'objectivec' },
-                  { text: 'SQL', value: 'sql' },
-                  { text: 'Shell/Bash', value: 'bash' },
-                  { text: 'Powershell', value: 'powershell' },
-                  { text: 'Perl', value: 'perl' },
-                  { text: 'R', value: 'r' },
-                  { text: 'MATLAB', value: 'matlab' },
-                  { text: 'Scala', value: 'scala' },
-                  { text: 'Dart', value: 'dart' },
-                  { text: 'Elixir', value: 'elixir' },
-                  { text: 'Haskell', value: 'haskell' },
-                  { text: 'Lua', value: 'lua' },
-                  { text: 'YAML', value: 'yaml' },
-                  { text: 'Markdown', value: 'markdown' }
-                ],
+        codesample_global_prismjs: true,
+        codesample_languages: [
+          { text: 'C', value: 'c' },
+          { text: 'C++', value: 'cpp' },
+          { text: 'C#', value: 'csharp' },
+          { text: 'Java', value: 'java' },
+          { text: 'JavaScript', value: 'javascript' },
+          { text: 'TypeScript', value: 'typescript' },
+          { text: 'HTML/XML', value: 'markup' },
+          { text: 'CSS', value: 'css' },
+          { text: 'JSON', value: 'json' },
+          { text: 'Python', value: 'python' },
+          { text: 'PHP', value: 'php' },
+          { text: 'Ruby', value: 'ruby' },
+          { text: 'Go', value: 'go' },
+          { text: 'Rust', value: 'rust' },
+          { text: 'Kotlin', value: 'kotlin' },
+          { text: 'Swift', value: 'swift' },
+          { text: 'Objective-C', value: 'objectivec' },
+          { text: 'SQL', value: 'sql' },
+          { text: 'Shell/Bash', value: 'bash' },
+          { text: 'Powershell', value: 'powershell' },
+          { text: 'Perl', value: 'perl' },
+          { text: 'R', value: 'r' },
+          { text: 'MATLAB', value: 'matlab' },
+          { text: 'Scala', value: 'scala' },
+          { text: 'Dart', value: 'dart' },
+          { text: 'Elixir', value: 'elixir' },
+          { text: 'Haskell', value: 'haskell' },
+          { text: 'Lua', value: 'lua' },
+          { text: 'YAML', value: 'yaml' },
+          { text: 'Markdown', value: 'markdown' }
+        ],
 
-
-        // Allow choosing local files for images/files/media
+        // ——— File picker callback ———
         file_picker_callback: function (cb, value, meta) {
           const input = document.createElement('input');
           input.setAttribute('type', 'file');
@@ -198,7 +209,7 @@
           if (meta.filetype === 'image') {
             input.setAttribute('accept', 'image/*');
           }
-          // For generic files or media, accept anything (you’ll validate on server)
+
           input.onchange = function () {
             const file = this.files[0];
             const formData = new FormData();
@@ -211,12 +222,11 @@
 
             fetch(targetUrl, {
               method: 'POST',
-              headers: { 'X-Requested-With': 'XMLHttpRequest' }, // optional
+              headers: { 'X-Requested-With': 'XMLHttpRequest' },
               body: formData
             })
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(json => {
-              // TinyMCE expects cb(url, {text/alt})
               cb(json.location, { text: file.name, title: file.name, alt: file.name });
             })
             .catch(() => alert('Upload failed. Please try again.'));
@@ -225,11 +235,11 @@
         },
 
         // ——— URL handling ———
-        convert_urls: false,   // Keep absolute URLs from your API as-is
+        convert_urls: false,
 
         // ——— Media embedding (YouTube, etc.) ———
-        // Users can paste YT links in the Media dialog; TinyMCE wraps as <iframe>.
         media_live_embeds: true,
       });
     });
+
 </script>
