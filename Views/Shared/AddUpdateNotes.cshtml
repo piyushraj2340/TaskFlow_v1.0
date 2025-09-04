@@ -22,7 +22,7 @@
                     <label for="title" class="mb-1 block font-semibold text-gray-700">
                         Note Id
                     </label>
-                    <input id="noteid" name="id" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter note id" required readonly>
+                    <input id="noteid" name="id" class="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter note id" required readonly>
                     <span data-validation-for="id" class="text-sm text-red-500"></span>
                 </div>
 
@@ -31,7 +31,7 @@
                     <label for="title" class="mb-1 block font-semibold text-gray-700">
                         Title
                     </label>
-                    <input id="title" name="title" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter note title" required>
+                    <input id="title" name="title" class="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter note title" required>
                     <span data-validation-for="title" class="text-sm text-red-500"></span>
                 </div>
 
@@ -40,7 +40,7 @@
                     <label for="content" class="mb-1 block font-semibold text-gray-700">
                         Content
                     </label>
-                    <textarea id="content" name="content" rows="4" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter progress details" required></textarea>
+                    <textarea id="content" name="content" rows="4" class="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter progress details"></textarea>
                     <span data-validation-for="content" class="text-sm text-red-500"></span>
                 </div>
 
@@ -49,7 +49,7 @@
                     <label for="tags" class="mb-1 block font-semibold text-gray-700">
                         Tags (Comma separated)
                     </label>
-                    <input type="text" id="tags" name="tags" class="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., work, meeting">
+                    <input type="text" id="tags" name="tags" class="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., work, meeting">
                 </div>
 
                 <!-- Pin Note -->
@@ -119,3 +119,92 @@
         </div>       
     </div>
 </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      tinymce.init({
+        selector: 'textarea[name="content"]',
+        menubar: false,
+        height: 800,
+        plugins: 'link lists code codesample media image table autoresize',
+        toolbar: [
+          'undo redo | blocks | bold italic underline | blockquote codesample code',
+          '| alignleft aligncenter alignright | bullist numlist',
+          '| link image media | table | removeformat'
+        ].join(' '),
+
+        // ——— Content style (optional, for nicer in-editor look) ———
+        content_style: `
+              body { font-family: "Segoe UI", sans-serif; font-size:14px; line-height:1.6; color:#333; }
+              h1,h2,h3,h4,h5,h6 { font-weight:600; margin:1em 0 0.5em; }
+              blockquote { border-left:3px solid #ccc; padding-left:10px; color:#666; font-style:italic; }
+              pre, code { background:#f4f4f4; border-radius:4px; padding:4px 6px; font-family:"Fira Code", monospace; }
+              pre { padding:10px; overflow:auto; }
+              table { border-collapse: collapse; width:100%; margin:1em 0; }
+              table, th, td { border:1px solid #ddd; }
+              th, td { padding:8px; text-align:left; }
+              a { color:#2563eb; text-decoration:underline; }
+              img { max-width:100%; height:auto; border-radius:6px; }
+            `,
+
+        // ——— Image & file uploads ———
+        automatic_uploads: true,
+        images_upload_url: '/uploads/image',        // Controller action (see below)
+        file_picker_types: 'image file media',
+
+          codesample_global_prismjs: true, // let TinyMCE know we're using Prism
+          codesample_languages: [
+            {text: 'C#', value: 'csharp'},
+            {text: 'JavaScript', value: 'javascript'},
+            {text: 'HTML/XML', value: 'markup'},
+            {text: 'CSS', value: 'css'},
+            {text: 'Python', value: 'python'},
+            {text: 'SQL', value: 'sql'}
+          ],
+
+        // Allow choosing local files for images/files/media
+        file_picker_callback: function (cb, value, meta) {
+          const input = document.createElement('input');
+          input.setAttribute('type', 'file');
+
+          if (meta.filetype === 'image') {
+            input.setAttribute('accept', 'image/*');
+          }
+          // For generic files or media, accept anything (you’ll validate on server)
+          input.onchange = function () {
+            const file = this.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const targetUrl =
+              meta.filetype === 'image' ? '/uploads/image' :
+              meta.filetype === 'media' ? '/uploads/media' :
+              '/uploads/file';
+
+            fetch(targetUrl, {
+              method: 'POST',
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }, // optional
+              body: formData
+            })
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(json => {
+              // TinyMCE expects cb(url, {text/alt})
+              cb(json.location, { text: file.name, title: file.name, alt: file.name });
+            })
+            .catch(() => alert('Upload failed. Please try again.'));
+          };
+          input.click();
+        },
+
+        // ——— URL handling ———
+        convert_urls: false,   // Keep absolute URLs from your API as-is
+
+        // ——— Media embedding (YouTube, etc.) ———
+        // Users can paste YT links in the Media dialog; TinyMCE wraps as <iframe>.
+        media_live_embeds: true,
+      });
+    });
+</script>

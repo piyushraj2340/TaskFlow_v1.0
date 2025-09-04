@@ -11,9 +11,9 @@ namespace TaskMonitoringApp.Models.ViewModel
         public int? Id { get; set; }
 
         [Required]
-        [Length(minimumLength: 3, maximumLength: 50, ErrorMessage = "Length of Name must be less than 50 and 3")]
+        [Length(minimumLength: 3, maximumLength: 200, ErrorMessage = "Length of Name must be less than 200 and 3")]
         [Display(Name = "Task Name")]
-        public string? Name { get; set; }
+        public string Name { get; set; } = default!;
 
         [Required]
         [Display(Name = "Task Description")]
