@@ -225,7 +225,9 @@
                                         <h3 class="flex items-center font-semibold text-blue-700">
                                             @noteList.Title
                                         </h3>
-                                        <p class="whitespace-pre-wrap text-gray-700">@Html.Raw(@noteList.Content)</p>
+                                        <div class="richtext prose prose-indigo w-full whitespace-pre-wrap text-left text-gray-600 sm:w-3/4">
+                                            @Html.Raw(noteList.Content)
+                                        </div>
                                         <div class="relative mb-4">
                                             <div class="flex py-2 text-sm text-gray-500">
                                                 <i class="fas fa-link mr-2"></i> Attached Files

@@ -186,8 +186,7 @@
                     data: { Id: id }
                 },
                 function (response) { // Success callback
-                    $(`button[data-id='${noteId}']`).parent().remove();
-
+                    location.reload();
                 },
                 function (error) { // Error callback
                     console.error('Error deleting goal:', error);
