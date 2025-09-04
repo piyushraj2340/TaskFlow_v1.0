@@ -10,6 +10,10 @@
     $(".tab-link").on('click', function (e) {
         e.preventDefault();
 
+        if (typeof tinymce !== "undefined") {
+            tinymce.triggerSave(); // updates #content with editor value
+        }
+
         history.pushState(null, null, this.href);
 
         // Remove active class from all tabs
@@ -52,6 +56,7 @@
 
                     setTimeout(() => {
                         $("#noteModal").fadeOut();
+                        location.reload();
                     }, 500)
                 },
                 error: function (xhr, status, error) {

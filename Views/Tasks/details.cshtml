@@ -4,6 +4,55 @@
     ViewData["Title"] = Model.Name;
 }
 
+<style>
+    .richtext h1, .richtext h2, .richtext h3 {
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+    }
+
+    .richtext blockquote {
+        border-left: 3px solid #ccc;
+        padding-left: 10px;
+        color: #666;
+        font-style: italic;
+    }
+
+    .richtext pre, .richtext code {
+        background: #f4f4f4;
+        border-radius: 4px;
+        padding: 4px 6px;
+        font-family: "Fira Code", monospace;
+    }
+
+    .richtext pre {
+        padding: 10px;
+        overflow: auto;
+    }
+
+    .richtext table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+    }
+
+    .richtext th, .richtext td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    .richtext a {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+    .richtext img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+    }
+
+</style>
+
 <div class="mx-auto max-w-7xl px-2 py-12 md:px-6">
     <!-- Centered Action Buttons -->
     <div class="mb-6 flex flex-wrap justify-center gap-4">
@@ -69,7 +118,9 @@
                     <!-- Description -->
                     <div class="flex flex-col sm:flex-row">
                         <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Description</div>
-                        <div class="w-full whitespace-pre-wrap text-left text-gray-600 sm:w-3/4">@Model.Description</div>
+                        <div class="richtext prose prose-indigo w-full whitespace-pre-wrap text-left text-gray-600 sm:w-3/4">
+                            @Html.Raw(Model.Description)
+                        </div>
                     </div>
                     <!-- Repeat Type -->
                     <div class="flex flex-col sm:flex-row">
@@ -129,7 +180,7 @@
                     <p class="text-gray-600">Here are all the notes related to this goals.</p>
                 </div>
 
-                <div class="ms-4 max-w-4xl ps-2 sm:ps-4 sm:ms-8">
+                <div class="ms-4 max-w-4xl ps-2 sm:ms-8 sm:ps-4">
                     <!-- Timeline Wrapper -->
                     <div class="relative border-l-4 border-gray-300 pl-6">
 
@@ -174,7 +225,7 @@
                                         <h3 class="flex items-center font-semibold text-blue-700">
                                             @noteList.Title
                                         </h3>
-                                        <p class="whitespace-pre-wrap text-gray-700">@noteList.Content</p>
+                                        <p class="whitespace-pre-wrap text-gray-700">@Html.Raw(@noteList.Content)</p>
                                         <div class="relative mb-4">
                                             <div class="flex py-2 text-sm text-gray-500">
                                                 <i class="fas fa-link mr-2"></i> Attached Files
@@ -357,6 +408,24 @@
     <script src="~/js/utils.js"></script>
     <script src="~/js/taskScript.js"></script>
     <script src="~/js/notesScript.js"></script>
+
+    <!-- Prism CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <!-- Prism JS -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+
+    <!-- Load languages (optional, add what you need) -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-css.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markup.min.js"></script>
+
+
+    <script>
+        // re-highlight after content loads
+        Prism.highlightAll();
+    </script>
 
     <script>
         // // Task Growth Ratio Line Chart
