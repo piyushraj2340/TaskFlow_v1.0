@@ -76,6 +76,7 @@
 
                     setTimeout(() => {
                         $("#noteModal").fadeOut();
+                        location.reload();
                     }, 500)
                 },
                 error: function (xhr, status, error) {
@@ -127,6 +128,10 @@
                 $("#content").val(data.content);
                 $("#tags").val(data.tags);
                 $("#IsPinned").prop("checked", data.isPinned);
+
+                if (typeof tinymce !== "undefined") {
+                    tinymce.get("content").setContent(data.content || "");
+                }
 
             },
             error: function (xhr, status, error) {
