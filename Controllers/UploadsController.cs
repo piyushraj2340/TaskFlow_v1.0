@@ -6,7 +6,7 @@ namespace TaskMonitoringApp.Controllers
     [Route("uploads")]
     public class UploadsController : Controller
     {
-        private readonly long _maxBytes = 10 * 1024 * 1024; // 10 MB
+        private readonly long _maxBytes = long.MaxValue; // 10 MB
         private static readonly string[] ImageExts = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
         private static readonly string[] DocExts = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".csv", ".zip"];
         private static readonly string[] MediaExts = [".mp4", ".mp3", ".wav", ".webm"];
@@ -19,10 +19,12 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost("image")]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        [RequestSizeLimit(long.MaxValue)]
         public async Task<IActionResult> Image(IFormFile file)
         {
             if (file == null || file.Length == 0) return BadRequest("No file.");
-            if (file.Length > _maxBytes) return BadRequest("File too large.");
+            //if (file.Length > _maxBytes) return BadRequest("File too large.");
 
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!ImageExts.Contains(ext)) return BadRequest("Invalid image type.");
@@ -35,10 +37,12 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost("media")]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        [RequestSizeLimit(long.MaxValue)]
         public async Task<IActionResult> Media(IFormFile file)
         {
             if (file == null || file.Length == 0) return BadRequest("No file.");
-            if (file.Length > 100 * 1024 * 1024) return BadRequest("File too large.");
+            //if (file.Length > 1024 * 1024 * 1024) return BadRequest("File too large.");
 
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!MediaExts.Contains(ext)) return BadRequest("Invalid media type.");
@@ -51,10 +55,12 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost("file")]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        [RequestSizeLimit(long.MaxValue)]
         public async Task<IActionResult> FileUpload(IFormFile file)
         {
             if (file == null || file.Length == 0) return BadRequest("No file.");
-            if (file.Length > 30 * 1024 * 1024) return BadRequest("File too large.");
+            //if (file.Length > 30 * 1024 * 1024) return BadRequest("File too large.");
 
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!DocExts.Contains(ext)) return BadRequest("Invalid file type.");

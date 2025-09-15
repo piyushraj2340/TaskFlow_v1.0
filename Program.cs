@@ -1,13 +1,14 @@
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TaskMonitoringApp.Mappings;
+using TaskMonitoringApp.Middleware;
 using TaskMonitoringApp.Models.Business;
 using TaskMonitoringApp.Models.Data;
 using TaskMonitoringApp.Models.DataAccessLayer;
+using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Repositories;
 using TaskMonitoringApp.Models.Services;
-using Microsoft.AspNetCore.Identity;
-using TaskMonitoringApp.Models.Entities;
-using TaskMonitoringApp.Mappings;
-using TaskMonitoringApp.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,25 @@ builder.Services.AddAutoMapper(typeof(TaskProfile));
 builder.Services.AddAutoMapper(typeof(TodoProfile));
 builder.Services.AddAutoMapper(typeof(NotesProfile));
 
+// --- IIS (if hosting behind IIS) ---
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = long.MaxValue; // practically unlimited
+});
+
+// --- Kestrel server ---
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = null; // null = unlimited
+});
+
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = long.MaxValue; // unlimited
+});
+
+
 var app = builder.Build();
 
 // Use custom exception handling middleware for Web API and MVC
@@ -61,6 +81,16 @@ app.UseWhen(
     context => !context.Request.Path.StartsWithSegments("/api"),
     appBuilder => appBuilder.UseMiddleware<MvcExceptionMiddleware>() // MVC Middleware
 );
+
+app.Use(async (context, next) =>
+{
+    var feature = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>();
+    if (feature != null)
+    {
+        feature.MaxRequestBodySize = null; // remove request size limit
+    }
+    await next.Invoke();
+});
 
 
 // Configure the HTTP request pipeline.

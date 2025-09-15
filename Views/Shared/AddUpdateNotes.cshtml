@@ -215,6 +215,8 @@
             const formData = new FormData();
             formData.append('file', file);
 
+            debugger;
+
             const targetUrl =
               meta.filetype === 'image' ? '/uploads/image' :
               meta.filetype === 'media' ? '/uploads/media' :
