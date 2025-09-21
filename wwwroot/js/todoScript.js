@@ -156,7 +156,7 @@
             ],
             order: [[0, 'asc']],
             info: true,
-            lengthMenu: [[5, 10, 25, 50, 100, 250, 500], [5, 10, 25, 50, 100, 250, 500]],
+            lengthMenu: [[5, 10, 50, 100, 250, 500, -1], [5, 10, 50, 100, 250, 500, "All"]],
             pageLength: pageLength ? pageLength : defaultPageLength
         }
     }
