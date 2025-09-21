@@ -160,24 +160,24 @@
             serverSide: true,
             filter: true,
             columns: [
-                { data: "id", name: "id" },
+                { data: "id", name: "Id" },
                 {
                     data: "name",
-                    name: "name",
+                    name: "Name",
                     render: function (data, type, row) {
                         return `<a href="/Tasks/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
                     }
                 },
                 {
                     data: "priority",
-                    name: "priority",
+                    name: "Priority",
                     render: function (data, type, row) {
                         return returnPriorityBadge(data);
                     }
                 },
                 {
                     data: "repeat",
-                    name: "repeat",
+                    name: "Repeat",
                     render: function (data, type, row) {
                         switch (data) {
                             case 0:
@@ -193,7 +193,7 @@
                 },
                 {
                     data: "endDate",
-                    name: "endDate",
+                    name: "EndDate",
                     render: function (data, type, row) {
                         return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
                     }
