@@ -24,7 +24,7 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="mb-12 grid gap-8 md:grid-cols-3">
+@*     <div class="mb-12 grid gap-8 md:grid-cols-3">
         <!-- Left Chart: Task Growth Ratio (70%) -->
         <div class="col-span-1 h-[400px] rounded-lg bg-white p-6 shadow-lg md:col-span-2">
             <h2 class="mb-4 text-2xl font-semibold text-gray-800">Task Growth Ratio</h2>
@@ -40,7 +40,7 @@
                 <canvas id="goalPieChart"></canvas>
             </div>
         </div>
-    </div>
+    </div> *@
 
 
     <div class="mb-8 rounded-lg bg-white p-4 shadow-lg sm:p-6">
@@ -49,8 +49,8 @@
             <ul class="flex flex-wrap items-center">
                 <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/info") class="@(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="info">Info</a></li>
                 <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/notes") class="@(ViewBag.tabName == "notes" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="notes">All Notes</a></li>
-                <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/board1") class="@(ViewBag.tabName == "board1" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="board1">Board 1</a></li>
-                <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/create") class="@(ViewBag.tabName == "create" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="create">Create Board</a></li>
+                @* <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/board1") class="@(ViewBag.tabName == "board1" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="board1">Board 1</a></li> *@
+                @* <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/create") class="@(ViewBag.tabName == "create" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="create">Create Board</a></li> *@
             </ul>
         </div>
 
@@ -268,7 +268,7 @@
     @if (Model.GoalLists != null && Model?.GoalLists?.Count() > 0)
     {
         <div class="mb-12">
-            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
+            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Tasks</h2>
             <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @{
 

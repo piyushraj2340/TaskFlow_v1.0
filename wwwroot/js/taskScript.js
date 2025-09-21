@@ -13,6 +13,15 @@
         immediate: 2
     });
 
+    const pageLengthValue = Object.freeze({
+        runningTask: "RUNNING_TASK_PAGE_LENGTH",
+        completedTask: "COMPLETED_TASK_PAGE_LENGTH",
+        notStartedTask: "NOT_STARTED_TASK_PAGE_LENGTH",
+        endedTask: "ENDED_TASK_PAGE_LENGTH",
+    });
+
+    const defaultPageLength = 5;
+
     // running data table 
     const taskRunningDataTable = $("#viewRunningTaskTableData");
 
@@ -138,7 +147,9 @@
         })
     })
 
-    const dataTableObject = (url, renderCallBack) => {
+    const dataTableObject = (url, renderCallBack, pageLengthKey) => {
+        const pageLength = localStorage.getItem(pageLengthKey);
+
         return {
             ajax: {
                 url,
@@ -196,7 +207,8 @@
             ],
             order: [[0, 'asc']],
             info: true,
-            pageLength: 5
+            lengthMenu: [[5, 10, 25, 50, 100, 250, 500], [5, 10, 25, 50, 100, 250, 500]],
+            pageLength: pageLength ? pageLength : defaultPageLength
         }
     }
 
@@ -218,8 +230,17 @@
             `;
         }
 
-        taskRunningDataTable?.length && taskRunningDataTable.DataTable(dataTableObject(url, renderCallBack));
+        if (taskRunningDataTable?.length) {
 
+            taskRunningDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.runningTask));
+
+            taskRunningDataTable.on('length.dt', function (e, settings, len) {
+                console.log('taskRunningDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.runningTask, len);
+            });
+
+        }
     }
 
     function loadCompletedTaskData() {
@@ -239,8 +260,18 @@
             `;
         }
 
-        taskCompletedDataTable?.length && taskCompletedDataTable.DataTable(dataTableObject(url, renderCallBack));
 
+        if (taskCompletedDataTable?.length) {
+
+            taskCompletedDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.completedTask));
+
+            taskCompletedDataTable.on('length.dt', function (e, settings, len) {
+                console.log('taskCompletedDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.completedTask, len);
+            });
+
+        }
     }
 
     function loadNotStartedTaskData() {
@@ -260,7 +291,17 @@
             `;
         }
 
-        taskNotStartedDataTable?.length && taskNotStartedDataTable.DataTable(dataTableObject(url, renderCallBack));
+        if (taskNotStartedDataTable?.length) {
+
+            taskNotStartedDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.notStartedTask));
+
+            taskNotStartedDataTable.on('length.dt', function (e, settings, len) {
+                console.log('taskNotStartedDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.notStartedTask, len);
+            });
+        }
+
     }
 
     function loadEndedTaskData() {
@@ -280,7 +321,16 @@
             `;
         }
 
-        taskEndedDataTable?.length && taskEndedDataTable.DataTable(dataTableObject(url, renderCallBack));
+        if (taskEndedDataTable?.length) {
+
+            taskEndedDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.endedTask));
+
+            taskEndedDataTable.on('length.dt', function (e, settings, len) {
+                console.log('taskEndedDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.endedTask, len);
+            });
+        }
     }
 
     function loadDeletedTaskData() {
@@ -387,7 +437,7 @@
             $('#startDateContainer').removeClass('hidden');
         } else {
             $('#startDateContainer').addClass('hidden');
-            $('#startDate').val(''); 
+            $('#startDate').val('');
             $('#startDateError').addClass('hidden');
         }
     });

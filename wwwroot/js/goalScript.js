@@ -13,6 +13,15 @@
         immediate: 2
     });
 
+    const pageLengthValue = Object.freeze({
+        runningGoal: "RUNNING_GOAL_PAGE_LENGTH",
+        completedGoal: "COMPLETED_GOAL_PAGE_LENGTH",
+        notStartedGoal: "NOT_STARTED_GOAL_PAGE_LENGTH",
+        endedGoal: "ENDED_GOAL_PAGE_LENGTH",
+    });
+
+    const defaultPageLength = 5;
+
     // Running task...
     const runningGoalDataTable = $('#viewRunningGoalTableData');
     // Compleated Task...
@@ -149,7 +158,11 @@
         })
     })
 
-    const dataTableObject = (url, renderCallBack) => {
+    const dataTableObject = (url, renderCallBack, pageLengthKey) => {
+
+        const pageLength = localStorage.getItem(pageLengthKey);
+
+
         return {
             ajax: {
                 url,
@@ -191,7 +204,8 @@
             ],
             "order": [[0, 'asc']],
             info: true,
-            pageLength: 5
+            lengthMenu: [[5, 10, 25, 50, 100, 250, 500], [5, 10, 25, 50, 100, 250, 500]],
+            pageLength: pageLength ? pageLength : defaultPageLength
         }
     }
 
@@ -216,7 +230,17 @@
             `;
         }
 
-         runningGoalDataTable?.length && runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+        if (runningGoalDataTable?.length) {
+
+            runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.runningGoal));
+
+            runningGoalDataTable.on('length.dt', function (e, settings, len) {
+                console.log('runningGoalDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.runningGoal, len);
+            });
+
+        }
     }
 
     // Completed Goal data....
@@ -237,8 +261,17 @@
             `;
         }
 
+        if (completedGoalDataTable?.length) {
 
-        completedGoalDataTable?.length && completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+            completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.completedGoal));
+
+            completedGoalDataTable.on('length.dt', function (e, settings, len) {
+                console.log('completedGoalDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.completedGoal, len);
+            });
+
+        }
     }
 
     // Completed Goal data....
@@ -263,7 +296,17 @@
             `;
         }
 
-        notStartedGoalDataTable.length && notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+        if (notStartedGoalDataTable?.length) {
+
+            notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.notStartedGoal));
+
+            notStartedGoalDataTable.on('length.dt', function (e, settings, len) {
+                console.log('notStartedGoalDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.notStartedGoal, len);
+            });
+
+        }
     }
 
     // Completed Goal data....
@@ -284,7 +327,17 @@
             `;
         }
 
-        endedGoalDataTable.length && endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack));
+        if (endedGoalDataTable?.length) {
+
+            endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.endedGoal));
+
+            endedGoalDataTable.on('length.dt', function (e, settings, len) {
+                console.log('endedGoalDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.endedGoal, len);
+            });
+
+        }
     }
 
     function loadDeletedGoalData() {

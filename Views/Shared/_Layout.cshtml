@@ -37,7 +37,7 @@
             @if(User.Identity.IsAuthenticated)
             {
                 <a href="@Url.ActionLink("Index", "Todo")" class="rounded px-4 py-2 hover:bg-indigo-500">Todo</a>
-                <a href="@Url.ActionLink("Index", "Productivity")" class="rounded px-4 py-2 hover:bg-indigo-500">Productivity</a>
+                @* <a href="@Url.ActionLink("Index", "Productivity")" class="rounded px-4 py-2 hover:bg-indigo-500">Productivity</a> *@
                 <a href="@Url.ActionLink("Index", "Tasks")" class="rounded px-4 py-2 hover:bg-indigo-500">Tasks</a>
                 <a href="@Url.ActionLink("Index", "Goals")" class="rounded px-4 py-2 hover:bg-indigo-500">Goals</a>
                 <!-- Profile Dropdown -->
@@ -50,8 +50,8 @@
                         </svg>
                     </button>
                     <div class="absolute right-0 z-10 mt-0 hidden w-48 overflow-hidden rounded-md bg-white shadow-lg group-hover:block">
-                        <a href="@Url.ActionLink("Index", "AdminDashboard")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Admin Dashboard</a>
-                        <a href="@Url.ActionLink("Index", "Profile")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Profile</a>
+                        @* <a href="@Url.ActionLink("Index", "AdminDashboard")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Admin Dashboard</a> *@
+                        @* <a href="@Url.ActionLink("Index", "Profile")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Profile</a> *@
                         <a href="@Url.ActionLink("Logout", "Account")" class="block px-4 py-2 text-gray-800 hover:bg-indigo-100">Logout</a>
                     </div>
                 </div>

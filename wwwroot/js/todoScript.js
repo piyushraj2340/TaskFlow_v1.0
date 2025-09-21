@@ -8,6 +8,13 @@
     });
 
 
+    const pageLengthValue = Object.freeze({
+        runningTodo: "RUNNING_TODO_PAGE_LENGTH",
+        completedTodo: "COMPLETED_TODO_PAGE_LENGTH",
+    });
+
+    const defaultPageLength = 5;
+
     const todoRunningDataTable = $("#viewRunningTodoTableData");
 
     const todoCompletedDataTable = $("#viewCompletedTodoTableData");
@@ -88,7 +95,10 @@
     })
 
 
-    const dataTableObject = (url, renderCallBack) => {
+    const dataTableObject = (url, renderCallBack, pageLengthKey) => {
+
+        const pageLength = localStorage.getItem(pageLengthKey);
+
         return {
             ajax: {
                 url,
@@ -146,7 +156,8 @@
             ],
             order: [[0, 'asc']],
             info: true,
-            pageLength: 5
+            lengthMenu: [[5, 10, 25, 50, 100, 250, 500], [5, 10, 25, 50, 100, 250, 500]],
+            pageLength: pageLength ? pageLength : defaultPageLength
         }
     }
 
@@ -156,7 +167,7 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
                     <i class="fas fa-edit"></i> Edit
                 </a>
                 <button data-id="${row.id}" class="markAsCompleteToDoBtn my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
@@ -164,7 +175,17 @@
                 </button>
             `;
         }
-        todoRunningDataTable?.length && todoRunningDataTable.DataTable(dataTableObject(url, renderCallBack));
+
+        if (todoRunningDataTable?.length) {
+
+            todoRunningDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.runningTodo));
+
+            todoRunningDataTable.on('length.dt', function (e, settings, len) {
+                console.log('todoRunningDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.runningTodo, len);
+            });
+        }
     }
 
     function loadCompletedTaskData() {
@@ -173,7 +194,7 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
+                <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
                     <i class="fas fa-edit"></i> Edit
                 </a>
                 <button data-id="${row.id}" class="moveToRunningToDoBtn my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
@@ -181,7 +202,17 @@
                 </button>
             `;
         }
-        todoCompletedDataTable?.length && todoCompletedDataTable.DataTable(dataTableObject(url, renderCallBack));
+
+        if (todoCompletedDataTable?.length) {
+
+            todoCompletedDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.completedTodo));
+
+            todoCompletedDataTable.on('length.dt', function (e, settings, len) {
+                console.log('todoCompletedDataTable page length: ' + len);
+
+                localStorage.setItem(pageLengthValue.completedTodo, len);
+            });
+        }
     }
 
     loadRunningTaskData();
