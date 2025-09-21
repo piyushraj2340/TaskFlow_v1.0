@@ -51,7 +51,8 @@ namespace TaskMonitoringApp.Controllers
             {
                 var productivity = await _service.GetTodoProgressAnalyses(userId, forDate);
                 return Json(new { status = true, message = "Todo Task Progress", data = productivity });
-            } catch(Exception)
+            }
+            catch (Exception)
             {
                 throw;
             }
@@ -74,7 +75,7 @@ namespace TaskMonitoringApp.Controllers
             var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
             var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
             var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
+            var searchValue = Request.Form["search[value]"].FirstOrDefault()?.ToLower();
             int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
@@ -98,7 +99,9 @@ namespace TaskMonitoringApp.Controllers
             if (!string.IsNullOrEmpty(searchValue))
             {
                 // Perform case-insensitive search on multiple fields (Name and Id)
-                data = data.Where(x => x.TaskName?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
+                data = data.Where(x => x.TaskName.ToLower().Contains(searchValue) || 
+                        x.Id.ToString().Contains(searchValue)
+                        );
             }
 
             // Get filtered record count after search
@@ -109,16 +112,19 @@ namespace TaskMonitoringApp.Controllers
             {
                 switch (sortColumn)
                 {
-                    case "Name":
+                    case "name":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskName) : data.OrderByDescending(x => x.TaskName);
                         break;
-                    case "EndDate":
+                    case "endDate":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
                         break;
-                    case "Priority":
+                    case "priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
                         break;
-                    case "Id":
+                    case "repeat":
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
+                        break;
+                    case "id":
                         // Sorting by Id (numerical)
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
                         break;
@@ -166,7 +172,7 @@ namespace TaskMonitoringApp.Controllers
             var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
             var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
             var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
+            var searchValue = Request.Form["search[value]"].FirstOrDefault()?.ToLower();
             int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
@@ -189,7 +195,9 @@ namespace TaskMonitoringApp.Controllers
             if (!string.IsNullOrEmpty(searchValue))
             {
                 // Perform case-insensitive search on multiple fields (Name and Id)
-                data = data.Where(x => x.TaskName?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
+                data = data.Where(x => x.TaskName.ToLower().Contains(searchValue) ||
+                        x.Id.ToString().Contains(searchValue)
+                        );
             }
 
             // Get filtered record count after search
@@ -200,16 +208,19 @@ namespace TaskMonitoringApp.Controllers
             {
                 switch (sortColumn)
                 {
-                    case "Name":
+                    case "name":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskName) : data.OrderByDescending(x => x.TaskName);
                         break;
-                    case "EndDate":
+                    case "endDate":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
                         break;
-                    case "Priority":
+                    case "priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
                         break;
-                    case "Id":
+                    case "repeat":
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
+                        break;
+                    case "id":
                         // Sorting by Id (numerical)
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
                         break;
