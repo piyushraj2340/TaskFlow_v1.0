@@ -190,7 +190,7 @@
                 },
                 {
                     data: "priority",
-                    name: "priority",
+                    name: "Priority",
                     render: function (data, type, row) {
                         return returnPriorityBadge(data);
                     }
