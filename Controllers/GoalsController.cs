@@ -258,7 +258,7 @@ namespace TaskMonitoringApp.Controllers
             }
 
             // Paginate the data (skip and take)
-            var empList = data.Skip(skip).Take(pageSize).ToList();
+            var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList(): data.ToList();
 
             // Map the data to GoalDTO using AutoMapper
             var returnObj = new
@@ -266,7 +266,7 @@ namespace TaskMonitoringApp.Controllers
                 draw,
                 recordsTotal = totalRecord,
                 recordsFiltered = filterRecord,
-                data = _mapper.Map<List<GoalDTO>>(empList)
+                data = _mapper.Map<List<GoalDTO>>(datas)
             };
 
             // Return the result as JSON
@@ -344,7 +344,7 @@ namespace TaskMonitoringApp.Controllers
             }
 
             // Paginate the data (skip and take)
-            var empList = data.Skip(skip).Take(pageSize).ToList();
+            var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
 
             // Map the data to GoalDTO using AutoMapper
             var returnObj = new
@@ -352,7 +352,7 @@ namespace TaskMonitoringApp.Controllers
                 draw,
                 recordsTotal = totalRecord,
                 recordsFiltered = filterRecord,
-                data = _mapper.Map<List<GoalDTO>>(empList)
+                data = _mapper.Map<List<GoalDTO>>(datas)
             };
 
             // Return the result as JSON
@@ -430,7 +430,7 @@ namespace TaskMonitoringApp.Controllers
             }
 
             // Paginate the data (skip and take)
-            var empList = data.Skip(skip).Take(pageSize).ToList();
+            var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
 
             // Map the data to GoalDTO using AutoMapper
             var returnObj = new
@@ -438,7 +438,7 @@ namespace TaskMonitoringApp.Controllers
                 draw,
                 recordsTotal = totalRecord,
                 recordsFiltered = filterRecord,
-                data = _mapper.Map<List<GoalDTO>>(empList)
+                data = _mapper.Map<List<GoalDTO>>(datas)
             };
 
             // Return the result as JSON
@@ -516,7 +516,7 @@ namespace TaskMonitoringApp.Controllers
             }
 
             // Paginate the data (skip and take)
-            var empList = data.Skip(skip).Take(pageSize).ToList();
+            var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
 
             // Map the data to GoalDTO using AutoMapper
             var returnObj = new
@@ -524,7 +524,7 @@ namespace TaskMonitoringApp.Controllers
                 draw,
                 recordsTotal = totalRecord,
                 recordsFiltered = filterRecord,
-                data = _mapper.Map<List<GoalDTO>>(empList)
+                data = _mapper.Map<List<GoalDTO>>(datas)
             };
 
             // Return the result as JSON

@@ -135,9 +135,9 @@ namespace TaskMonitoringApp.Controllers
             }
 
             // Paginate the data (skip and take)
-            var empList = data.Skip(skip).Take(pageSize).ToList();
+            var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
 
-            var todoData = _mapper.Map<List<TodoDTO>>(empList);
+            var todoData = _mapper.Map<List<TodoDTO>>(datas);
 
             //if(todoData.) 
 
@@ -231,8 +231,8 @@ namespace TaskMonitoringApp.Controllers
             }
 
             // Paginate the data (skip and take)
-            var empList = data.Skip(skip).Take(pageSize).ToList();
-            var todoData = _mapper.Map<List<TodoDTO>>(empList);
+            var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
+            var todoData = _mapper.Map<List<TodoDTO>>(datas);
 
             //if(todoData.) 
 
