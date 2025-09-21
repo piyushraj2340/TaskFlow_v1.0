@@ -353,6 +353,9 @@ namespace TaskMonitoringApp.Controllers
                     case "Priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
                         break;
+                    case "Repeat":
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Repeat) : data.OrderByDescending(x => x.Repeat);
+                        break;
                     case "Id":
                         // Sorting by Id (numerical)
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
@@ -431,6 +434,9 @@ namespace TaskMonitoringApp.Controllers
                         break;
                     case "Priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
+                        break;
+                    case "Repeat":
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Repeat) : data.OrderByDescending(x => x.Repeat);
                         break;
                     case "Id":
                         // Sorting by Id (numerical)
@@ -511,6 +517,9 @@ namespace TaskMonitoringApp.Controllers
                     case "Priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
                         break;
+                    case "Repeat":
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Repeat) : data.OrderByDescending(x => x.Repeat);
+                        break;
                     case "Id":
                         // Sorting by Id (numerical)
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
@@ -590,6 +599,9 @@ namespace TaskMonitoringApp.Controllers
                         break;
                     case "Priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
+                        break;
+                    case "Repeat":
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Repeat) : data.OrderByDescending(x => x.Repeat);
                         break;
                     case "Id":
                         // Sorting by Id (numerical)
