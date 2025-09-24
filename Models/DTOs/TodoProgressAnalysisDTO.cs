@@ -16,7 +16,7 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public double ProductivityForDay { get; set; }
 
-        public string UserId { get; set; }
+        public string? UserId { get; set; } = string.Empty;
 
         public Users? User { get; set; }
     }

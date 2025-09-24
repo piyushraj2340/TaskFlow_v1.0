@@ -101,11 +101,8 @@
             success: function (response) {
                 if (response.status) {
 
-                    runningGoalDataTable?.DataTable().ajax.reload();
-
-                    completedGoalDataTable?.DataTable().ajax.reload();
-
                     showSuccessNotification(response.message);
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     throw new Error(response.message || "Error: while changing the status of Goal with Id: " + id);
                 }
@@ -137,16 +134,10 @@
             success: function (response) {
                 if (response.status) {
 
-                    runningGoalDataTable.DataTable().ajax.reload(); 
-
-                    goalStatus === "notStarted" && notStartedGoalDataTable?.DataTable().ajax.reload();
-
-                    goalStatus === "completed" && completedGoalDataTable?.DataTable().ajax.reload();
-
-                    goalStatus === "ended" && endedGoalDataTable?.DataTable().ajax.reload();
-
 
                     showSuccessNotification(response.message);
+
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
                 }

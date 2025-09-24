@@ -50,6 +50,8 @@ namespace TaskMonitoringApp.Models.ViewModel
         public IEnumerable<GoalNameDTO>? GoalLists { get; set; }
         public IEnumerable<NoteDTOWithTaskDTO>? NotesLists { get; set; }
 
+        public TodoProgressAnalysisDTO TodoProgress { get; set; } = new();
+
         public string? UserId { get; set; }
     }
 

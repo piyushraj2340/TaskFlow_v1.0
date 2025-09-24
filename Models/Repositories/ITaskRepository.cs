@@ -24,5 +24,9 @@ namespace TaskMonitoringApp.Models.Repositories
         Task<int> GetTaskCountByTaskStatus(string UserId, Status status);
 
         Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string UserId, Status status, DateTime from, DateTime end);
+
+        Task<int> GetTaskCountByTaskStatus(string UserId, int goalId, Status status);
+
+        Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string UserId, int goalId, Status status, DateTime from, DateTime end);
     }
 }

@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
+using System.Threading.Tasks;
 using TaskMonitoringApp.Models.Business;
 using TaskMonitoringApp.Models.DataAccessLayer;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Services;
 using TaskMonitoringApp.Models.ViewModel;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskMonitoringApp.Controllers
 {
@@ -23,8 +25,9 @@ namespace TaskMonitoringApp.Controllers
         private readonly INotesServices _notesService;
         private readonly IGoalServices _goalsService;
         private readonly UserManager<Users> _userManager;
+        private readonly ITodoServices _todoService;
 
-        public TasksController(ILogger<TasksController> logger, IMapper mapper, ITaskServices taskService, INotesServices notesService, IGoalServices goalsService, UserManager<Users> userManager)
+        public TasksController(ILogger<TasksController> logger, IMapper mapper, ITaskServices taskService, INotesServices notesService, IGoalServices goalsService, UserManager<Users> userManager, ITodoServices todoService)
         {
             _logger = logger;
             _mapper = mapper;
@@ -32,6 +35,7 @@ namespace TaskMonitoringApp.Controllers
             _notesService = notesService;
             _goalsService = goalsService;
             _userManager = userManager;
+            _todoService = todoService;
         }
 
         public async Task<IActionResult> Index()
@@ -71,9 +75,12 @@ namespace TaskMonitoringApp.Controllers
             var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All);
             var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
 
+            var productivity = await _todoService.GetTodoProgressAnalyses(userId, Id);
+
+
             taskWithNoteList.NotesLists = notesList;
             taskWithNoteList.GoalLists = task.GoalLists;
-
+            taskWithNoteList.TodoProgress = productivity;
 
 
 
@@ -137,6 +144,7 @@ namespace TaskMonitoringApp.Controllers
             {
                 ViewBag.IsEditMode = false;
                 var returnUrl = string.IsNullOrWhiteSpace(TempData["ReturnUrl"]?.ToString()) ? Url.Action("Index", "Home") : TempData["ReturnUrl"]?.ToString();
+
 
                 //Validations
                 if (task.StartOptionType == StartOptions.Scheduled && task.StartDate == null)
@@ -300,8 +308,8 @@ namespace TaskMonitoringApp.Controllers
             return View(task);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> GetAllRunningTaskList()
+        [HttpPost()]
+        public async Task<IActionResult> GetAllRunningTaskList(int? goalId)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -321,7 +329,18 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _taskService.GetAllTasks(userId, Status.Running);
+            //var data = await _taskService.GetAllTasks(userId, Status.Running);
+            
+            IEnumerable<TaskDTO> data = new List<TaskDTO>();
+
+            if (goalId != null && goalId.HasValue && goalId.Value > 0)
+            {
+                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Running);
+            }
+            else
+            {
+                data = await _taskService.GetAllTasks(userId, Status.Running);
+            }
 
             // Get total count of records
             totalRecord = data.Count();
@@ -383,7 +402,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetAllCompletedTaskList()
+        public async Task<IActionResult> GetAllCompletedTaskList(int? goalId)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -403,7 +422,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _taskService.GetAllTasks(userId, Status.Completed);
+            //var data = await _taskService.GetAllTasks(userId, Status.Completed);
+            IEnumerable<TaskDTO> data = new List<TaskDTO>();
+
+            if (goalId != null && goalId.HasValue && goalId.Value > 0)
+            {
+                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Completed);
+            }
+            else
+            {
+                data = await _taskService.GetAllTasks(userId, Status.Completed);
+            }
 
             // Get total count of records
             totalRecord = data.Count();
@@ -465,7 +494,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetAllNotStartedTaskList()
+        public async Task<IActionResult> GetAllNotStartedTaskList(int? goalId)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -485,7 +514,18 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _taskService.GetAllTasks(userId, Status.NotStarted);
+            //var data = await _taskService.GetAllTasks(userId, Status.NotStarted);
+
+            IEnumerable<TaskDTO> data = new List<TaskDTO>();
+
+            if (goalId != null && goalId.HasValue && goalId.Value > 0)
+            {
+                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.NotStarted);
+            }
+            else
+            {
+                data = await _taskService.GetAllTasks(userId, Status.NotStarted);
+            }
 
             // Get total count of records
             totalRecord = data.Count();
@@ -547,7 +587,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetAllEndedTaskList()
+        public async Task<IActionResult> GetAllEndedTaskList(int? goalId)
         {
 
             var userId = _userManager.GetUserId(User);
@@ -568,7 +608,18 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            var data = await _taskService.GetAllTasks(userId, Status.Ended);
+            //var data = await _taskService.GetAllTasks(userId, Status.Ended);
+
+            IEnumerable<TaskDTO> data = new List<TaskDTO>();
+
+            if (goalId != null && goalId.HasValue && goalId.Value > 0)
+            {
+                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Ended);
+            }
+            else
+            {
+                data = await _taskService.GetAllTasks(userId, Status.Ended);
+            }
 
             // Get total count of records
             totalRecord = data.Count();

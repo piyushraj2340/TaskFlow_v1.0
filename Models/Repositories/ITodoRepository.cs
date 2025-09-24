@@ -9,6 +9,10 @@ namespace TaskMonitoringApp.Models.Repositories
 
         Task<IEnumerable<T>> GetAllTodoAsync<T>(string userId, Status status, DateTime selectDate, ResponseDataMode mode) where T : class;
 
+        Task<IEnumerable<T>> GetAllTodoAsync<T>(string UserId, int taskId, Status status, ResponseDataMode mode) where T : class;
+
+        Task<IEnumerable<T>> GetAllTodoAsync<T>(string userId, int taskId, Status status, DateTime selectDate, ResponseDataMode mode) where T : class;
+
         Task<IEnumerable<T>> GetAllTodoWithStatusByGoalId<T>(string userId, int goalId, Status todoStatus, ResponseDataMode mode) where T : class;
 
         Task<IEnumerable<T>> GetAllTodoWithStatusByTaskId<T>(string userId, int goalId, Status todoStatus, ResponseDataMode mode) where T : class;
@@ -16,6 +20,7 @@ namespace TaskMonitoringApp.Models.Repositories
         Task<T> GetTodoByIdAsync<T>(string UserId, int Id, ResponseDataMode mode) where T : class;
 
         Task<T> GetTodoProgressAnalysesAsync<T>(string userId, DateTime forDate, ResponseDataMode mode) where T : class;
+        Task<TodoProgressAnalysisDTO> GetTodoProgressAnalysesAsync(string userId, int taskId);
 
         Task<T> GetTodoProgressAnalysesAsync<T>(string userId, ResponseDataMode mode) where T : class;
 

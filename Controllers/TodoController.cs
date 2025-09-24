@@ -38,10 +38,10 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetTodoProgressAnalyses(DateTime forDate)
+        public async Task<IActionResult> GetTodoProgressAnalyses(DateTime forDate, int? taskId)
         {
             var userId = _userManager.GetUserId(User);
-
+            
             if (userId == null)
             {
                 return RedirectToAction("Login", "Account");
@@ -49,8 +49,16 @@ namespace TaskMonitoringApp.Controllers
 
             try
             {
-                var productivity = await _service.GetTodoProgressAnalyses(userId, forDate);
-                return Json(new { status = true, message = "Todo Task Progress", data = productivity });
+                if(taskId != null && taskId.HasValue)
+                {
+                    var productivity = await _service.GetTodoProgressAnalyses(userId, taskId.Value);
+                    return Json(new { status = true, message = "Todo Task Progress", data = productivity });
+                } else
+                {
+                    var productivity = await _service.GetTodoProgressAnalyses(userId, forDate);
+                    return Json(new { status = true, message = "Todo Task Progress", data = productivity });
+                }
+
             }
             catch (Exception)
             {
@@ -59,7 +67,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetRunningTodo(DateTime? selectDate)
+        public async Task<IActionResult> GetRunningTodo(DateTime? selectDate, int? taskId)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -82,15 +90,31 @@ namespace TaskMonitoringApp.Controllers
             // Get all goals from the service
             IEnumerable<TodoDTOWithTaskDTO> data;
 
-            if (selectDate.HasValue)
+            if (taskId != null && taskId.HasValue)
             {
-                data = await _service.GetAllTodo(userId, Status.Running, selectDate.Value);
+                if (selectDate.HasValue)
+                {
+                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Running, selectDate.Value);
+                }
+                else
+                {
+                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Running);
+
+                }
             }
             else
             {
-                data = await _service.GetAllTodo(userId, Status.Running);
+                if (selectDate.HasValue)
+                {
+                    data = await _service.GetAllTodo(userId, Status.Running, selectDate.Value);
+                }
+                else
+                {
+                    data = await _service.GetAllTodo(userId, Status.Running);
 
+                }
             }
+
 
             // Get total count of records
             totalRecord = data.Count();
@@ -99,7 +123,7 @@ namespace TaskMonitoringApp.Controllers
             if (!string.IsNullOrEmpty(searchValue))
             {
                 // Perform case-insensitive search on multiple fields (Name and Id)
-                data = data.Where(x => x.TaskName.ToLower().Contains(searchValue) || 
+                data = data.Where(x => x.TaskName.ToLower().Contains(searchValue) ||
                         x.Id.ToString().Contains(searchValue)
                         );
             }
@@ -156,7 +180,7 @@ namespace TaskMonitoringApp.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> GetCompletedTodo(DateTime? selectDate)
+        public async Task<IActionResult> GetCompletedTodo(DateTime? selectDate, int? taskId)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -178,14 +202,29 @@ namespace TaskMonitoringApp.Controllers
 
             // Get all goals from the service
             IEnumerable<TodoDTOWithTaskDTO> data;
-            if (selectDate.HasValue)
+            if (taskId != null && taskId.HasValue)
             {
-                data = await _service.GetAllTodo(userId, Status.Completed, selectDate.Value);
+                if (selectDate.HasValue)
+                {
+                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Completed, selectDate.Value);
+                }
+                else
+                {
+                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Completed);
+
+                }
             }
             else
             {
-                data = await _service.GetAllTodo(userId, Status.Completed);
+                if (selectDate.HasValue)
+                {
+                    data = await _service.GetAllTodo(userId, Status.Completed, selectDate.Value);
+                }
+                else
+                {
+                    data = await _service.GetAllTodo(userId, Status.Completed);
 
+                }
             }
 
             // Get total count of records

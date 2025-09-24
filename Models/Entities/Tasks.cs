@@ -8,7 +8,8 @@ namespace TaskMonitoringApp.Models.Entities
     {
         RunOnce = 0,
         Daily,
-        Weekly
+        Weekly,
+        NoRepeat
     }
 
     public enum Priority

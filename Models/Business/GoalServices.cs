@@ -127,73 +127,82 @@ namespace TaskMonitoringApp.Models.Business
             return await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, status, from, end);
         }
 
-        public async Task<GoalProductivityDTO> GetGoalProductivity(string UserId)
+        public async Task<GoalProductivityDTO> GetGoalProductivity(string userId)
         {
-            int runningGoal = await _goalRepository.GetGoalCountByGoalStatus(UserId, Status.Running);
+            int runningGoal = await _goalRepository.GetGoalCountByGoalStatus(userId, Status.Running);
 
-            // over all productivity...
-            int endGoalCount = await _goalRepository.GetGoalCountByGoalStatus(UserId, Status.Ended);
-            int completedGoalCount = await _goalRepository.GetGoalCountByGoalStatus(UserId, Status.Completed);
+            // Overall productivity
+            int endGoalCount = await _goalRepository.GetGoalCountByGoalStatus(userId, Status.Ended);
+            int completedGoalCount = await _goalRepository.GetGoalCountByGoalStatus(userId, Status.Completed);
 
-            // Ensure that the division happens with floating-point precision
-            double productivity = (((double)completedGoalCount / (endGoalCount + completedGoalCount)) * 100);
-
-            // Round to 2 decimal places
+            double productivity = 0;
+            int totalOverall = endGoalCount + completedGoalCount;
+            if (totalOverall > 0)
+            {
+                productivity = ((double)completedGoalCount / totalOverall) * 100;
+            }
             productivity = Math.Round(productivity, 2);
 
 
+            // Previous week productivity
+            int endGoalPreviousWeekCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(
+                userId, Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+            int completedPreviousWeekGoalCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(
+                userId, Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
 
-
-            // Calculating the previous week productivity....
-            int endGoalPreviousWeekCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
-            int completedPreviousWeekGoalCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
-
-            // Ensure that the division happens with floating-point precision
-            double productivityPreviousWeek = (((double)completedPreviousWeekGoalCount / (endGoalPreviousWeekCount + completedPreviousWeekGoalCount)) * 100);
-
-            // Round to 2 decimal places
+            double productivityPreviousWeek = 0;
+            int totalPreviousWeek = endGoalPreviousWeekCount + completedPreviousWeekGoalCount;
+            if (totalPreviousWeek > 0)
+            {
+                productivityPreviousWeek = ((double)completedPreviousWeekGoalCount / totalPreviousWeek) * 100;
+            }
             productivityPreviousWeek = Math.Round(productivityPreviousWeek, 2);
 
-            // if the completed and ended task is zero then 0 productivity...
-            if (endGoalPreviousWeekCount + completedPreviousWeekGoalCount == 0)
+
+            // Current week productivity
+            int endGoalCurrentWeekCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(
+                userId, Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
+            int completedCurrentWeekGoalCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(
+                userId, Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
+
+            double productivityCurrent = 0;
+            int totalCurrentWeek = endGoalCurrentWeekCount + completedCurrentWeekGoalCount;
+            if (totalCurrentWeek > 0)
             {
-                productivityPreviousWeek = 0;
+                productivityCurrent = ((double)completedCurrentWeekGoalCount / totalCurrentWeek) * 100;
             }
-
-
-            // Calculating the current week productivity....
-            int endGoalCurrentWeekCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
-            int completedCurrentWeekGoalCount = await _goalRepository.GetGoalCountByGoalStatusAndDateTimeRange(UserId, Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
-
-            // Ensure that the division happens with floating-point precision
-            double productivityCurrent = (((double)completedCurrentWeekGoalCount / (endGoalCurrentWeekCount + completedCurrentWeekGoalCount)) * 100);
-
-            // Round to 2 decimal places
             productivityCurrent = Math.Round(productivityCurrent, 2);
 
-            // if the completed and ended task is zero then 0 productivity...
-            if (endGoalCurrentWeekCount + completedCurrentWeekGoalCount == 0)
+
+            // Growth percentage
+            double growthPercentage = 0;
+            if (productivityPreviousWeek > 0)
             {
-                productivityCurrent = 0;
+                growthPercentage = ((productivityCurrent - productivityPreviousWeek) / productivityPreviousWeek) * 100;
+            }
+            else if (productivityCurrent > 0)
+            {
+                growthPercentage = 100.0d;
             }
 
-            double growthPercentage = ((double)((productivityCurrent - productivityPreviousWeek) / productivityPreviousWeek) * 100);
-
-
-            // Round to 2 decimal places
             growthPercentage = Math.Round(growthPercentage, 2);
 
+            // Handle NaN / Infinity safety
+            if (double.IsNaN(productivity)) productivity = 0;
+            if (double.IsNaN(productivityPreviousWeek)) productivityPreviousWeek = 0;
+            if (double.IsNaN(productivityCurrent)) productivityCurrent = 0;
+            if (double.IsNaN(growthPercentage) || double.IsInfinity(growthPercentage)) growthPercentage = 0;
 
-            // if the previous groth percentage is 0 then 100% groth..
-            if (productivityPreviousWeek == 0)
-            {
-                growthPercentage = 100.00d;
-            }
-
-            GoalProductivityDTO goalProductivity = new(productivity, runningGoal, completedGoalCount, growthPercentage);
+            GoalProductivityDTO goalProductivity = new GoalProductivityDTO(
+                productivity,
+                runningGoal,
+                completedGoalCount,
+                growthPercentage
+            );
 
             return goalProductivity;
         }
+
 
         public async Task<IEnumerable<GoalNameDTO>> GetGoalNameBySearchQuery(string userId, string searchQuery)
         {

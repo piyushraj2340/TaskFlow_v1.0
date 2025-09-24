@@ -218,5 +218,34 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             // we are just checking the last update... this logic is not 100% correct so change according..
             return await _context.Tasks.CountAsync(g => g.User.Id == UserId && (g.TaskStatus == status && g.UpdatedOn >= from && g.UpdatedOn <= end));
         }
+
+        public async Task<int> GetTaskCountByTaskStatus(string UserId, int goalId, Status status)
+        {
+            return await _context.Tasks
+                .Include(t => t.GoalTasks)
+                .CountAsync(t => t.UserId == UserId
+                    && t.TaskStatus == status
+                    && t.GoalTasks.Any(gt => gt.GoalId == goalId)
+                    && t.IsDeleted == false);
+
+        }
+
+        public async Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string UserId, int goalId, Status status, DateTime from, DateTime end)
+        {
+            if (from > end)
+            {
+                throw new InvalidOperationException("Invalid DateTime Range!");
+            }
+
+            // we are just checking the last update... this logic is not 100% correct so change according..
+            return await _context.Tasks
+                .CountAsync(g =>
+                    g.User.Id == UserId
+                    && g.TaskStatus == status
+                    && g.UpdatedOn >= from
+                    && g.UpdatedOn <= end
+                    && g.GoalTasks.Any(gt => gt.GoalId == goalId)
+                    && g.IsDeleted == false);
+        }
     }
 }

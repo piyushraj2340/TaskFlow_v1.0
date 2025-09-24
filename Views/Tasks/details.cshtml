@@ -4,27 +4,54 @@
     ViewData["Title"] = Model.Name;
 }
 
-<link href="~/css/richtextstyle.css" rel="stylesheet" />
+@section Styles {
+    <!-- Add a section for DataTables CSS if this page uses DataTables -->
+    <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <!-- Flatpickr (Calendar) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="~/css/richtextstyle.css" rel="stylesheet" />
+}
 
 <div class="mx-auto max-w-7xl px-2 py-12 md:px-6">
-    <!-- Centered Action Buttons -->
-    <div class="mb-6 flex flex-wrap justify-center gap-4">
-        <a href="@Url.Action("Edit", "Tasks", new { id = Model.Id })" class="flex items-center rounded-lg bg-blue-500 px-6 py-2 text-white transition duration-300 hover:bg-blue-600">
-            <i class="fas fa-edit mr-2"></i>Edit Task
-        </a>
-        <button data-id="@Model.Id" class="deleteTaskBtn flex items-center rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
-            <i class="fas fa-trash mr-2"></i>Delete Task
-        </button>
-        <button id="openAddNotesModal" data-action-note-form-type-id="@Model.Id" data-action-note-form-type="task" class="flex items-center rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
-            <i class="fas fa-comment mr-2"></i>Add Notes
-        </button>
-        <button data-id="@Model.Id" class="markAsCompleteTaskBtn flex items-center rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
-            <i class="fas fa-check mr-2"></i>Mark as Complete
-        </button>
+    <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+            <div class="flex items-center justify-between">
+                <div class="text-3xl text-indigo-600"><i class="fas fa-trophy"></i></div>
+                <div class="text-lg font-semibold">Total Todos</div>
+            </div>
+            <div class="mt-4 text-xl" id="totalTodoTaskCount">@Model.TodoProgress.TotalTodo</div>
+        </div>
+
+        <div class="rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+            <div class="flex items-center justify-between">
+                <div class="text-3xl text-green-600"><i class="fas fa-check"></i></div>
+                <div class="text-lg font-semibold">Completed Todos</div>
+            </div>
+            <div class="mt-4 text-xl" id="completedTodoTaskCount">@Model.TodoProgress.TotalCompletedTodo</div>
+        </div>
+
+        <div class="rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
+            <div class="flex items-center justify-between">
+                <div class="text-3xl text-blue-600"><i class="fas fa-clipboard"></i></div>
+                <div class="text-lg font-semibold">Missed Todos</div>
+            </div>
+            <div class="mt-4 text-xl" id="runningTodoTaskCount">
+                @Model.TodoProgress.TotalMissedTodo
+            </div>
+        </div>
+
+        <div class="rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
+            <div class="flex items-center justify-between">
+                <div class="text-3xl text-purple-600"><i class="fas fa-cogs"></i></div>
+                <div class="text-lg font-semibold">Task's Productivity</div>
+            </div>
+            <div class="mt-4 text-xl" id="productivityPercentageTodo">@Model.TodoProgress.ProductivityForDay%</div>
+        </div>
     </div>
 
+
     <!-- Charts Section -->
-@*     <div class="mb-12 grid gap-8 md:grid-cols-3">
+    @*     <div class="mb-12 grid gap-8 md:grid-cols-3">
         <!-- Left Chart: Task Growth Ratio (70%) -->
         <div class="col-span-1 h-[400px] rounded-lg bg-white p-6 shadow-lg md:col-span-2">
             <h2 class="mb-4 text-2xl font-semibold text-gray-800">Task Growth Ratio</h2>
@@ -44,11 +71,28 @@
 
 
     <div class="mb-8 rounded-lg bg-white p-4 shadow-lg sm:p-6">
+        <!-- Centered Action Buttons -->
+        <div class="mb-6 flex flex-wrap justify-center gap-4">
+            <a href="@Url.Action("Edit", "Tasks", new { id = Model.Id })" class="flex items-center rounded-lg bg-blue-500 px-6 py-2 text-white transition duration-300 hover:bg-blue-600">
+                <i class="fas fa-edit mr-2"></i>Edit Task
+            </a>
+            <button data-id="@Model.Id" class="deleteTaskBtn flex items-center rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
+                <i class="fas fa-trash mr-2"></i>Delete Task
+            </button>
+            <button id="openAddNotesModal" data-action-note-form-type-id="@Model.Id" data-action-note-form-type="task" class="flex items-center rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
+                <i class="fas fa-comment mr-2"></i>Add Notes
+            </button>
+            <button data-id="@Model.Id" class="markAsCompleteTaskBtn flex items-center rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
+                <i class="fas fa-check mr-2"></i>Mark as Complete
+            </button>
+        </div>
+
         <div class="sticky top-0 z-10 h-auto border-b border-gray-300 bg-white py-1">
             <!-- Tab Navigation -->
             <ul class="flex flex-wrap items-center">
                 <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/info") class="@(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="info">Info</a></li>
                 <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/notes") class="@(ViewBag.tabName == "notes" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="notes">All Notes</a></li>
+                <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/todos") class="@(ViewBag.tabName == "todos" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="todos">Todos</a></li>
                 @* <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/board1") class="@(ViewBag.tabName == "board1" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="board1">Board 1</a></li> *@
                 @* <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/create") class="@(ViewBag.tabName == "create" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="create">Create Board</a></li> *@
             </ul>
@@ -57,7 +101,7 @@
         <!-- Tab Content -->
         <div class="custom-scrollbar relative z-0 mt-4 max-h-screen overflow-y-scroll">
             <!-- Task Details Section -->
-            <div id="info" class="tab-content @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName)? "" : "hidden") mb-8 rounded-lg bg-white p-6 shadow-lg">
+            <div id="info" class="tab-content @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "" : "hidden") mb-8 rounded-lg bg-white p-6 shadow-lg">
 
                 <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                     <h2 class="mb-3 text-2xl font-semibold text-gray-800">Task Information</h2>
@@ -126,7 +170,7 @@
             </div>
 
             <!-- Notes Tab -->
-            <div id="notes" class="tab-content @(ViewBag.tabName == "notes"? "" : "hidden")">
+            <div id="notes" class="tab-content @(ViewBag.tabName == "notes" ? "" : "hidden")">
 
                 <div class="mb-4">
                     <h2 class="text-3xl font-bold text-gray-800">Notes Timeline</h2>
@@ -220,6 +264,94 @@
                 </div>
             </div>
 
+            <div id="todos" class="tab-content @(ViewBag.tabName == "todos" ? "" : "hidden")">
+                <div class="mb-6 flex flex-col items-start justify-between rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-300 md:flex-row md:items-center md:p-6">
+                    <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">
+                        Select Date:
+                        <span id="selectedDate" class="inline-flex min-w-max items-center rounded bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md transition duration-300 hover:bg-gray-500 sm:text-sm">
+                        </span>
+                    </h2>
+
+                    <!-- Container for Buttons & Date Picker -->
+                    <div class="mt-4 flex w-full flex-col items-center justify-between space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 sm:w-auto md:mt-0">
+                        <button id="prevDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+
+                        <button id="nextDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+
+                        <input type="text" id="taskDatePicker" class="w-full rounded-md border p-2 shadow-sm sm:w-auto" placeholder="Pick a date">
+                    </div>
+                </div>
+
+                <div id="todoSections" class="flex flex-col">
+                    <!-- running task Section -->
+                    <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+                        <!-- Task Heading with Actions -->
+                        <!-- Running Tasks Section -->
+                        <div class="mb-8">
+                            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
+                                <h2 id="RunningOrMissingHeadId" class="text-xl font-semibold text-gray-700 sm:text-lg">Today's Tasks</h2>
+                                @*<a href="@Url.Action("Create")" id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+                                <i class="fas fa-plus"></i> Add New Todo
+                            </a>*@
+                            </div>
+
+                            <!-- Running Task List (Table) -->
+                            <div class="overflow-x-auto">
+                                <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                                    <thead>
+                                        <tr>
+                                            <th class="p-2 text-left text-gray-600">Task Id</th>
+                                            <th class="p-2 text-left text-gray-600">Task Name</th>
+                                            <th class="p-2 text-left text-gray-600">Priority</th>
+                                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                            <th class="p-2 text-left text-gray-600">Due Date</th>
+                                            <th class="p-2 text-left text-gray-600">Actions</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+
+
+                    </section>
+
+                    <!-- not-started task section -->
+                    <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+                        <!-- Completed Tasks Section -->
+                        <div class="mb-8">
+
+                            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
+                                <h2 id="CompletedTodoHeadId" class="mb-4 text-xl font-semibold text-gray-700">Today's Completed Tasks</h2>
+                            </div>
+
+                            <!-- Completed Task List (Table) -->
+                            <div class="overflow-x-auto">
+                                <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                                    <thead>
+                                        <tr>
+                                            <th class="p-2 text-left text-gray-600">Task Id</th>
+                                            <th class="p-2 text-left text-gray-600">Task Name</th>
+                                            <th class="p-2 text-left text-gray-600">Priority</th>
+                                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                            <th class="p-2 text-left text-gray-600">Due Date</th>
+                                            <th class="p-2 text-left text-gray-600">Actions</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+
+
+
+            </div>
+            @*
             <!-- Board 1 Tab -->
             <div id="board1" class="tab-content @(ViewBag.tabName == "board1"? "" : "hidden")">
                 <div class="mb-4">
@@ -261,14 +393,14 @@
             <div id="create" class="tab-content @(ViewBag.tabName == "create"? "" : "hidden")">
                 <h2 class="mb-4 text-2xl font-semibold">Create Board</h2>
                 <p class="text-gray-600">Use this section to create a new board.</p>
-            </div>
+            </div> *@
         </div>
     </div>
     <!-- Goals Section -->
     @if (Model.GoalLists != null && Model?.GoalLists?.Count() > 0)
     {
         <div class="mb-12">
-            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Tasks</h2>
+            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
             <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @{
 
@@ -352,17 +484,19 @@
 
 @section Scripts
 {
-@* DataTable *@
+    @* DataTable *@
     <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-@* sweetalert *@
+    @* sweetalert *@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-@* Client side Script *@
+    @* Client side Script *@
     <script src="~/js/sweetAlertScript.js"></script>
     <script src="~/js/utils.js"></script>
     <script src="~/js/taskScript.js"></script>
     <script src="~/js/notesScript.js"></script>
+    <script src="~/js/todoScript.js"></script>
 
 
     <!-- PrismJS Core -->
@@ -448,59 +582,59 @@
         // });
 
         // Task Growth Ratio Line Chart
-        var ctx1 = document.getElementById('taskGrowthChart').getContext('2d');
-        var taskGrowthChart = new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                datasets: [{
-                    label: 'Task Growth',
-                    data: [12, 19, 3, 5, 2, 3, 9],
-                    borderColor: '#4CAF50',
-                    borderWidth: 2,
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        // var ctx1 = document.getElementById('taskGrowthChart').getContext('2d');
+        // var taskGrowthChart = new Chart(ctx1, {
+        //     type: 'line',
+        //     data: {
+        //         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        //         datasets: [{
+        //             label: 'Task Growth',
+        //             data: [12, 19, 3, 5, 2, 3, 9],
+        //             borderColor: '#4CAF50',
+        //             borderWidth: 2,
+        //             fill: false
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         maintainAspectRatio: false,
+        //         scales: {
+        //             y: {
+        //                 beginAtZero: true
+        //             }
+        //         }
+        //     }
+        // });
 
-        // Donut Chart for Goal Contribution
-        var ctx2 = document.getElementById('goalPieChart').getContext('2d');
-        var goalPieChart = new Chart(ctx2, {
-            type: 'doughnut',
-            data: {
-                labels: ['Goal 1', 'Goal 2', 'Goal 3'],
-                datasets: [{
-                    data: [40, 30, 30],
-                    backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '60%', // Converts pie chart into a donut chart
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
+        // // Donut Chart for Goal Contribution
+        // var ctx2 = document.getElementById('goalPieChart').getContext('2d');
+        // var goalPieChart = new Chart(ctx2, {
+        //     type: 'doughnut',
+        //     data: {
+        //         labels: ['Goal 1', 'Goal 2', 'Goal 3'],
+        //         datasets: [{
+        //             data: [40, 30, 30],
+        //             backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
+        //             hoverOffset: 8
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         maintainAspectRatio: false,
+        //         cutout: '60%', // Converts pie chart into a donut chart
+        //         plugins: {
+        //             legend: {
+        //                 position: 'bottom'
+        //             }
+        //         }
+        //     }
+        // });
 
-        // Optional: Resize charts on window resize
-        window.addEventListener("resize", function () {
-            taskGrowthChart.resize();
-            goalPieChart.resize();
-        });
+        // // Optional: Resize charts on window resize
+        // window.addEventListener("resize", function () {
+        //     taskGrowthChart.resize();
+        //     goalPieChart.resize();
+        // });
 
     </script>
 

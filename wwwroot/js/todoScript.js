@@ -99,6 +99,12 @@
 
         const pageLength = localStorage.getItem(pageLengthKey);
 
+        const taskId = getTaskIdFromTaskDetailPage();
+
+        if (taskId) {
+            url = url + "?taskId=" + taskId;
+        }
+
         return {
             ajax: {
                 url,
@@ -208,8 +214,6 @@
             todoCompletedDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.completedTodo));
 
             todoCompletedDataTable.on('length.dt', function (e, settings, len) {
-                console.log('todoCompletedDataTable page length: ' + len);
-
                 localStorage.setItem(pageLengthValue.completedTodo, len);
             });
         }
@@ -219,23 +223,26 @@
     loadCompletedTaskData();
 
     function formatDate(date, formatType = "long") {
-        let today = new Date();
-        let yesterday = new Date();
-        yesterday.setDate(today.getDate() - 1);
+        const today = new Date();
+        const inputDate = new Date(date);
 
-        let dayDifference = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+        // Reset hours, minutes, seconds, ms to compare only the date
+        today.setHours(0, 0, 0, 0);
+        inputDate.setHours(0, 0, 0, 0);
+
+        const dayDifference = Math.floor((today - inputDate) / (1000 * 60 * 60 * 24));
 
         if (formatType === "short") {
-            return date.toISOString().split('T')[0];
+            return inputDate.toISOString().split('T')[0];
         }
 
         if (dayDifference === 0) return "Today";
         if (dayDifference === 1) return "Yesterday";
         if (dayDifference < 7) {
-            return date.toLocaleDateString('en-US', { weekday: 'long' });
+            return inputDate.toLocaleDateString('en-US', { weekday: 'long' });
         }
 
-        return date.toLocaleDateString('en-US', {
+        return inputDate.toLocaleDateString('en-US', {
             weekday: 'long',
             day: "numeric",
             month: "long",
@@ -248,22 +255,37 @@
         $("#selectedDate").text(formatDate(selectedDate));
 
         datePicker.setDate(selectedDate, false);
-
         if (formatDate(selectedDate) == "Today") {
+            $("#CompletedTodoHeadId").html("Today's Completed Tasks");
+            $("#RunningOrMissingHeadId").html("Today's Tasks");
+            $("#todoSections").removeClass("flex-col-reverse");
             return nextBtn.prop("disabled", true).removeClass("bg-indigo-600").addClass("bg-gray-500");
         }
+
+        $("#CompletedTodoHeadId").html("Completed Tasks");
+        $("#RunningOrMissingHeadId").html("Missed Tasks");
+        $("#todoSections").addClass("flex-col-reverse");
 
         nextBtn.prop("disabled", false).addClass("bg-indigo-600").removeClass("bg-gray-500");
     }
 
     function handelUpdateTodoProductivity(date) {
+
+        var url = `/Todo/GetTodoProgressAnalyses?forDate=${date}`;
+
+        const taskId = getTaskIdFromTaskDetailPage();
+
+        if (taskId) {
+            url = url + "&taskId=" + taskId;
+        }
+
+
         $.ajax({
-            url: `/Todo/GetTodoProgressAnalyses?forDate=${date}`,
+            url,
             method: "POST",
             success: function (response) {
                 if (response.status) {
                     const { productivityForDay, totalCompletedTodo, totalMissedTodo, totalTodo } = response.data;
-
                     completedTodoTaskCount.html(totalCompletedTodo);
                     runningTodoTaskCount.html(totalMissedTodo);
                     totalTodoTaskCount.html(totalTodo);
@@ -289,8 +311,14 @@
     }
 
     function fetchTasksByDate(date) {
-        $("#viewRunningTodoTableData").DataTable().ajax.url(`/Todo/GetRunningTodo?selectDate=${date}`).load();
-        $("#viewCompletedTodoTableData").DataTable().ajax.url(`/Todo/GetCompletedTodo?selectDate=${date}`).load();
+        const taskId = getTaskIdFromTaskDetailPage();
+        if (taskId) {
+            $("#viewRunningTodoTableData").DataTable().ajax.url(`/Todo/GetRunningTodo?selectDate=${date}&taskId=${taskId}`).load();
+            $("#viewCompletedTodoTableData").DataTable().ajax.url(`/Todo/GetCompletedTodo?selectDate=${date}&taskId=${taskId}`).load();
+        } else {
+            $("#viewRunningTodoTableData").DataTable().ajax.url(`/Todo/GetRunningTodo?selectDate=${date}`).load();
+            $("#viewCompletedTodoTableData").DataTable().ajax.url(`/Todo/GetCompletedTodo?selectDate=${date}`).load();
+        }
         handelUpdateTodoProductivity(date);
     }
 
@@ -309,5 +337,22 @@
 
     // Initialize display on load
     updateDateDisplay();
+
+    function getTaskIdFromTaskDetailPage() {
+        var path = window.location.pathname || "";
+        var parts = path.split("/").filter(Boolean); // remove empty segments
+
+        var detailsIndex = parts.indexOf("Details");
+
+        if (detailsIndex !== -1 && parts.length > detailsIndex + 1) {
+            var idCandidate = parts[detailsIndex + 1];
+
+            if (/^\d+$/.test(idCandidate)) {
+                return idCandidate; // return as string
+            }
+        }
+
+        return ""; // fallback if not found
+    }
 });
 

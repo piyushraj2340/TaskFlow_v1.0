@@ -17,6 +17,8 @@ namespace TaskMonitoringApp.Models.ViewModel
         public IEnumerable<NoteDTOWithGoalDTO> NotesLists { get; set; }
 
         public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
+
+        public TaskProductivityDTO TaskProductivity { get; set; }
     }
 
     public class GoalWithTaskNameListViewModel : GoalViewModel
