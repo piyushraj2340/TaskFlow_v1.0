@@ -99,6 +99,73 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             };
         }
 
+        public async Task<IEnumerable<T>> GetAllTodoAsync<T>(string userId, int taskId, Status status, ResponseDataMode mode) where T : class
+        {
+            var selectDate = DateTime.Now;
+
+            return mode switch
+            {
+                ResponseDataMode.Model => await _context.Todo
+                    .Where(todo => todo.UserId == userId && todo.TaskId == taskId && todo.CreatedOn >= selectDate.Date && todo.CreatedOn < selectDate.AddDays(1).Date && todo.Status == status && !todo.IsDeleted)
+                    .ToListAsync() as IEnumerable<T>
+                    ?? throw new NotFoundException("Todo Data Not Found!"),
+                ResponseDataMode.ModelDTO => await _context.Todo
+                        .Where(todo => todo.UserId == userId && todo.TaskId == taskId && todo.CreatedOn >= selectDate.Date && todo.CreatedOn < selectDate.AddDays(1).Date && todo.Status == status && !todo.IsDeleted)
+                        .Include(todo => todo.Task)
+                        .Select(todo => new TodoDTOWithTaskDTO()
+                        {
+                            Id = todo.Id,
+                            EndDate = todo.EndDate,
+                            Status = todo.Status,
+                            TaskId = todo.TaskId,
+                            UserId = todo.UserId,
+                            TaskName = todo.Task.Name,
+                            TaskDescription = todo.Task.Description,
+                            TaskRepeat = todo.Task.Repeat,
+                            TaskRepeatWeekList = todo.Task.RepeatWeekList,
+                            TaskPriority = todo.Task.Priority,
+                            TaskEndDate = todo.Task.EndDate,
+                            TaskStatus = todo.Task.TaskStatus
+
+                        }).ToListAsync() as IEnumerable<T>
+                            ?? throw new NotFoundException("Todo Data Not Found!"),
+                _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
+            };
+        }
+
+        public async Task<IEnumerable<T>> GetAllTodoAsync<T>(string userId, int taskId, Status status, DateTime selectDate, ResponseDataMode mode) where T : class
+        {
+
+            return mode switch
+            {
+                ResponseDataMode.Model => await _context.Todo
+                    .Where(todo => todo.UserId == userId && todo.TaskId == taskId && todo.CreatedOn >= selectDate.Date && todo.CreatedOn < selectDate.AddDays(1).Date && todo.Status == status && !todo.IsDeleted)
+                    .ToListAsync() as IEnumerable<T>
+                    ?? throw new NotFoundException("Todo Data Not Found!"),
+                ResponseDataMode.ModelDTO => await _context.Todo
+                        .Where(todo => todo.UserId == userId && todo.TaskId == taskId && todo.CreatedOn >= selectDate.Date && todo.CreatedOn < selectDate.AddDays(1).Date && todo.Status == status && !todo.IsDeleted)
+                        .Include(todo => todo.Task)
+                        .Select(todo => new TodoDTOWithTaskDTO()
+                        {
+                            Id = todo.Id,
+                            EndDate = todo.EndDate,
+                            Status = todo.Status,
+                            TaskId = todo.TaskId,
+                            UserId = todo.UserId,
+                            TaskName = todo.Task.Name,
+                            TaskDescription = todo.Task.Description,
+                            TaskRepeat = todo.Task.Repeat,
+                            TaskRepeatWeekList = todo.Task.RepeatWeekList,
+                            TaskPriority = todo.Task.Priority,
+                            TaskEndDate = todo.Task.EndDate,
+                            TaskStatus = todo.Task.TaskStatus
+
+                        }).ToListAsync() as IEnumerable<T>
+                            ?? throw new NotFoundException("Todo Data Not Found!"),
+                _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
+            };
+        }
+
         // Todo: Need to test this methods....
         public async Task<IEnumerable<T>> GetAllTodoWithStatusByGoalId<T>(string userId, int goalId, Status todoStatus, ResponseDataMode mode) where T : class
         {
@@ -324,6 +391,34 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 default: throw new InvalidOperationException("Invalid Operations While Fetching Todo Analyses Data.");
             };
         }
+
+        public async Task<TodoProgressAnalysisDTO> GetTodoProgressAnalysesAsync(string userId, int taskId)
+        {
+            var totalTodos = await _context.Todo.CountAsync(t => t.TaskId == taskId && t.UserId == userId);
+            var completedTodos = await _context.Todo.CountAsync(t => t.TaskId == taskId && t.UserId == userId && t.Status == Status.Completed);
+
+            double productivity = 0d;
+
+            if (totalTodos > 0)
+            {
+                productivity = Math.Round((double)completedTodos / totalTodos * 100, 2);
+            }
+
+            var data = new TodoProgressAnalysisDTO
+            {
+                TotalTodo = totalTodos,
+                TotalCompletedTodo = completedTodos,
+                TotalMissedTodo = totalTodos - completedTodos,
+                ProductivityForDay = productivity,
+                CalculateDateFor = DateTime.Today,
+                UserId = userId
+            };
+
+
+
+            return data;
+        }
+
 
         // todo need to implement this metods....
         public async Task UpdateTodoStatusAsync(string userId, int todoId, Status statusToChange)

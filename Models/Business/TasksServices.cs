@@ -12,7 +12,7 @@ namespace TaskMonitoringApp.Models.Business
         private readonly ITaskRepository _taskRepository = taskRepository;
         private readonly IGoalRepository _goalRepository = goalRepository;
         private readonly IMapper _mapper = mapper;
-        
+
         public async Task AddNewTask(string userId, TaskDTO task, string goalIds)
         {
             var UserId = task.UserId ?? throw new ArgumentNullException(nameof(task.UserId), "UserId Is Required!.");
@@ -31,11 +31,11 @@ namespace TaskMonitoringApp.Models.Business
 
             if (task.StartDate >= task.EndDate)
             {
-                throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(task.EndDate));   
+                throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(task.EndDate));
             }
 
             await _taskRepository.AddTasksAsync(userId, task, goalIds);
-            }
+        }
 
         public async Task DeleteTask(string userId, int Id)
         {
@@ -50,7 +50,7 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalId(string userId, int goalId, Status taskStatus)
         {
-            return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId,goalId, taskStatus, ResponseDataMode.ModelDTO);
+            return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId, goalId, taskStatus, ResponseDataMode.ModelDTO);
         }
 
         public async Task<TaskDTOWithGoalListDTO> GetAllGoalsWithStatusAndTask(string userId, int taskId, Status goalStatus)
@@ -66,7 +66,7 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<TaskDTOWithGoalNameListDTO> GetAllGoalNamesWithStatusAndTask(string userId, int taskId, Status goalStatus)
         {
-            var task = await _taskRepository.GetTasksByIdAsync<TaskDTO>(userId, taskId,ResponseDataMode.ModelDTO);
+            var task = await _taskRepository.GetTasksByIdAsync<TaskDTO>(userId, taskId, ResponseDataMode.ModelDTO);
             var goals = await _goalRepository.GetAllGoalsWithStatusByTaskId<GoalNameDTO>(userId, taskId, goalStatus, ResponseDataMode.ModelNameDTO);
 
             var taskWithGoals = _mapper.Map<TaskDTOWithGoalNameListDTO>(task);
@@ -183,7 +183,7 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task UpdateTaskStatus(string userId, int taskId, Status statusToChange)
         {
-            await _taskRepository.UpdateTaskStatusAsync(userId,taskId, statusToChange);
+            await _taskRepository.UpdateTaskStatusAsync(userId, taskId, statusToChange);
         }
 
         public async Task<int> GetTaskCountByTaskStatus(string userId, Status status)
@@ -196,72 +196,150 @@ namespace TaskMonitoringApp.Models.Business
             return await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, status, from, end);
         }
 
+        public async Task<int> GetTaskCountByTaskStatus(string userId, int goalId, Status status)
+        {
+            return await _taskRepository.GetTaskCountByTaskStatus(userId, status);
+        }
+
+        public async Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string userId, int goalId, Status status, DateTime from, DateTime end)
+        {
+            return await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, status, from, end);
+        }
+
         public async Task<TaskProductivityDTO> GetTaskProductivity(string userId)
         {
             int runningTask = await _taskRepository.GetTaskCountByTaskStatus(userId, Status.Running);
 
-            // over all productivity...
+            // Overall productivity...
             int endTaskCount = await _taskRepository.GetTaskCountByTaskStatus(userId, Status.Ended);
             int completedTaskCount = await _taskRepository.GetTaskCountByTaskStatus(userId, Status.Completed);
 
-            // Ensure that the division happens with floating-point precision
-            double productivity = (((double)completedTaskCount / (endTaskCount + completedTaskCount)) * 100);
-
-            // Round to 2 decimal places
+            double productivity = 0;
+            int totalOverall = endTaskCount + completedTaskCount;
+            if (totalOverall > 0)
+            {
+                productivity = ((double)completedTaskCount / totalOverall) * 100;
+            }
             productivity = Math.Round(productivity, 2);
 
 
-
-
-            // Calculating the previous week productivity....
+            // Previous week productivity...
             int endTaskPreviousWeekCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
             int completedPreviousWeekTaskCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
 
-            // Ensure that the division happens with floating-point precision
-            double productivityPreviousWeek = (((double)completedPreviousWeekTaskCount / (endTaskPreviousWeekCount + completedPreviousWeekTaskCount)) * 100);
-
-            // Round to 2 decimal places
+            double productivityPreviousWeek = 0;
+            int totalPreviousWeek = endTaskPreviousWeekCount + completedPreviousWeekTaskCount;
+            if (totalPreviousWeek > 0)
+            {
+                productivityPreviousWeek = ((double)completedPreviousWeekTaskCount / totalPreviousWeek) * 100;
+            }
             productivityPreviousWeek = Math.Round(productivityPreviousWeek, 2);
 
-            // if the completed and ended task is zero then 0 productivity...
-            if (endTaskPreviousWeekCount + completedPreviousWeekTaskCount == 0)
-            {
-                productivityPreviousWeek = 0;
-            }
 
-
-            // Calculating the current week productivity....
+            // Current week productivity...
             int endTaskCurrentWeekCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
             int completedCurrentWeekTaskCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
 
-            // Ensure that the division happens with floating-point precision
-            double productivityCurrent = (((double)completedCurrentWeekTaskCount / (endTaskCurrentWeekCount + completedCurrentWeekTaskCount)) * 100);
-
-            // Round to 2 decimal places
+            double productivityCurrent = 0;
+            int totalCurrentWeek = endTaskCurrentWeekCount + completedCurrentWeekTaskCount;
+            if (totalCurrentWeek > 0)
+            {
+                productivityCurrent = ((double)completedCurrentWeekTaskCount / totalCurrentWeek) * 100;
+            }
             productivityCurrent = Math.Round(productivityCurrent, 2);
 
-            // if the completed and ended task is zero then 0 productivity...
-            if (endTaskCurrentWeekCount + completedCurrentWeekTaskCount == 0)
+
+            // Growth percentage...
+            double growthPercentage = 0;
+            if (productivityPreviousWeek > 0)
             {
-                productivityCurrent = 0;
+                growthPercentage = ((productivityCurrent - productivityPreviousWeek) / productivityPreviousWeek) * 100;
+            }
+            else if (productivityCurrent > 0)
+            {
+                growthPercentage = 100.0d;
             }
 
-            double growthPercentage = ((double)((productivityCurrent - productivityPreviousWeek) / productivityPreviousWeek) * 100);
-
-
-            // Round to 2 decimal places
             growthPercentage = Math.Round(growthPercentage, 2);
 
-
-            // if the previous groth percentage is 0 then 100% groth..
-            if (productivityPreviousWeek == 0)
-            {
-                growthPercentage = 100.00d;
-            }
+            // Handle NaN / Infinity safety
+            if (double.IsNaN(productivity)) productivity = 0;
+            if (double.IsNaN(productivityPreviousWeek)) productivityPreviousWeek = 0;
+            if (double.IsNaN(productivityCurrent)) productivityCurrent = 0;
+            if (double.IsNaN(growthPercentage) || double.IsInfinity(growthPercentage)) growthPercentage = 0;
 
             TaskProductivityDTO taskProductivity = new TaskProductivityDTO(productivity, runningTask, completedTaskCount, growthPercentage);
 
             return taskProductivity;
         }
+
+
+        public async Task<TaskProductivityDTO> GetTaskProductivity(string userId, int goalId)
+        {
+            int runningTask = await _taskRepository.GetTaskCountByTaskStatus(userId, goalId, Status.Running);
+
+            // Overall productivity...
+            int endTaskCount = await _taskRepository.GetTaskCountByTaskStatus(userId, goalId, Status.Ended);
+            int completedTaskCount = await _taskRepository.GetTaskCountByTaskStatus(userId, goalId, Status.Completed);
+
+            double productivity = 0;
+            int totalOverall = endTaskCount + completedTaskCount;
+            if (totalOverall > 0)
+            {
+                productivity = ((double)completedTaskCount / totalOverall) * 100;
+            }
+            productivity = Math.Round(productivity, 2);
+
+
+            // Previous week productivity...
+            int endTaskPreviousWeekCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, goalId, Status.Ended, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+            int completedPreviousWeekTaskCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, goalId, Status.Completed, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+
+            double productivityPreviousWeek = 0;
+            int totalPreviousWeek = endTaskPreviousWeekCount + completedPreviousWeekTaskCount;
+            if (totalPreviousWeek > 0)
+            {
+                productivityPreviousWeek = ((double)completedPreviousWeekTaskCount / totalPreviousWeek) * 100;
+            }
+            productivityPreviousWeek = Math.Round(productivityPreviousWeek, 2);
+
+
+            // Current week productivity...
+            int endTaskCurrentWeekCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, goalId, Status.Ended, DateTime.Now.AddDays(-7), DateTime.Now);
+            int completedCurrentWeekTaskCount = await _taskRepository.GetTaskCountByTaskStatusAndDateTimeRange(userId, goalId, Status.Completed, DateTime.Now.AddDays(-7), DateTime.Now);
+
+            double productivityCurrent = 0;
+            int totalCurrentWeek = endTaskCurrentWeekCount + completedCurrentWeekTaskCount;
+            if (totalCurrentWeek > 0)
+            {
+                productivityCurrent = ((double)completedCurrentWeekTaskCount / totalCurrentWeek) * 100;
+            }
+            productivityCurrent = Math.Round(productivityCurrent, 2);
+
+
+            // Growth percentage...
+            double growthPercentage = 0;
+            if (productivityPreviousWeek > 0)
+            {
+                growthPercentage = ((productivityCurrent - productivityPreviousWeek) / productivityPreviousWeek) * 100;
+            }
+            else if (productivityCurrent > 0)
+            {
+                growthPercentage = 100.0d;
+            }
+
+            growthPercentage = Math.Round(growthPercentage, 2);
+
+            // Handle NaN / Infinity safety
+            if (double.IsNaN(productivity)) productivity = 0;
+            if (double.IsNaN(productivityPreviousWeek)) productivityPreviousWeek = 0;
+            if (double.IsNaN(productivityCurrent)) productivityCurrent = 0;
+            if (double.IsNaN(growthPercentage) || double.IsInfinity(growthPercentage)) growthPercentage = 0;
+
+            TaskProductivityDTO taskProductivity = new TaskProductivityDTO(productivity, runningTask, completedTaskCount, growthPercentage);
+
+            return taskProductivity;
+        }
+
     }
 }

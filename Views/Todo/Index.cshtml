@@ -73,74 +73,76 @@
         </div>
     </div>
 
-    <!-- running task Section -->
-    <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-        <!-- Task Heading with Actions -->
-        <!-- Running Tasks Section -->
-        <div class="mb-8">
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Today's Tasks</h2>
-                <a href="@Url.Action("Create")" id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+    <div id="todoSections" class="flex flex-col">
+        <!-- running task Section -->
+        <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+            <!-- Task Heading with Actions -->
+            <!-- Running Tasks Section -->
+            <div class="mb-8">
+                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
+                    <h2 id="RunningOrMissingHeadId" class="text-xl font-semibold text-gray-700 sm:text-lg">Today's Tasks</h2>
+                    @* <a href="@Url.Action("Create")" id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
                     <i class="fas fa-plus"></i> Add New Todo
-                </a>
+                </a> *@
+                </div>
+
+                <!-- Running Task List (Table) -->
+                <div class="overflow-x-auto">
+                    <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                        <thead>
+                            <tr>
+                                <th class="p-2 text-left text-gray-600">Task Id</th>
+                                <th class="p-2 text-left text-gray-600">Task Name</th>
+                                <th class="p-2 text-left text-gray-600">Priority</th>
+                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                <th class="p-2 text-left text-gray-600">Due Date</th>
+                                <th class="p-2 text-left text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
 
-            <!-- Running Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Task Id</th>
-                            <th class="p-2 text-left text-gray-600">Task Name</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+
+        </section>
+
+        <!-- not-started task section -->
+        <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+            <!-- Completed Tasks Section -->
+            <div class="mb-8">
+
+                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
+                    <h2 id="CompletedTodoHeadId" class="mb-4 text-xl font-semibold text-gray-700">Completed Today's Tasks</h2>
+                </div>
+
+                <!-- Completed Task List (Table) -->
+                <div class="overflow-x-auto">
+                    <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                        <thead>
+                            <tr>
+                                <th class="p-2 text-left text-gray-600">Task Id</th>
+                                <th class="p-2 text-left text-gray-600">Task Name</th>
+                                <th class="p-2 text-left text-gray-600">Priority</th>
+                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                <th class="p-2 text-left text-gray-600">Due Date</th>
+                                <th class="p-2 text-left text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
-        </div>
-
-
-    </section>
-
-    <!-- not-started task section -->
-    <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-        <!-- Completed Tasks Section -->
-        <div class="mb-8">
-
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="mb-4 text-xl font-semibold text-gray-700">Completed Today's Tasks</h2>
-            </div>
-
-            <!-- Completed Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Task Id</th>
-                            <th class="p-2 text-left text-gray-600">Task Name</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-        </div>
-    </section>
+        </section>
+    </div>
 
     @section Scripts
     {
-    @* DataTable *@
+        @* DataTable *@
         <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-    @* sweetalert *@
+        @* sweetalert *@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @* Client side Script *@
+        @* Client side Script *@
         <script src="~/js/sweetAlertScript.js"></script>
         <script src="~/js/utils.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

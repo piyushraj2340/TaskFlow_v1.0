@@ -25,6 +25,14 @@ namespace TaskMonitoringApp.Models.Services
 
         Task<TaskDTOWithGoalNameListDTO> GetAllGoalNamesWithStatusAndTask(string userId, int taskId, Status goalStatus);
 
-        Task<TaskProductivityDTO> GetTaskProductivity(string UserId); 
+        Task<TaskProductivityDTO> GetTaskProductivity(string UserId);
+
+        Task<TaskProductivityDTO> GetTaskProductivity(string UserId, int goalId);
+        Task<int> GetTaskCountByTaskStatus(string userId, Status status);
+        Task<int> GetTaskCountByTaskStatus(string userId, int goalId, Status status);
+
+        Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string userId, int goalId, Status status, DateTime from, DateTime end);
+        Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string userId, Status status, DateTime from, DateTime end);
+
     }
 }

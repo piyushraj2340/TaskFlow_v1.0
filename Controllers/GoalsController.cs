@@ -16,19 +16,21 @@ namespace TaskMonitoringApp.Controllers
     [Authorize]
     public class GoalsController : Controller
     {
+        private readonly ITaskServices _taskService;
         private readonly IGoalServices _goalService;
         private readonly INotesServices _noteService;
         private readonly ILogger<HomeController> _logger;
         private readonly IMapper _mapper;
         private readonly UserManager<Users> _userManager;
 
-        public GoalsController(ILogger<HomeController> logger, IGoalServices goalService, INotesServices noteService, IMapper mapper, UserManager<Users> userManager)
+        public GoalsController(ILogger<HomeController> logger, IGoalServices goalService, INotesServices noteService, IMapper mapper, UserManager<Users> userManager, ITaskServices taskService)
         {
             _goalService = goalService;
             _noteService = noteService;
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
+            _taskService = taskService;
         }
 
         public async Task<IActionResult> Index()
@@ -111,13 +113,16 @@ namespace TaskMonitoringApp.Controllers
                 return NotFound();
             }
 
+            TaskProductivityDTO productivity = await _taskService.GetTaskProductivity(userId, Id);
+
+
 
             ViewBag.tabName = tabName;
 
             var notesList = await _noteService.GetAllNotesByGoalId(userId, Id, Status.All);
             var goalWithNoteList = _mapper.Map<GoalWithNotesAndTaskNameListViewModel>(goal);
             goalWithNoteList.NotesLists = notesList;
-
+            goalWithNoteList.TaskProductivity = productivity;
 
             return View(goalWithNoteList);
             // TODO: Create a view model for the notes and GoalWithTaskNameList

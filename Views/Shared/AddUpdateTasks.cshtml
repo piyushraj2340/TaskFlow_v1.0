@@ -71,7 +71,7 @@
         </div>
 
         <!-- Filtered Goals List (Initially hidden) -->
-        <ul id="filteredGoalsList" class="custom-scrollbar absolute hidden max-h-60 w-full divide-y divide-gray-200 overflow-y-auto rounded bg-white shadow-md">
+        <ul id="filteredGoalsList" class="custom-scrollbar absolute hidden max-h-60 w-full divide-y divide-gray-200 overflow-y-auto rounded bg-white shadow-md z-50">
             <!-- Dynamically populated list items -->
         </ul>
     </div>
@@ -90,6 +90,7 @@
             <option value="0">Run Once</option>
             <option value="1">Daily</option>
             <option value="2">Weekly</option>
+            <option value="3">No Repeat</option>
         </select>
         <span asp-validation-for="Repeat" class="text-sm text-red-500"></span>
     </div>
