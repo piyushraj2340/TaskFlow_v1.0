@@ -1,0 +1,19 @@
+﻿<div id="todoNotesModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-800 bg-opacity-50 transition-opacity duration-300 ease-in-out">
+    <div class="max-w-lg w-full bg-purple-100 rounded-lg shadow-xl p-6 relative transform scale-90 transition-transform duration-300 ease-in-out">
+        <!-- Close Button (top right) -->
+        <button id="closeTodoNotesModalBtn" class="absolute top-2 right-2 text-purple-700 hover:text-purple-500 text-3xl font-bold transition duration-200" title="Close">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Modal Title -->
+        <h2 class="text-2xl font-semibold text-purple-700 mb-4">Add / Update Notes</h2>
+
+        <!-- Textarea -->
+        <textarea id="todoNotesTextarea" class="w-full bg-purple-50 border border-purple-300 rounded-lg p-4 mb-4 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200" rows="6" placeholder="Write your note here..."></textarea>
+
+        <!-- Button Row -->
+        <div class="flex justify-end">
+            <button id="saveTodoNotesBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200">Save Notes</button>
+        </div>
+    </div>
+</div>

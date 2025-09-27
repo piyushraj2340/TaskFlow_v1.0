@@ -7,6 +7,7 @@ namespace TaskMonitoringApp.Models.Entities
     public class Todo
     {
         public int Id { get; set; }
+        public string? Notes { get; set; } 
 
         public DateTime EndDate { get; set; } = DateTime.Now.AddDays(1).Date;
 

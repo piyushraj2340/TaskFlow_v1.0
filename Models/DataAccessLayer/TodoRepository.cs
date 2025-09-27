@@ -68,7 +68,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<IEnumerable<T>> GetAllTodoAsync<T>(string userId, Status status, DateTime selectDate, ResponseDataMode mode) where T : class
         {
-            
+
             return mode switch
             {
                 ResponseDataMode.Model => await _context.Todo
@@ -86,13 +86,14 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             TaskId = todo.TaskId,
                             UserId = todo.UserId,
                             TaskName = todo.Task.Name,
+                            Notes = todo.Notes,
                             TaskDescription = todo.Task.Description,
                             TaskRepeat = todo.Task.Repeat,
                             TaskRepeatWeekList = todo.Task.RepeatWeekList,
                             TaskPriority = todo.Task.Priority,
                             TaskEndDate = todo.Task.EndDate,
                             TaskStatus = todo.Task.TaskStatus
-                            
+
                         }).ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
@@ -119,6 +120,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             Status = todo.Status,
                             TaskId = todo.TaskId,
                             UserId = todo.UserId,
+                            Notes = todo.Notes,
                             TaskName = todo.Task.Name,
                             TaskDescription = todo.Task.Description,
                             TaskRepeat = todo.Task.Repeat,
@@ -153,6 +155,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             TaskId = todo.TaskId,
                             UserId = todo.UserId,
                             TaskName = todo.Task.Name,
+                            Notes = todo.Notes,
                             TaskDescription = todo.Task.Description,
                             TaskRepeat = todo.Task.Repeat,
                             TaskRepeatWeekList = todo.Task.RepeatWeekList,
@@ -218,7 +221,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         public async Task<IEnumerable<T>> GetAllTodoWithStatusByTaskId<T>(string userId, int taskId, Status todoStatus, ResponseDataMode mode) where T : class
         {
             return mode switch
-            { 
+            {
                 ResponseDataMode.Model => await _context.Todo
                     .Include(td => td.Task)
                     .Where(td => td.UserId == userId && td.IsDeleted == false && td.Status == todoStatus && td.Task.Id == taskId)
@@ -234,7 +237,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                         UserId = td.UserId,
                         EndDate = td.EndDate,
                         Status = td.Status,
-                        Task = new TaskDTO ()
+                        Task = new TaskDTO()
                         {
                             Id = td.Task.Id,
                             Name = td.Task.Name,
@@ -244,7 +247,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             Priority = td.Task.Priority,
                             Repeat = td.Task.Repeat,
                             RepeatWeekList = td.Task.RepeatWeekList,
-                            UserId =  td.Task.UserId
+                            UserId = td.Task.UserId
                         }
                     })
                     .AsSingleQuery()
@@ -254,37 +257,32 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             };
         }
 
-        // todo: need to test this methods......
-        public async Task<T> GetTodoByIdAsync<T>(string UserId, int Id, ResponseDataMode mode) where T: class
+        public async Task<T> GetTodoByIdAsync<T>(string UserId, int Id, ResponseDataMode mode) where T : class
         {
-            switch(mode)
+            switch (mode)
             {
                 case ResponseDataMode.Model:
-                    var modelData =  await _context.Todo
-                            .Include(td => td.Task)
+                    var modelData = await _context.Todo
                             .Where(td => td.UserId == UserId && td.Id == Id && td.IsDeleted == false)
-                            .AsSingleQuery()
-                            .ToListAsync() as IEnumerable<T>;
+                            .FirstOrDefaultAsync() as T;
 
-                    if(modelData == null)
+                    if (modelData == null)
                     {
                         throw new NotFoundException("Todo Data Not Found!");
                     }
 
-                    return modelData.FirstOrDefault()
-                        ?? throw new NotFoundException("Todo Data Not Found!");
+                    return modelData;
 
                 case ResponseDataMode.ModelDTO:
                     var modelDTOData = await _context.Todo
-                            .Include(td => td.Task)
                             .Where(td => td.UserId == UserId && td.Id == Id && td.IsDeleted == false)
-                            .AsSingleQuery()
                             .Select(td => new TodoDTO()
                             {
                                 Id = td.Id,
                                 EndDate = td.EndDate,
                                 Status = td.Status,
                                 UserId = td.UserId,
+                                Notes = td.Notes,
                                 TaskId = td.Task.Id,
                                 Task = new TaskDTO()
                                 {
@@ -299,15 +297,14 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                                     UserId = td.Task.UserId
                                 }
                             })
-                            .ToListAsync() as IEnumerable<T>;
+                            .FirstOrDefaultAsync() as T; 
 
                     if (modelDTOData == null)
                     {
                         throw new NotFoundException("Todo Data Not Found!");
                     }
 
-                    return modelDTOData.FirstOrDefault()
-                        ?? throw new NotFoundException("Todo Data Not Found!");
+                    return modelDTOData; 
 
                 default:
                     throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.");
@@ -333,18 +330,18 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             var userIdParam = new SqlParameter("@UserId", userId);
             var modeParam = new SqlParameter("@Mode", mode);
 
-            switch(mode)
+            switch (mode)
             {
-                case ResponseDataMode.Model :
+                case ResponseDataMode.Model:
                     var todayAnalysisModel = await _context.TodoProgressAnalyses
                         .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Not Found!");
 
                     return todayAnalysisModel.FirstOrDefault()
-                            ?? throw new NotFoundException("Todo Data Not Found!");;
+                            ?? throw new NotFoundException("Todo Data Not Found!"); ;
 
-                case ResponseDataMode.ModelDTO :
+                case ResponseDataMode.ModelDTO:
                     var todayAnalysisDTO = await _context.TodoProgressAnalysesDTO
                     .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
                     .ToListAsync() as IEnumerable<T>
@@ -353,13 +350,14 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                     return todayAnalysisDTO.FirstOrDefault()
                             ?? throw new NotFoundException("Todo Data Not Found!"); ;
 
-                default:  throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.");
-            };
+                default: throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.");
+            }
+            ;
         }
 
         public async Task<T> GetTodoProgressAnalysesAsync<T>(string userId, DateTime forDate, ResponseDataMode mode) where T : class
         {
-            switch (mode) 
+            switch (mode)
             {
                 case ResponseDataMode.Model:
                     var todayAnalysisModel = await _context.TodoProgressAnalyses
@@ -373,7 +371,8 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 case ResponseDataMode.ModelDTO:
                     var todayAnalysisDTO = await _context.TodoProgressAnalyses
                     .Where(tpa => tpa.UserId == userId && !tpa.IsDeleted && tpa.CalculateDateFor >= forDate.Date && tpa.CalculateDateFor < forDate.AddDays(1).Date)
-                    .Select(tpa => new TodoProgressAnalysisDTO() { 
+                    .Select(tpa => new TodoProgressAnalysisDTO()
+                    {
                         Id = tpa.Id,
                         CalculateDateFor = tpa.CalculateDateFor,
                         TotalTodo = tpa.TotalTodo,
@@ -389,7 +388,8 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             ?? throw new NotFoundException("Todo Analyses Data Not Found!"); ;
 
                 default: throw new InvalidOperationException("Invalid Operations While Fetching Todo Analyses Data.");
-            };
+            }
+            ;
         }
 
         public async Task<TodoProgressAnalysisDTO> GetTodoProgressAnalysesAsync(string userId, int taskId)
@@ -429,6 +429,16 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
             await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeTodoStatus @UserId, @TodoId, @StatusToUpdate", userIdParam, todoIdParam, statusToChangeParam)
                 .ToListAsync();
+        }
+
+        public async Task UpdateTodoNotesAsync(string userId, int todoId, string notes)
+        {
+            var todo = await _context.Todo.FirstOrDefaultAsync(t => t.UserId == userId && t.Id == todoId && !t.IsDeleted)
+                ?? throw new NotFoundException("Todo not found!");
+
+            todo.Notes = notes;
+            todo.UpdatedOn = DateTime.Now;
+            await _context.SaveChangesAsync();
         }
     }
 }

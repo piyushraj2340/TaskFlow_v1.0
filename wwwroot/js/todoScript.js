@@ -24,6 +24,7 @@
     const totalTodoTaskCount = $("#totalTodoTaskCount");
     const productivityTotoTaskPercentage = $("#productivityPercentageTodo");
 
+    const dayMap = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     let selectedDate = new Date();
 
@@ -66,19 +67,32 @@
         })
     }
 
-    todoRunningDataTable?.length && todoRunningDataTable.on("click", ".markAsCompleteToDoBtn", async function () {
-        const id = $(this).data("id");
-
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
-            return;
+    // Mark as complete with notes validation
+    $(document).on("click", ".markAsCompleteToDoBtn", function () {
+        const todoId = $(this).data("id");
+        // Get notes for this todo (from row data or via AJAX)
+        const row = $(this).closest("tr");
+        const notes = row.find(".notesCell").text().trim();
+        if (!notes) {
+            Swal.fire({
+                title: "No notes added!",
+                text: "Do you want to complete this todo without adding notes?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, complete",
+                cancelButtonText: "Add Notes"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    handelStatusChange({ Id: todoId, Status: todoStatusEnum.completed });
+                } else {
+                    // Open notes modal
+                    $(".addOrUpdateNotesBtn[data-id='" + todoId + "']").click();
+                }
+            });
+        } else {
+            handelStatusChange({ Id: todoId, Status: todoStatusEnum.completed });
         }
-
-        handelStatusChange({
-            Id: id,
-            Status: todoStatusEnum.completed
-        });
-    })
+    });
 
     todoCompletedDataTable?.length && todoCompletedDataTable.on("click", ".moveToRunningToDoBtn", async function () {
         const id = $(this).data("id");
@@ -155,6 +169,37 @@
                     }
                 },
                 {
+                    data: "notes",
+                    name: "notes",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+
+                        const noteHTML = data.replace(/\n/g, "<br />");
+                        const noteText = data.replace(/\n/g, " ");
+
+                        return `
+                            <div class="relative group inline-block max-w-xs" 
+                                 aria-label="Full Note: ${noteText}">
+            
+                                <div class="bg-yellow-100 text-yellow-800 p-1 rounded-md shadow-sm text-sm font-medium leading-snug line-clamp-3 overflow-hidden cursor-help border border-yellow-300 transition duration-150 ease-in-out hover:shadow-md">
+                                    ${noteHTML}
+                                </div>
+
+                                <div class="absolute z-[9999] hidden group-hover:block left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2  -mt-2 w-96 max-w-lg">
+                                    <div class="relative 
+                                                 bg-yellow-50 text-yellow-800 
+                                                 p-3 rounded-lg shadow-xl border border-yellow-300 
+                                                 text-sm max-h-[200px] overflow-auto">
+
+                                        ${noteHTML}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                },
+                {
                     data: null,
                     name: "Action",
                     defaultContent: "",
@@ -173,9 +218,14 @@
         let url = "/Todo/GetRunningTodo";
 
         function renderCallBack(data, type, row) {
+            const hasNotes = row.notes && row.notes.trim().length > 0;
+
             return `
+                <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 me-1 rounded bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
+                    <i class="fas fa-comment"></i> ${hasNotes ? "Update Notes" : "Add Notes"}
+                </button>
                 <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
+                    <i class="fas fa-edit"></i> Edit Task
                 </a>
                 <button data-id="${row.id}" class="markAsCompleteToDoBtn my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
                         <i class="fas fa-check"></i> Mark as Complete
@@ -188,8 +238,6 @@
             todoRunningDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.runningTodo));
 
             todoRunningDataTable.on('length.dt', function (e, settings, len) {
-                console.log('todoRunningDataTable page length: ' + len);
-
                 localStorage.setItem(pageLengthValue.runningTodo, len);
             });
         }
@@ -200,9 +248,14 @@
         let url = "/Todo/GetCompletedTodo";
 
         function renderCallBack(data, type, row) {
+            const hasNotes = row.notes && row.notes.trim().length > 0;
+
             return `
+                <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 me-1 rounded bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
+                    <i class="fas fa-comment"></i> ${hasNotes ? "Update Notes" : "Add Notes"}
+                </button>
                 <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
+                    <i class="fas fa-edit"></i> Edit Task
                 </a>
                 <button data-id="${row.id}" class="moveToRunningToDoBtn my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
                         <i class="fas fa-check"></i> Move to Running
@@ -355,5 +408,52 @@
 
         return ""; // fallback if not found
     }
+
+
+    // Modal logic
+    $(document).on("click", ".addOrUpdateNotesBtn", function () {
+        const todoId = $(this).data("id");
+        // Load notes via AJAX and show modal
+        $.get(`/Todo/GetTodoById?id=${todoId}`, function (response) {
+            $("#todoNotesModal").data("todoid", todoId);
+            $("#todoNotesTextarea").val(response.data.notes || "");
+            $("#todoNotesModal").removeClass("hidden").fadeIn();
+        });
+    });
+
+    // Save notes
+    $("#saveTodoNotesBtn").on("click", function () {
+        const todoId = $("#todoNotesModal").data("todoid");
+        const notes = $("#todoNotesTextarea").val();
+        $.post("/Todo/SaveTodoNotes", { todoId, notes }, function (response) {
+            if (response.status) {
+                todoRunningDataTable?.length && todoRunningDataTable.DataTable().ajax.reload();
+                todoCompletedDataTable?.length && todoCompletedDataTable.DataTable().ajax.reload();
+                $("#todoNotesModal").fadeOut();
+            } else {
+                alert(response.message);
+            }
+        });
+    });
+
+    // Close modal by button
+    $("#closeTodoNotesModalBtn").on("click", function () {
+        $("#todoNotesModal").fadeOut();
+    });
+
+    // Close modal by clicking outside the modal card
+    $("#todoNotesModal").on("click", function (e) {
+        // Only close if the click is on the overlay, not inside the modal card
+        if (e.target === this) {
+            $(this).fadeOut();
+        }
+    });
+
+    // Optional: close modal on ESC key
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape") {
+            $("#todoNotesModal").fadeOut();
+        }
+    });
 });
 
