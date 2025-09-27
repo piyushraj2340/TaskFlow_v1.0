@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using TaskMonitoringApp.Mappings;
 using TaskMonitoringApp.Middleware;
 using TaskMonitoringApp.Models.Business;
@@ -12,6 +13,12 @@ using TaskMonitoringApp.Models.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddScoped<IGoalServices, GoalServices>();
 builder.Services.AddScoped<IGoalRepository, GoalRepository>();
@@ -115,4 +122,16 @@ app.MapControllerRoute(
 
 app.MapControllers();  // API routes
 
-app.Run();
+try
+{
+    Log.Information("Application Starting Up");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "The application failed to start correctly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

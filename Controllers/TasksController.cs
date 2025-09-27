@@ -40,70 +40,75 @@ namespace TaskMonitoringApp.Controllers
 
         public async Task<IActionResult> Index()
         {
+            _logger.LogInformation("Entered Index action.");
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in Index.");
                 return RedirectToAction("Login", "Account");
             }
 
-
+            _logger.LogInformation("Fetching task productivity for user {UserId}.", userId);
             TaskProductivityDTO productivity = await _taskService.GetTaskProductivity(userId);
+            _logger.LogInformation("Fetched productivity for user {UserId}: {@Productivity}", userId, productivity);
             return View(productivity);
         }
 
         [Route("{controller}/{action}/{Id}/{tabName?}")]
         public async Task<IActionResult> Details(int Id, string? tabName)
         {
+            _logger.LogInformation("Entered Details with Id={Id}, tabName={TabName}", Id, tabName);
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in Details.");
                 return RedirectToAction("Login", "Account");
             }
 
-            var task = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
-
-            if (task == null)
+            try
             {
-                return NotFound();
+                var task = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
+
+                if (task == null)
+                {
+                    _logger.LogWarning("Task not found for Id={Id}, userId={UserId}", Id, userId);
+                    return NotFound();
+                }
+
+                ViewBag.tabName = tabName;
+
+                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All);
+                var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
+
+                var productivity = await _todoService.GetTodoProgressAnalyses(userId, Id);
+
+                taskWithNoteList.NotesLists = notesList;
+                taskWithNoteList.GoalLists = task.GoalLists;
+                taskWithNoteList.TodoProgress = productivity;
+
+                _logger.LogInformation("Returning details for task Id={Id}, userId={UserId}", Id, userId);
+                return View(taskWithNoteList);
             }
-
-
-            ViewBag.tabName = tabName;
-
-            var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All);
-            var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
-
-            var productivity = await _todoService.GetTodoProgressAnalyses(userId, Id);
-
-
-            taskWithNoteList.NotesLists = notesList;
-            taskWithNoteList.GoalLists = task.GoalLists;
-            taskWithNoteList.TodoProgress = productivity;
-
-
-
-            return View(taskWithNoteList);
-
-
-
-            //var task = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
-            //TaskViewModel taskDetail = _mapper.Map<TaskViewModel>(task);
-            //taskDetail.GoalLists = task.GoalLists;
-
-            //return View(taskDetail);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in Details for Id={Id}, userId={UserId}", Id, userId);
+                throw;
+            }
         }
 
         public async Task<IActionResult> Create(int? goalId)
         {
+            _logger.LogInformation("Entered Create with goalId={GoalId}", goalId);
             ViewBag.IsEditMode = false;
-            TempData["ReturnUrl"] = Request.Headers["Referer"].ToString(); // store the previous page that come from...
+            TempData["ReturnUrl"] = Request.Headers["Referer"].ToString();
 
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in Create.");
                 return RedirectToAction("Login", "Account");
             }
 
@@ -117,11 +122,13 @@ namespace TaskMonitoringApp.Controllers
                     emptyTask.GoalIds = goalId.Value.ToString();
                     emptyTask.GoalLists = new[] { goalName };
 
+                    _logger.LogInformation("Returning empty task for goalId={GoalId}, userId={UserId}", goalId, userId);
                     return View(emptyTask);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Exception in Create for goalId={GoalId}, userId={UserId}", goalId, userId);
                 throw;
             }
 
@@ -131,43 +138,42 @@ namespace TaskMonitoringApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([Bind("Name,Description,Repeat,RepeatWeekList,Priority,EndDate,TasksList,GoalIds,StartOptionType,StartDate")] TaskViewModel task)
         {
-                var userId = _userManager.GetUserId(User);
+            _logger.LogInformation("Entered Create (POST) with task={@Task}", task);
+            var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in Create (POST).");
                 return RedirectToAction("Login", "Account");
             }
-
-
 
             try
             {
                 ViewBag.IsEditMode = false;
                 var returnUrl = string.IsNullOrWhiteSpace(TempData["ReturnUrl"]?.ToString()) ? Url.Action("Index", "Home") : TempData["ReturnUrl"]?.ToString();
 
-
-                //Validations
+                // Validations
                 if (task.StartOptionType == StartOptions.Scheduled && task.StartDate == null)
                 {
                     ModelState.AddModelError("StartDate", "Start Date Must be required for scheduled!");
+                    _logger.LogWarning("Start date required for scheduled task creation.");
                 }
 
                 if (task.StartDate >= task?.EndDate?.Date)
                 {
                     ModelState.AddModelError("StartDate", "Oops! The end date cannot be before or the same as the start date. Please select a later date.");
+                    _logger.LogWarning("Invalid start and end date for task creation.");
                 }
 
                 if (DateTime.Now > task?.EndDate)
                 {
                     ModelState.AddModelError("EndDate", "The end date must be in the future.");
+                    _logger.LogWarning("End date must be in the future for task creation.");
                 }
-
 
                 if (ModelState.IsValid)
                 {
-
-                    _logger.LogInformation("Attempting to Add new Task: {TaskName}", task?.Name);
-
+                    _logger.LogInformation("Attempting to add new task: {TaskName}", task?.Name);
 
                     if (task?.StartOptionType == StartOptions.Immediate)
                     {
@@ -180,24 +186,22 @@ namespace TaskMonitoringApp.Controllers
                     }
 
                     var newTask = _mapper.Map<TaskDTO>(task);
-
                     newTask.UserId = userId;
 
                     await _taskService.AddNewTask(userId, newTask, task.GoalIds);
 
-                    // Log success after adding the product
                     _logger.LogInformation("Task '{TaskName}' successfully added with ID: {TaskID}", task.Name, task.Id);
-
                     return Redirect(returnUrl ?? "/");
-
                 }
             }
             catch (ArgumentException ae)
             {
+                _logger.LogWarning(ae, "Validation error in Create (POST) for task={@Task}", task);
                 ModelState.AddModelError("", !string.IsNullOrWhiteSpace(ae.Message) ? ae.Message : "Invalid Input Fields");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Exception in Create (POST) for task={@Task}", task);
                 throw;
             }
 
@@ -206,105 +210,129 @@ namespace TaskMonitoringApp.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
+            _logger.LogInformation("Entered Edit with id={Id}", id);
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in Edit.");
                 return RedirectToAction("Login", "Account");
             }
 
             ViewBag.IsEditMode = true;
-            TempData["ReturnUrl"] = Request.Headers["Referer"].ToString(); // store the previous page that come from...
+            TempData["ReturnUrl"] = Request.Headers["Referer"].ToString();
 
-            var taskToEdit = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, id, Status.All);
-            if (taskToEdit == null)
+            try
             {
-                return NotFound();
-            }
-            TaskViewModel taskViewModel = _mapper.Map<TaskViewModel>(taskToEdit);
-            taskViewModel.GoalLists = taskToEdit.GoalLists;
+                var taskToEdit = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, id, Status.All);
+                if (taskToEdit == null)
+                {
+                    _logger.LogWarning("Task not found for id={Id}, userId={UserId}", id, userId);
+                    return NotFound();
+                }
 
-            if (taskViewModel != null && taskViewModel.GoalLists != null)
+                TaskViewModel taskViewModel = _mapper.Map<TaskViewModel>(taskToEdit);
+                taskViewModel.GoalLists = taskToEdit.GoalLists;
+
+                if (taskViewModel != null && taskViewModel.GoalLists != null)
+                {
+                    taskViewModel.GoalIds = string.Join(",", taskViewModel.GoalLists.Select(gId => gId.Id));
+                }
+
+                _logger.LogInformation("Returning task for edit with id={Id}, userId={UserId}", id, userId);
+                return View(taskViewModel);
+            }
+            catch (Exception ex)
             {
-                taskViewModel.GoalIds = string.Join(",", taskViewModel.GoalLists.Select(gId => gId.Id));
+                _logger.LogError(ex, "Exception in Edit for id={Id}, userId={UserId}", id, userId);
+                throw;
             }
-
-            return View(taskViewModel);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Repeat,TaskStatus,RepeatWeekList,Priority,EndDate,TasksList,GoalIds,StartOptionType,StartDate")] TaskViewModel task)
         {
+            _logger.LogInformation("Entered Edit (POST) with id={Id}, task={@Task}", id, task);
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in Edit (POST).");
                 return RedirectToAction("Login", "Account");
             }
 
             if (id != task.Id)
             {
+                _logger.LogWarning("Task ID mismatch in Edit (POST). Expected: {ExpectedId}, Received: {ActualId}", task.Id, id);
                 return NotFound();
             }
+
             task.UserId = userId;
 
             ViewBag.IsEditMode = true;
             var returnUrl = string.IsNullOrWhiteSpace(TempData["ReturnUrl"]?.ToString()) ? Url.Action("Index", "Home") : TempData["ReturnUrl"]?.ToString();
 
-
-            //Validations
+            // Validations
             if (task.StartOptionType == StartOptions.Scheduled && task.StartDate == null)
             {
                 ModelState.AddModelError("StartDate", "Start Date Must be required for scheduled!");
+                _logger.LogWarning("Start date required for scheduled task edit.");
             }
 
             if (task.StartDate >= task?.EndDate?.Date)
             {
                 ModelState.AddModelError("StartDate", "Oops! The end date cannot be before or the same as the start date. Please select a later date.");
+                _logger.LogWarning("Invalid start and end date for task edit.");
             }
 
             if (DateTime.Now > task?.EndDate)
             {
                 ModelState.AddModelError("EndDate", "The end date must be in the future.");
+                _logger.LogWarning("End date must be in the future for task edit.");
             }
 
-
-            if (ModelState.IsValid) //Todo: check for this conditions 
+            if (ModelState.IsValid)
             {
-
-                _logger.LogInformation("Attempting to Update new Task: {TaskName}", task.Name);
-
-                if (task.StartOptionType == StartOptions.Immediate)
+                try
                 {
-                    task.IsScheduled = true;
-                    task.StartDate = DateTime.Now;
-                }
-                else if (task.StartOptionType == StartOptions.Scheduled)
-                {
-                    task.IsScheduled = true;
-                }
-                else if (task.StartOptionType == StartOptions.Manual)
-                {
-                    task.IsScheduled = false;
-                }
+                    _logger.LogInformation("Attempting to update task: {TaskName}", task.Name);
 
-                var taskDto = _mapper.Map<TaskDTO>(task);
-                taskDto.UserId = userId;
+                    if (task.StartOptionType == StartOptions.Immediate)
+                    {
+                        task.IsScheduled = true;
+                        task.StartDate = DateTime.Now;
+                    }
+                    else if (task.StartOptionType == StartOptions.Scheduled)
+                    {
+                        task.IsScheduled = true;
+                    }
+                    else if (task.StartOptionType == StartOptions.Manual)
+                    {
+                        task.IsScheduled = false;
+                    }
 
-                if (string.IsNullOrWhiteSpace(task.GoalIds))
-                {
-                    await _taskService.UpdateTask(userId, taskDto);
+                    var taskDto = _mapper.Map<TaskDTO>(task);
+                    taskDto.UserId = userId;
+
+                    if (string.IsNullOrWhiteSpace(task.GoalIds))
+                    {
+                        await _taskService.UpdateTask(userId, taskDto);
+                    }
+                    else
+                    {
+                        await _taskService.UpdateTask(userId, taskDto, task.GoalIds);
+                    }
+
+                    _logger.LogInformation("Task '{TaskName}' successfully updated with ID: {TaskID}", task.Name, task.Id);
+                    return Redirect(returnUrl ?? "/");
                 }
-                else
+                catch (Exception ex)
                 {
-                    await _taskService.UpdateTask(userId, taskDto, task.GoalIds);
+                    _logger.LogError(ex, "Exception in Edit (POST) for id={Id}, task={@Task}", id, task);
+                    throw;
                 }
-
-                // Log success after adding the product
-                _logger.LogInformation("Task '{TaskName}' successfully Updated with ID: {TaskID}", task.Name, task.Id);
-
-                return Redirect(returnUrl ?? "/");
             }
+
             return View(task);
         }
 
@@ -759,35 +787,62 @@ namespace TaskMonitoringApp.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteTask(int Id)
         {
+            _logger.LogInformation("Entered DeleteTask with Id={Id}", Id);
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in DeleteTask.");
                 return RedirectToAction("Login", "Account");
             }
 
-            await _taskService.DeleteTask(userId, Id);
-            return Json(new { status = true, message = $"Task with Id: ${Id} deleted successfully!." });
+            try
+            {
+                await _taskService.DeleteTask(userId, Id);
+                _logger.LogInformation("Task deleted for Id={Id}, userId={UserId}", Id, userId);
+                return Json(new { status = true, message = $"Task with Id: {Id} deleted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in DeleteTask for Id={Id}, userId={UserId}", Id, userId);
+                return Json(new { status = false, message = "Error occurred while deleting task." });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> ChangeTaskStatus(int Id, [Bind("Id,TaskStatus")] TaskStatusDTO taskUpdate)
         {
+            _logger.LogInformation("Entered ChangeTaskStatus with Id={Id}, TaskStatus={TaskStatus}", Id, taskUpdate.TaskStatus);
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
+                _logger.LogWarning("User not authenticated in ChangeTaskStatus.");
                 return RedirectToAction("Login", "Account");
             }
 
-            if (Id != taskUpdate.Id) return Json(new { status = false, message = "Invalid Parameter Id!" });
+            if (Id != taskUpdate.Id)
+            {
+                _logger.LogWarning("Invalid Parameter Id in ChangeTaskStatus. Expected: {ExpectedId}, Received: {ActualId}", taskUpdate.Id, Id);
+                return Json(new { status = false, message = "Invalid Parameter Id!" });
+            }
 
             if (ModelState.IsValid)
             {
-                await _taskService.UpdateTaskStatus(userId, taskUpdate.Id, taskUpdate.TaskStatus);
-                return Json(new { status = true, message = $"Task with Id {Id} Status change to Completed!" });
+                try
+                {
+                    await _taskService.UpdateTaskStatus(userId, taskUpdate.Id, taskUpdate.TaskStatus);
+                    _logger.LogInformation("Task status updated for Id={Id}, userId={UserId}, newStatus={TaskStatus}", Id, userId, taskUpdate.TaskStatus);
+                    return Json(new { status = true, message = $"Task with Id {Id} Status changed to {taskUpdate.TaskStatus}!" });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception in ChangeTaskStatus for Id={Id}, userId={UserId}", Id, userId);
+                    return Json(new { status = false, message = "Error occurred while changing task status." });
+                }
             }
 
+            _logger.LogWarning("ModelState invalid in ChangeTaskStatus for Id={Id}.", Id);
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
     }
