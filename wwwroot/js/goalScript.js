@@ -24,131 +24,203 @@
 
     // Running task...
     const runningGoalDataTable = $('#viewRunningGoalTableData');
-    // Compleated Task...
+    // Completed Task...
     const completedGoalDataTable = $('#viewCompletedGoalTableData');
     // Not Started Task...
     const notStartedGoalDataTable = $('#viewNotStartedGoalTableData');
-    // Not Started Task...
+    // Ended Task...
     const endedGoalDataTable = $('#viewEndedGoalTableData');
-    // Not Started Task...
+    // Deleted Task...
     const deletedGoalDataTable = $('#viewDeletedTableData');
 
-    // JavaScript to toggle goalModal visibility
-    const openModalButton = $("#openModalButton");
+    // Partial modal selectors (from Views/Shared/AddUpdateGoals.cshtml)
+    const $goalModal = $("#addEditGoalModal");
+    const $openModalButton = $("#openModalButton");
+    const $closeModalButton = $("#closeModalButton");
+    const $goalForm = $("#goalForm");
 
-    // Open goalModal for create
-    openModalButton.on("click", function () {
-        modal.openModal(GoalModelComponent)
+    // Open goalModal for create (use partial view already rendered in layout/page)
+    $openModalButton.on("click", function () {
+        // reset form and state
+        $goalForm[0].reset();
+        $goalForm.data('action-goal-form', 'create');
+        $goalForm.removeData('goalid');
+
+        $("#form-label").html('Add Goal');
+        $("#goalIdContainer").addClass('hidden');
+
+        // show modal
+        $goalModal.removeClass("hidden").fadeIn();
+
+        // initialize editor after modal is visible
+        handleModalOpen();
     });
+
+    const handleModalOpen = function () {
+        // wait a bit for modal to be visible then init/refresh editor
+        setTimeout(() => {
+            setupTinyMCE('textarea[name="goalDescriptions"]', tinymceConfig);
+        }, 100);
+    }
 
     // Open goalModal for edit
-    $(document).on("click", ".editGoalBtn", async function () {
-        modal.openModal(GoalModelComponent, $(this).data("id"));
+    $(document).on("click", ".editGoalBtn", function () {
+        const id = $(this).data("id");
+        if (!id) {
+            showErrorNotification("Missing Id parameters!");
+            return;
+        }
+
+        $("#form-label").html('Edit Goal');
+        $("#goalIdContainer").removeClass('hidden');
+        $goalForm.data('action-goal-form', 'edit');
+        $goalForm.data('goalid', id);
+
+        // show modal
+        $goalModal.removeClass("hidden").fadeIn();
+
+        // ensure tinymce exists for the textarea
+        handleModalOpen();
+
+        // load data and populate fields
+        $.ajax({
+            url: `/Goals/GetById/${id}`,
+            method: "GET",
+            success: function (response) {
+                if (!response || !response.status) {
+                    showErrorNotification(response?.message || "Failed to load goal data!");
+                    return;
+                }
+
+                const data = response.data || {};
+
+                $("#goalId").val(data.id || "");
+                $("#goalName").val(data.name || "");
+                $("#goalDescription").val(data.description || "");
+                $("#goalPriority").val(data.priority ?? 0);
+                $("#startDate").val(data.startDate || "");
+                $("#endDate").val(data.endDate || "");
+                $("#goalStatus").val(data.goalStatus ?? goalStatusEnum.notStarted);
+
+                // set radio for start option
+                const startOption = data.startOptionType ?? startOptionValues.manual;
+                $goalModal.find(`input[name="goalStart"][value="${startOption}"]`).prop('checked', true);
+
+                // show/hide start date container based on value
+                $("#startDateContainer").toggleClass('hidden', +startOption !== startOptionValues.scheduled);
+
+                // set tinymce content (if editor initialized)
+                if (typeof tinymce !== "undefined") {
+                    // ensure editor is initialized for the textarea id
+                    setTimeout(() => {
+                        const editor = tinymce.get($("#goalDescription").attr('id'));
+                        if (editor) {
+                            editor.setContent(data.description || "");
+                        } else {
+                            // attempt to find any editor and set content
+                            const inst = tinymce.editors && tinymce.editors[0];
+                            if (inst) inst.setContent(data.description || "");
+                        }
+                    }, 200);
+                }
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error || "Failed to load goal data!");
+                console.error("Error:", error);
+            }
+        });
     });
 
-    // delete goal
-    $(document).on("click", ".deleteGoalBtn", async function () {
-        const id = $(this).data("id");
-        let parentTable = $(this).closest("table");
+    // Close modal (button)
+    $closeModalButton.on('click', function () {
+        $goalModal.fadeOut();
+    });
 
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
-            return;
+    // Close when clicking overlay
+    $goalModal.on('click', function (e) {
+        if (e.target === this) {
+            $(this).fadeOut();
+        }
+    });
+
+    // Toggle startDateContainer when start option changes
+    $(document).on('change', 'input[name="goalStart"]', function () {
+        const val = $(this).val();
+        $("#startDateContainer").toggleClass('hidden', +val !== startOptionValues.scheduled);
+    });
+
+    // Handle form submission using AJAX (use same pattern as notesScript.js)
+    $goalForm.on('submit', function (e) {
+        e.preventDefault();
+
+        // if tinymce active, ensure textarea is updated
+        if (typeof tinymce !== "undefined") {
+            try { tinymce.triggerSave(); } catch (ex) { /* ignore */ }
         }
 
-        try {
-            // Call reusable confirmation function
-            showConfirmationDialog(
-                {
-                    title: 'Are you sure?',
-                    text: 'Do you really want to delete this goal? This action cannot be undone.',
+        const action = $(this).data('action-goal-form') || 'create';
+        const goalId = $(this).data('goalid');
+
+        const data = {
+            Id: $("#goalId").val(),
+            Name: $("#goalName").val(),
+            Description: $("#goalDescription").val(),
+            Priority: $("#goalPriority").val(),
+            StartOptionType: $("input[name='goalStart']:checked").val(),
+            StartDate: $("#startDate").val(),
+            EndDate: $("#endDate").val(),
+            GoalStatus: $("#goalStatus").val()
+        };
+
+        if (action.toString().toLowerCase() === 'create') {
+            $.ajax({
+                url: "/Goals/Create",
+                method: "POST",
+                data: data,
+                success: function (response) {
+                    if (response?.status) {
+                        showSuccessNotification(response.message || "Goal created successfully!");
+                        setTimeout(() => {
+                            $goalModal.fadeOut();
+                            location.reload();
+                        }, 500);
+                    } else {
+                        showErrorNotification(response?.message || "Goal creation failed!");
+                    }
                 },
-                {
-                    url: `/Goals/DeleteGoal`,
-                    type: 'DELETE',
-                    data: { Id: id }
+                error: function (xhr, status, error) {
+                    showErrorNotification(error || "Goal creation failed!");
+                    console.error("Error:", error);
+                }
+            });
+        } else if (action.toString().toLowerCase() === 'edit' && goalId) {
+            data.Id = goalId;
+            $.ajax({
+                url: `/Goals/Edit`,
+                method: "PUT",
+                data: data,
+                success: function (response) {
+                    if (response?.status) {
+                        showSuccessNotification(response.message || "Goal updated successfully!");
+                        setTimeout(() => {
+                            $goalModal.fadeOut();
+                            location.reload();
+                        }, 500);
+                    } else {
+                        showErrorNotification(response?.message || "Goal update failed!");
+                    }
                 },
-                function (response) { // Success callback
-                    parentTable?.DataTable().ajax.reload();
-                },
-                function (error) { // Error callback
-                    console.error('Error deleting goal:', error);
+                error: function (xhr, status, error) {
+                    showErrorNotification(error || "Goal update failed!");
+                    console.error("Error:", error);
                 }
-            );
+            });
+        } else {
+            showErrorNotification("Invalid Action!");
         }
-        catch (error) {
-            showErrorNotification(error.message || "Error: while deleting Goal with Id: " + id);
-            console.error(error);
-        }
-    })
+    });
 
-    // Mark goal as completed...
-    $(document).on("click", ".markAsComplete", async function () {
-        const id = $(this).data("id");
-
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
-            return;
-        }
-
-        $.ajax({
-            url: "/Goals/ChangeGoalStatus",
-            method: "POST",
-            data: {
-                Id: id,
-                GoalStatus: goalStatusEnum.completed 
-            },
-            success: function (response) {
-                if (response.status) {
-
-                    showSuccessNotification(response.message);
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    throw new Error(response.message || "Error: while changing the status of Goal with Id: " + id);
-                }
-            },
-            error: function (xhr, status, error) {
-                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
-                console.error("Error:", error);
-            }
-        })
-    })
-
-    // Move to runnings
-    $(document).on("click", ".moveToRunning", async function () {
-        const id = $(this).data("id");
-        let goalStatus = $(this).closest("table").data("goal-status");
-
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
-            return;
-        }
-
-        $.ajax({
-            url: "/Goals/ChangeGoalStatus",
-            method: "POST",
-            data: {
-                Id: id,
-                GoalStatus: goalStatusEnum.running 
-            },
-            success: function (response) {
-                if (response.status) {
-
-
-                    showSuccessNotification(response.message);
-
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
-                }
-            },
-            error: function (xhr, status, error) {
-                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
-                console.error("Error:", error);
-            }
-        })
-    })
-
+    /* ----------------------- existing datatable + other logic kept unchanged ----------------------- */
     const dataTableObject = (url, renderCallBack, pageLengthKey) => {
 
         const pageLength = localStorage.getItem(pageLengthKey);
@@ -265,9 +337,8 @@
         }
     }
 
-    // Completed Goal data....
+    // NotStarted
     function loadNotStartedGoalData() {
-
         let url = "/Goals/GetAllNotStartedGoals";
 
         function renderCallBack(data, type, row) {
@@ -300,7 +371,7 @@
         }
     }
 
-    // Completed Goal data....
+    // Ended
     function loadEndedGoalData() {
         let url = "/Goals/GetAllEndedGoals";
 
@@ -399,248 +470,125 @@
     endedGoalDataTable?.length && loadEndedGoalData();
     //loadDeletedGoalData();
 
+    /* ----------------------- TinyMCE config + helper ----------------------- */
 
-    //async function calculateProductivity() {
-    //    const res = await $.ajax({
-    //        url: "/Goals/GetProductivity",
-    //        method: 'GET',
-    //    });
+    const tinymceConfig = {
+        menubar: false,
+        height: 800,
+        plugins: 'link lists code codesample media image table autoresize',
+        toolbar: [
+            'undo redo | blocks fontfamily fontsize | bold italic underline forecolor backcolor | blockquote codesample code',
+            '| alignleft aligncenter alignright | bullist numlist',
+            '| link image media | table | removeformat'
+        ].join(' '),
 
-    //    if (res.status) {
-    //        $("#productivityPercentage").html(`${res.data.productivity}%`);
-    //        $("#runningGoalCount").html(res.data.runningGoal);
-    //        $("#completedGoalCount").html(res.data.completedGoal);
-    //        $("#growthCalculations").html(`${Number(res.data.growthPercentage).toFixed(2) > 0 ? '+': '-'}${Number(res.data.growthPercentage).toFixed(2)} this month`);
-    //    }
-    //}
+        font_family_formats: `
+      Arial=arial,helvetica,sans-serif;
+      Courier New=courier new,courier,monospace;
+      Georgia=georgia,palatino;
+      Times New Roman=times new roman,times;
+      Tahoma=tahoma,arial,helvetica,sans-serif;
+      Verdana=verdana,geneva;
+      Roboto=roboto,sans-serif
+    `,
+        fontsize_formats: '10px 12px 14px 16px 18px 24px 36px 48px',
+        content_style: `
+          body { font-family: "Segoe UI", sans-serif; font-size:14px; line-height:1.6; color:#333; }
+          h1,h2,h3,h4,h5,h6 { font-weight:600; margin:1em 0 0.5em; }
+          blockquote { border-left:3px solid #ccc; padding-left:10px; color:#666; font-style:italic; }
+          pre, code { background:#f4f4f4; border-radius:4px; padding:4px 6px; font-family:"Fira Code", monospace; }
+          pre { padding:10px; overflow:auto; }
+          table { border-collapse: collapse; width:100%; margin:1em 0; }
+          table, th, td { border:1px solid #ddd; }
+          th, td { padding:8px; text-align:left; }
+          a { color:#2563eb; text-decoration:underline; }
+          img { max-width:100%; height:auto; border-radius:6px; }
+        `,
+        automatic_uploads: true,
+        images_upload_url: '/uploads/image',
+        file_picker_types: 'image file media',
+        codesample_global_prismjs: true,
+        codesample_languages: [
+            { text: 'JavaScript', value: 'javascript' },
+        ],
+        file_picker_callback: function (cb, value, meta) {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
 
-    //calculateProductivity();
-
-
-    function GoalModelComponent({ getData, setData }) {
-        let isEditMode = false;
-        let isComponentInit = false;
-        let parrentElementModel;
-
-        const [isLoading, setIsLoading] = useDataState(false);
-
-        let oldGoalStatus = -1;
-
-        this.init = function () {
-            if (!isComponentInit) {
-                setData({
-                    id: "",
-                    goalStatus: goalStatusEnum.notStarted,
-                    name: "",
-                    endDate: "",
-                    priority: 0,
-                    description: "",
-                    startOptionType: startOptionValues.manual,
-                    startDate: ""
-                });
-
-                isEditMode = false;
-                isComponentInit = true;
+            if (meta.filetype === 'image') {
+                input.setAttribute('accept', 'image/*');
             }
 
-            return getData();
+            input.onchange = function () {
+                const file = this.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const targetUrl =
+                    meta.filetype === 'image' ? '/uploads/image' :
+                        meta.filetype === 'media' ? '/uploads/media' :
+                            '/uploads/file';
+
+                fetch(targetUrl, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                })
+                    .then(res => res.ok ? res.json() : Promise.reject(res))
+                    .then(json => {
+                        cb(json.location, { text: file.name, title: file.name, alt: file.name });
+                    })
+                    .catch(() => alert('Upload failed. Please try again.'));
+            };
+            input.click();
+        },
+        convert_urls: false,
+        media_live_embeds: true,
+    };
+
+    function setupTinyMCE(selector, config) {
+        const $targetElement = $(selector);
+        if (!$targetElement.length) {
+            console.warn(`TinyMCE: Target element not found for selector: ${selector}`);
+            return;
         }
 
-        this.initAsync = function (id) {
-            if (!isComponentInit) {
-                return new Promise((resolve, reject) => {
-                    isEditMode = true;
-                    isComponentInit = true;
+        let editorId = $targetElement.attr('id');
+        if (!editorId) {
+            editorId = 'tinymce-dynamic-' + Math.random().toString(36).substring(2, 9);
+            $targetElement.attr('id', editorId);
+        }
 
-                    $.ajax({
-                        url: `/Goals/GetById/${id}`,
-                        method: "GET",
-                        success: function (response) {
-                            if (response.status) {
-                                setData(response.data);
-                                oldGoalStatus = response.data.goalStatus; //Storeing the Old status and check for if the status changes or not then need to re-draw the table
-                                return resolve(response.data);
-                            }
-                            else {
-                                showErrorNotification(response.message || "Failed to load goal data!")
-                                return reject(new Error(response.message || "Failed to load goal data!"));
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            showErrorNotification(error || "Failed to load goal data!")
-                            return reject(new Error(error || "Failed to load goal data!"));
+        const existingEditor = tinymce.get(editorId);
+
+        if (existingEditor) {
+            try {
+                existingEditor.execCommand('mceFocus', false, editorId);
+                // deprecated repaint but harmless if available
+                try { existingEditor.execCommand('mceRepaint'); } catch (e) { }
+                const content = existingEditor.getContent();
+                existingEditor.setContent(content);
+                existingEditor.fire && existingEditor.fire('ResizeEditor');
+            } catch (e) {
+                console.error("TinyMCE refresh failed:", e);
+            }
+        } else {
+            const fullConfig = {
+                ...config,
+                selector: `#${editorId}`,
+                setup: function (editor) {
+                    editor.on('init', function () {
+                        console.log(`TinyMCE instance '${editorId}' initialized.`);
+                    });
+                    $(document).on('focusin', function (e) {
+                        if ($(e.target).closest('.tox-tinymce, .tox-tinymce-aux').length) {
+                            e.stopImmediatePropagation();
                         }
                     });
-
-                });
-            } else {
-                return getData();
-            }
-        };
-
-        const reRender = function (parrentElement) {
-            parrentElementModel = parrentElement;
-            const contentWithData = `
-            <!-- Modal Form -->
-            <form id="goalForm">
-                <!-- Goal Id Field -->
-                <div id="goalIdContainer" class="mb-4 ${isEditMode ? '' : 'hidden'}">
-                    <label for="goalId" class="block text-sm font-medium text-gray-600">Goal Id</label>
-                    <input type="text" id="goalId" name="Id" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.id}" onchange="onChangeGoalInput(this)" placeholder="Enter your goal id" disabled>
-                    <span class="hidden text-xs text-red-500" id="goalIdError">
-                        Goal Id is required!
-                    </span>
-                </div>
-
-                <!-- Goal Name Field -->
-                <div class="mb-4">
-                    <label for="goalName" class="block text-sm font-medium text-gray-600">Goal Name</label>
-                    <input type="text" id="goalName" name="name" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.name}" onchange="onChangeGoalInput(this)" required minlength="3" maxlength="50" placeholder="Enter your goal name" />
-                    <span class="hidden text-xs text-red-500" id="goalNameError">Goal name must be between 3 and 50 characters.</span>
-                </div>
-
-                <!-- Task Description Input -->
-                <div class="mb-4">
-                    <label for="goalDescription" class="block text-sm font-medium text-gray-600">Goal Descriptions</label>
-                    <textarea id="goalDescription" name="description" rows="4" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="onChangeGoalInput(this)" required>${getData()?.description}</textarea>
-                    <span id="goalDescriptionError" class="hidden text-sm text-red-500">Description field is required.</span>
-                </div>
-
-
-                <!-- Priority Dropdown -->
-                <div class="mb-4">
-                    <label for="goalPriority" class="block text-sm font-medium text-gray-600">Goal Priority</label>
-                    <select id="goalPriority" name="priority" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" value="${getData()?.priority}" onchange="onChangeGoalInput(this)">
-                        <option value="0">Low</option>
-                        <option value="1">Medium</option>
-                        <option value="2">High</option>
-                    </select>
-                    <span id="goalPriorityError" class="hidden text-sm text-red-500">Priority field is required.</span>
-                </div>
-
-                <!-- Goal Start Options -->
-                <div id="startOptionsModeContainer" class="mb-4">
-                    <label class="block text-sm font-medium text-gray-600">Goal Start</label>
-                    <div class="mt-2 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
-                        <label class="flex items-center space-x-2">
-                            <input type="radio" name="startOptionType" value="0" onchange="onChangeGoalInput(this)"  class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.manual ? "checked" : ""}>
-                            <span>Manual</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="radio" name="startOptionType" value="1" onchange="onChangeGoalInput(this)" class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.scheduled ? "checked" : ""}>
-                            <span>Scheduled</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="radio" name="startOptionType" value="2" onchange="onChangeGoalInput(this)" class="goalStartRadio text-indigo-600 focus:ring-indigo-500" ${+getData()?.startOptionType === startOptionValues.immediate ? "checked" : ""}>
-                            <span>Start Immediately</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Scheduled Start Date Field -->
-                <div id="startDateContainer" class="mb-4 ${+getData()?.startOptionType === startOptionValues.scheduled ? '' : 'hidden'}">
-                    <label for="startDate" class="block text-sm font-medium text-gray-600">Start Date</label>
-                    <input type="datetime-local" id="startDate" name="startDate" onchange="onChangeGoalInput(this)" value="${getData()?.startDate}" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
-                    <span class="hidden text-xs text-red-500" id="startDateError">Start date is required when scheduling.</span>
-                </div>
-
-                <!-- End Date Field -->
-                <div class="mb-4">
-                    <label for="endDate" class="block text-sm font-medium text-gray-600">End Date</label>
-                    <input type="datetime-local" id="endDate" name="endDate" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.endDate}" onchange="onChangeGoalInput(this)" placeholder="Select Due Date." required />
-                    <span class="hidden text-xs text-red-500" id="goalDueDateError">The selected date and time must be in the future.</span>
-                </div>
-
-                <!-- Goal Status Field -->
-                <div id="goalStatusContainer" class="mb-4 ${isEditMode ? "" : 'hidden'}">
-                    <label for="goalStatus" class="block text-sm font-medium text-gray-600">Goal Status</label>
-                    <select id="goalStatus" name="goalStatus" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2" value="${getData()?.goalStatus}" onchange="onChangeGoalInput(this)">
-                        <option value="0" ${getData()?.goalStatus == 0 ? "selected" : ""}>Not Started</option>
-                        <option value="1" ${getData()?.goalStatus == 1 ? "selected" : ""}>Running</option>
-                        <option value="2" ${getData()?.goalStatus == 2 ? "selected" : ""}>Completed</option>
-                        <option value="3" ${getData()?.goalStatus == 3 ? "selected" : ""}>End</option>
-                    </select>
-                    <span id="goalStatusError" class="hidden text-sm text-red-500">GoalStatus field is required.</span>
-                </div>
-
-
-                <!-- Submit Button -->
-                <div class="flex justify-end">
-                    <button id="goal-submit-btn" type="submit" ${isLoading() ? 'disabled' : ''} class="flex items-center justify-center gap-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed">
-                        <i class="icon fa-solid ${isEditMode ? 'fa-edit' : 'fa-save'}"></i>
-                        <span class="button-text">${isEditMode ? 'Edit' : 'Save'} Goal</span>
-                    </button>
-                </div>
-            </form>
-        `;
-
-            const content = getData() ? contentWithData : noContentHtml;
-            parrentElementModel.html(`
-            <div class="custom-scrollbar relative w-full sm:w-4/5 lg:w-1/2 xl:w-1/3 h-full sm:h-auto sm:max-h-[90vh] overflow-auto rounded-lg bg-white shadow-xl">
-                <div class="flex items-center justify-between bg-indigo-600 px-6 py-4 text-white">
-                    <h2 id="model-title" class="text-xl font-semibold tracking-wide">
-                        <i class="fa-solid fa-clipboard-list"></i> ${isEditMode ? 'Update' : 'Create'} Your Progress Record in Goal
-                    </h2>
-                    <button class="text-2xl text-white hover:text-gray-200" id="closeModal">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-                    ${content}
-                </div>
-            </div>
-        `);
-
-            window.onChangeGoalInput = function (e) {
-                setData({ ...getData(), [e.name]: e.value, ["isModified"]: true }, () => reRender(parrentElementModel));
-            }
-
-            $("#goalForm").on('submit', function (e) {
-                e.preventDefault();
-                setIsLoading(true, () => reRender(parrentElementModel));
-                $.ajax({
-                    url: isEditMode ? "/Goals/Edit" : "/Goals/Create",
-                    method: isEditMode ? "PUT" : "POST",
-                    data: getData(),
-                    success: function (response) {
-                        if (response.status) {
-                            const { goalStatus } = getData();
-
-                            (goalStatusEnum.notStarted === +goalStatus || goalStatusEnum.notStarted === +oldGoalStatus) && notStartedGoalDataTable?.DataTable().ajax.reload();
-
-                            (goalStatusEnum.running === +goalStatus || goalStatusEnum.running === +oldGoalStatus) && runningGoalDataTable?.DataTable().ajax.reload();
-
-                            (goalStatusEnum.completed === +goalStatus || goalStatusEnum.completed === +oldGoalStatus) && completedGoalDataTable?.DataTable().ajax.reload();
-
-                            (goalStatusEnum.ended === +goalStatus || goalStatusEnum.ended === +oldGoalStatus) && endedGoalDataTable?.DataTable().ajax.reload();
-
-
-                            setTimeout(() => {
-                                modal.closeModal();
-                            }, 500)
-                            showSuccessNotification(response.message || "Notes Saved with Goal!");
-
-                        } else {
-                            setIsLoading(false, () => reRender(parrentElementModel));
-                            showErrorNotification(response.message || "Notes Saved Failed!");
-                            console.error(response.message);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        setIsLoading(false, () => reRender(parrentElementModel));
-                        showErrorNotification(error || "Notes Saved Failed!");
-                        console.error("Error:", error);
-                    }
-                });
-            })
-        }
-
-        this.load = function (selector) {
-            reRender(selector);
+                }
+            };
+            tinymce.init(fullConfig);
         }
     }
 
 });
-
-
-
