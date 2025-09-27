@@ -18,7 +18,7 @@
         public async Task<IEnumerable<TodoDTOWithTaskDTO>> GetAllTodo(string UserId, int taskId)
         {
             return await _repository.GetAllTodoAsync<TodoDTOWithTaskDTO>(UserId, taskId, Status.All, ResponseDataMode.ModelDTO);
-        }        public async Task<TodoDTOWithTaskDTO> GetTodoById(string UserId, int id)        {            return await _repository.GetTodoByIdAsync<TodoDTOWithTaskDTO>(UserId, id, ResponseDataMode.ModelDTO);        }        public async Task UpdateTodo(string userId, TodoDTO todo)        {            var todoToUpdate = await _repository.GetTodoByIdAsync<Todo>(userId, todo.Id, ResponseDataMode.Model);            _mapper.Map(todo, todoToUpdate);            await _repository.UpdateTodoAsync(userId, todoToUpdate);        }        public async Task<TodoProgressAnalysisDTO> GetTodoProgressAnalyses(string userId, DateTime forDate)
+        }        public async Task<TodoDTO> GetTodoById(string UserId, int id)        {            return await _repository.GetTodoByIdAsync<TodoDTO>(UserId, id, ResponseDataMode.ModelDTO);        }        public async Task UpdateTodo(string userId, TodoDTO todo)        {            var todoToUpdate = await _repository.GetTodoByIdAsync<Todo>(userId, todo.Id, ResponseDataMode.Model);            _mapper.Map(todo, todoToUpdate);            await _repository.UpdateTodoAsync(userId, todoToUpdate);        }        public async Task<TodoProgressAnalysisDTO> GetTodoProgressAnalyses(string userId, DateTime forDate)
         {
             if(forDate.Date == DateTime.Now.Date)
             {
@@ -36,5 +36,10 @@
         public async Task UpdateTodoStatus(string userId, int todoId, Status statusToChange)
         {
             await _repository.UpdateTodoStatusAsync(userId, todoId, statusToChange);
+        }
+
+        public async Task UpdateTodoNotes(string userId, int todoId, string notes)
+        {
+            await _repository.UpdateTodoNotesAsync(userId, todoId, notes);
         }
     }}

@@ -9,7 +9,7 @@ namespace TaskMonitoringApp.Models.Services
     {
         Task AddNewTodo (string UserId, TodoDTO todo);
 
-        Task<TodoDTOWithTaskDTO> GetTodoById(string UserId, int id);
+        Task<TodoDTO> GetTodoById(string UserId, int id);
 
         Task<IEnumerable<TodoDTOWithTaskDTO>> GetAllTodo(string UserId, Status status);
 
@@ -31,5 +31,8 @@ namespace TaskMonitoringApp.Models.Services
 
         Task<TodoProgressAnalysisDTO> GetTodoProgressAnalyses(string userId, DateTime forDate);
         Task<TodoProgressAnalysisDTO> GetTodoProgressAnalyses(string userId, int taskId);
+
+        Task UpdateTodoNotes(string userId, int todoId, string notes);
+
     }
 }

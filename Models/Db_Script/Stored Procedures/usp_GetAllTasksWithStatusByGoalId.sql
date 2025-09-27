@@ -36,7 +36,7 @@ SET NOCOUNT ON;
 			and gt.UserId = t.UserId
 			and t.UserId = @UserId
 			and t.IsDeleted = 0
-			and t.EndDate > @currentDateTime
+			--and t.EndDate > @currentDateTime
 		end
 	else if(@Mode = 1)
 		begin
@@ -48,7 +48,7 @@ SET NOCOUNT ON;
 			and gt.UserId = t.UserId
 			and t.UserId = @UserId
 			and t.IsDeleted = 0
-			and t.EndDate > @currentDateTime
+			--and t.EndDate > @currentDateTime
 		end
 	else if(@Mode = 2)
 		begin 
@@ -60,7 +60,7 @@ SET NOCOUNT ON;
 			and gt.UserId = t.UserId
 			and t.UserId = @UserId
 			and t.IsDeleted = 0
-			and t.EndDate > @currentDateTime
+			--and t.EndDate > @currentDateTime
 		end
 	else 
 		begin

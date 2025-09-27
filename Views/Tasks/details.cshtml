@@ -299,21 +299,19 @@
                             </a>*@
                             </div>
 
-                            <!-- Running Task List (Table) -->
-                            <div class="overflow-x-auto">
-                                <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                                    <thead>
-                                        <tr>
-                                            <th class="p-2 text-left text-gray-600">Task Id</th>
-                                            <th class="p-2 text-left text-gray-600">Task Name</th>
-                                            <th class="p-2 text-left text-gray-600">Priority</th>
-                                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                                            <th class="p-2 text-left text-gray-600">Actions</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
+                            <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                                <thead>
+                                    <tr>
+                                        <th class="p-2 text-left text-gray-600">Task Id</th>
+                                        <th class="p-2 text-left text-gray-600">Task Name</th>
+                                        <th class="p-2 text-left text-gray-600">Priority</th>
+                                        <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                        <th class="p-2 text-left text-gray-600">Due Date</th>
+                                        <th class="p-2 text-left text-gray-600">Notes</th>
+                                        <th class="p-2 text-left text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
                         </div>
 
 
@@ -328,21 +326,19 @@
                                 <h2 id="CompletedTodoHeadId" class="mb-4 text-xl font-semibold text-gray-700">Today's Completed Tasks</h2>
                             </div>
 
-                            <!-- Completed Task List (Table) -->
-                            <div class="overflow-x-auto">
-                                <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                                    <thead>
-                                        <tr>
-                                            <th class="p-2 text-left text-gray-600">Task Id</th>
-                                            <th class="p-2 text-left text-gray-600">Task Name</th>
-                                            <th class="p-2 text-left text-gray-600">Priority</th>
-                                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                                            <th class="p-2 text-left text-gray-600">Actions</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
+                            <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                                <thead>
+                                    <tr>
+                                        <th class="p-2 text-left text-gray-600">Task Id</th>
+                                        <th class="p-2 text-left text-gray-600">Task Name</th>
+                                        <th class="p-2 text-left text-gray-600">Priority</th>
+                                        <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                        <th class="p-2 text-left text-gray-600">Due Date</th>
+                                        <th class="p-2 text-left text-gray-600">Notes</th>
+                                        <th class="p-2 text-left text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
                         </div>
                     </section>
 
@@ -440,46 +436,8 @@
     }
 </div>
 
+@await Html.PartialAsync("AddUpdateTodoNotes")
 @await Html.PartialAsync("AddUpdateNotes")
-
-<!-- Task History Section -->
-@* <div class="mb-8 rounded-lg bg-white p-6 shadow-lg">
-    <h2 class="mb-4 text-xl font-semibold text-gray-800">Task History</h2>
-    <table class="min-w-full table-auto">
-    <thead>
-    <tr>
-    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Date & Time</th>
-    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
-    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Repeat Type</th>
-    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Productivity</th>
-    <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Completion Ratio</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-    <td class="px-4 py-2 text-sm text-gray-600">Dec 10, 2024</td>
-    <td class="px-4 py-2 text-sm text-gray-600">
-    <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Running</span>
-    </td>
-    <td class="px-4 py-2 text-sm text-gray-600">Daily</td>
-    <td class="px-4 py-2 text-sm text-gray-600">80%</td>
-    <td class="px-4 py-2 text-sm text-gray-600">65%</td>
-    </tr>
-    <tr>
-    <td class="px-4 py-2 text-sm text-gray-600">Dec 9, 2024</td>
-    <td class="px-4 py-2 text-sm text-gray-600">
-    <span class="inline-flex items-center rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white sm:text-sm">Completed</span>
-    </td>
-    <td class="px-4 py-2 text-sm text-gray-600">Weekly</td>
-    <td class="px-4 py-2 text-sm text-gray-600">90%</td>
-    <td class="px-4 py-2 text-sm text-gray-600">100%</td>
-    </tr>
-    </tbody>
-    </table>
-    </div> *@
-</div>
-
-
 
 
 @section Scripts

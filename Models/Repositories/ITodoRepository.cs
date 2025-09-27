@@ -31,5 +31,8 @@ namespace TaskMonitoringApp.Models.Repositories
         Task UpdateTodoStatusAsync(string userId, int todoId, Status statusToChange);
 
         Task DeleteTodoAsync(string UserId, int Id);
+
+        Task UpdateTodoNotesAsync(string userId, int todoId, string notes);
+
     }
 }

@@ -7,6 +7,9 @@ namespace TaskMonitoringApp.Models.DTOs
     {
         public int Id { get; set; }
 
+        public string? Notes { get; set; }
+
+
         public DateTime? EndDate { get; set; } = DateTime.Now.AddDays(1); // apply for the mid-night or some custom logic...
 
         public Status Status { get; set; } = Status.Running;
@@ -23,6 +26,9 @@ namespace TaskMonitoringApp.Models.DTOs
     public class TodoDTOWithTaskDTO
     {
         public int Id { get; set; }
+
+        public string? Notes { get; set; }
+
 
         // todo end date
         public DateTime EndDate { get; set; }
@@ -53,6 +59,9 @@ namespace TaskMonitoringApp.Models.DTOs
     public class TodoStatusDTO
     {
         public int Id { get; set; }
+
+        public string? Notes { get; set; }
+
 
         public Status Status { get; set; } = Status.NotStarted;
     }

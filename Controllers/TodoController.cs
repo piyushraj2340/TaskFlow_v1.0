@@ -312,5 +312,36 @@ namespace TaskMonitoringApp.Controllers
 
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveTodoNotes(int todoId, string notes)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Unauthorized();
+
+            await _service.UpdateTodoNotes(userId, todoId, notes);
+            return Json(new { status = true, message = "Notes saved successfully!" });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTodoById(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var todo = await _service.GetTodoById(userId, id);
+                return Json(new { status = true, message = "Todo fetched", data = todo });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching todo with id {TodoId} for user {UserId}", id, userId);
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
     }
 }
