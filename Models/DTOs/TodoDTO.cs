@@ -18,6 +18,9 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public string UserId { get; set; }
 
+        public TodoProgressAnalysisDTO? TaskProductivity { get; set; } = null;
+
+
         public TaskDTO? Task { get; set; }
 
         public Users? User { get; set; }
@@ -53,6 +56,40 @@ namespace TaskMonitoringApp.Models.DTOs
         public DateTime TaskEndDate { get; set; }
 
         public Status TaskStatus { get; set; }
+    }
+
+
+    public class TodoWithTaskProductivityDTO
+    {
+        public int Id { get; set; }
+
+        public string? Notes { get; set; }
+
+
+        // todo end date
+        public DateTime EndDate { get; set; }
+
+        // todo status 
+        public Status Status { get; set; }
+
+        public int TaskId { get; set; }
+
+        public string UserId { get; set; }
+
+        public string TaskName { get; set; }
+
+        public string? TaskDescription { get; set; }
+
+        public RepeatType TaskRepeat { get; set; }
+
+        public List<Weekly> TaskRepeatWeekList { get; set; }
+
+        public Priority TaskPriority { get; set; }
+
+        public DateTime TaskEndDate { get; set; }
+
+        public Status TaskStatus { get; set; }
+        public TodoProgressAnalysisDTO? TaskProductivity { get; set; }
     }
 
 

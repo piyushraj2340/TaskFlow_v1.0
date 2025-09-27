@@ -11,7 +11,11 @@ namespace TaskMonitoringApp.Mappings
             CreateMap<Todo, TodoDTO>().ReverseMap(); 
             CreateMap<TodoDTO, TodoStatusDTO>().ReverseMap(); ;
             CreateMap<TodoDTO, TodoDTOWithTaskDTO>().ReverseMap();
+            CreateMap<TodoWithTaskProductivityDTO, TodoDTOWithTaskDTO>().ReverseMap();
+            
             CreateMap<TodoDTO, TodoDTOWithTaskDTO>()
+                .ForMember(dest => dest.TaskId, opt => opt.MapFrom(src => src.Task.Id)).ReverseMap();
+            CreateMap<TodoDTO, TodoWithTaskProductivityDTO>()
                 .ForMember(dest => dest.TaskId, opt => opt.MapFrom(src => src.Task.Id)).ReverseMap();
         }
     }
