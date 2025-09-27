@@ -117,7 +117,9 @@
                     <!-- Description -->
                     <div class="flex flex-col sm:flex-row">
                         <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Description</div>
-                        <div class="w-full whitespace-pre-wrap text-left text-gray-600 sm:w-3/4">@(string.IsNullOrWhiteSpace(Model.Description) ? "No Descriptions found" : Model.Description)</div>
+                        <div class="richtext w-full text-left sm:w-3/4">
+                            @Html.Raw(Model.Description)
+                        </div>
                     </div>
                     <!-- Priority -->
                     <div class="flex flex-col sm:flex-row">
