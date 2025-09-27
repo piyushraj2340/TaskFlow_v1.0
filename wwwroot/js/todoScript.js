@@ -70,9 +70,27 @@
     // Mark as complete with notes validation
     $(document).on("click", ".markAsCompleteToDoBtn", function () {
         const todoId = $(this).data("id");
-        // Get notes for this todo (from row data or via AJAX)
-        const row = $(this).closest("tr");
-        const notes = row.find(".notesCell").text().trim();
+        // Find the closest table row
+        const $tr = $(this).closest("tr");
+        let notes = "";
+
+        // Try to get notes from the notes cell (by class)
+        const $notesCell = $tr.find(".notes-cell");
+        if ($notesCell.length) {
+            notes = $notesCell.data("notes") || $notesCell.attr("data-notes") || "";
+            if (typeof notes === "undefined") notes = "";
+            notes = notes.trim();
+        }
+
+        // Fallback: get notes from DataTable row data if available
+        if (!notes && $tr.length && $tr.closest("table").length) {
+            const table = $tr.closest("table").DataTable();
+            const rowData = table.row($tr).data();
+            if (rowData && rowData.notes) {
+                notes = rowData.notes.trim();
+            }
+        }
+
         if (!notes) {
             Swal.fire({
                 title: "No notes added!",
@@ -129,10 +147,12 @@
             serverSide: true,
             filter: true,
             columns: [
-                { data: "id", name: "id" },
+                { data: "id", name: "id", orderable: true, searchable: true },
                 {
                     data: "task.name",
                     name: "name",
+                    orderable: true,
+                    searchable: true,
                     render: function (data, type, row) {
                         return `<a href="/Tasks/Details/${row?.taskId}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
                     }
@@ -140,6 +160,8 @@
                 {
                     data: "task.priority",
                     name: "priority",
+                    orderable: true,
+                    searchable: false,
                     render: function (data, type, row) {
                         return returnPriorityBadge(data);
                     }
@@ -147,6 +169,8 @@
                 {
                     data: "task.repeat",
                     name: "repeat",
+                    orderable: true,
+                    searchable: false,
                     render: function (data, type, row) {
                         switch (data) {
                             case 0:
@@ -164,6 +188,8 @@
                 {
                     data: "endDate",
                     name: "endDate",
+                    orderable: true,
+                    searchable: false,
                     render: function (data, type, row) {
                         return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
                     }
@@ -171,6 +197,8 @@
                 {
                     data: "notes",
                     name: "notes",
+                    orderable: true,
+                    searchable: true,
                     render: function (data, type, row) {
                         if (!data) return "";
 
@@ -178,14 +206,14 @@
                         const noteText = data.replace(/\n/g, " ");
 
                         return `
-                            <div class="relative group inline-block max-w-xs" 
+                            <div data-notes="${data}" class="relative group inline-block max-w-xs notes-cell" 
                                  aria-label="Full Note: ${noteText}">
             
                                 <div class="bg-yellow-100 text-yellow-800 p-1 rounded-md shadow-sm text-sm font-medium leading-snug line-clamp-3 overflow-hidden cursor-help border border-yellow-300 transition duration-150 ease-in-out hover:shadow-md">
                                     ${noteHTML}
                                 </div>
 
-                                <div class="absolute z-[9999] hidden group-hover:block left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2  -mt-2 w-96 max-w-lg">
+                                <div class="absolute z-[9999] hidden group-hover:block top-1/2 left-[101%] -translate-y-1/2  -mt-2 w-96 max-w-lg">
                                     <div class="relative 
                                                  bg-yellow-50 text-yellow-800 
                                                  p-3 rounded-lg shadow-xl border border-yellow-300 
@@ -200,8 +228,76 @@
 
                 },
                 {
+                    data: "taskProductivity",
+                    name: "productivity",
+                    orderable: true,
+                    searchable: true,
+                    render: function (data, type, row) {
+                        if (!data || data.productivityForDay === undefined || data.productivityForDay === null) {
+                            return `<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-gray-500 rounded-full">-</span>`;
+                        }
+
+                        // Data
+                        const percent = Math.round(Number(data.productivityForDay));
+                        const total = data.totalTodo ?? 0;
+                        const completed = data.totalCompletedTodo ?? 0;
+                        const missed = data.totalMissedTodo ?? 0;
+
+                        // SVG Circular Meter
+                        const size = 48;
+                        const radius = 20;
+                        const stroke = 5;
+                        const normalizedPercent = Math.max(0, Math.min(100, percent));
+                        const circumference = 2 * Math.PI * radius;
+                        const offset = circumference - (normalizedPercent / 100) * circumference;
+
+                        // Color
+                        let color = "#ef4444"; // red
+                        if (normalizedPercent >= 75) color = "#22c55e"; // green
+                        else if (normalizedPercent >= 50) color = "#eab308"; // yellow
+
+                        // Tooltip HTML
+                        const tooltipHtml = `
+                            <div class="circular-tooltip absolute z-50 left-[80%] top-1/2 mt-2 w-48 -translate-y-1/2 bg-white text-gray-800 rounded-lg shadow-lg border border-gray-200 p-3 text-xs hidden group-hover:block">
+                                <div class="font-semibold text-sm mb-2">Productivity Details</div>
+                                <div class="flex justify-between mb-1"><span>Total Tasks:</span><span>${total}</span></div>
+                                <div class="flex justify-between mb-1"><span>Completed:</span><span>${completed}</span></div>
+                                <div class="flex justify-between mb-1"><span>Missed:</span><span>${missed}</span></div>
+                                <div class="flex justify-between"><span>Productivity:</span><span class="font-bold">${percent}%</span></div>
+                            </div>
+                        `;
+
+                        // Main HTML
+                        return `
+                            <div class="relative flex flex-col items-center group cursor-help" style="min-width:${size}px;">
+                                <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                                    <circle
+                                        cx="${size/2}" cy="${size/2}" r="${radius}"
+                                        stroke="#e5e7eb" stroke-width="${stroke}" fill="none"
+                                    />
+                                    <circle
+                                        cx="${size/2}" cy="${size/2}" r="${radius}"
+                                        stroke="${color}" stroke-width="${stroke}" fill="none"
+                                        stroke-dasharray="${circumference}"
+                                        stroke-dashoffset="${offset}"
+                                        style="transition:stroke-dashoffset 0.6s;"
+                                        stroke-linecap="round"
+                                    />
+                                    <text
+                                        x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
+                                        font-size="10" font-weight="bold" fill="#374151"
+                                    >${percent}%</text>
+                                </svg>
+                                ${tooltipHtml}
+                            </div>
+                        `;
+                    }
+                },
+                {
                     data: null,
                     name: "Action",
+                    orderable: false,
+                    searchable: false,
                     defaultContent: "",
                     render: renderCallBack
                 }
@@ -221,15 +317,26 @@
             const hasNotes = row.notes && row.notes.trim().length > 0;
 
             return `
-                <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 me-1 rounded bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
-                    <i class="fas fa-comment"></i> ${hasNotes ? "Update Notes" : "Add Notes"}
-                </button>
-                <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit Task
-                </a>
-                <button data-id="${row.id}" class="markAsCompleteToDoBtn my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
-                        <i class="fas fa-check"></i> Mark as Complete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <!-- Add or Update Notes Button -->
+                    <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="${hasNotes ? 'Update Notes' : 'Add Notes'}">
+                        <i class="fas fa-comment"></i>
+                        <span class="ml-2">${hasNotes ? "Update Notes" : "Add Notes"}</span>
+                    </button>
+
+                    <!-- Edit Task Button -->
+                    <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Edit Task">
+                        <i class="fas fa-edit"></i>
+                        <span class="ml-2">Edit Task</span>
+                    </a>
+
+                    <!-- Mark as Complete Button -->
+                    <button data-id="${row.id}" class="markAsCompleteToDoBtn my-1 rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 focus:ring-2 focus:ring-green-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Mark as Complete">
+                        <i class="fas fa-check"></i>
+                        <span class="ml-2">Mark as Complete</span>
+                    </button>
+                </div>
+
             `;
         }
 
@@ -251,15 +358,25 @@
             const hasNotes = row.notes && row.notes.trim().length > 0;
 
             return `
-                <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 me-1 rounded bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
-                    <i class="fas fa-comment"></i> ${hasNotes ? "Update Notes" : "Add Notes"}
-                </button>
-                <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit Task
-                </a>
-                <button data-id="${row.id}" class="moveToRunningToDoBtn my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                        <i class="fas fa-check"></i> Move to Running
-                </button>
+                <div class="flex flex-wrap gap-3 items-center">
+                    <!-- Add or Update Notes Button -->
+                    <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="${hasNotes ? 'Update Notes' : 'Add Notes'}">
+                        <i class="fas fa-comment"></i>
+                        <span class="ml-2">${hasNotes ? "Update Notes" : "Add Notes"}</span>
+                    </button>
+
+                    <!-- Edit Task Button -->
+                    <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Edit Task">
+                        <i class="fas fa-edit"></i>
+                        <span class="ml-2">Edit Task</span>
+                    </a>
+
+                    <!-- Move to Running Button -->
+                    <button data-id="${row.id}" class="moveToRunningToDoBtn my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Move to Running">
+                        <i class="fas fa-play-circle"></i> <!-- Consider using a play icon for 'Move to Running' -->
+                        <span class="ml-2">Move to Running</span>
+                    </button>
+                </div>
             `;
         }
 

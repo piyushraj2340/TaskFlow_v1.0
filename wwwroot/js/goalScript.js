@@ -220,7 +220,6 @@
         }
     });
 
-    /* ----------------------- existing datatable + other logic kept unchanged ----------------------- */
     const dataTableObject = (url, renderCallBack, pageLengthKey) => {
 
         const pageLength = localStorage.getItem(pageLengthKey);
@@ -278,18 +277,39 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
-                    <i class="fas fa-plus"></i> Add Task
+               <div class="flex flex-wrap gap-2 items-center">
+                
+                <a href="/Tasks/Create?goalId=${row.id}" 
+                   class="my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                   aria-label="Add Task">
+                    <i class="fas fa-plus"></i>
+                    <span class="ml-2">Add Task</span>
                 </a>
-                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
+
+                
+                <button data-id="${row.id}" 
+                        class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                        aria-label="Edit Goal">
+                    <i class="fas fa-edit"></i>
+                    <span class="ml-2">Edit</span>
                 </button>
-                <button data-id="${row.id}" class="markAsComplete my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
-                        <i class="fas fa-check"></i> Mark as Complete
+
+                
+                <button data-id="${row.id}" class="markAsComplete my-1 rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                        aria-label="Mark Goal as Complete">
+                    <i class="fas fa-check"></i>
+                    <span class="ml-2">Mark as Complete</span>
                 </button>
-                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
+
+                
+                <button data-id="${row.id}" 
+                        class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                        aria-label="Delete Goal">
+                    <i class="fas fa-trash"></i>
+                    <span class="ml-2">Delete</span>
                 </button>
+            </div>
+
             `;
         }
 
@@ -298,8 +318,6 @@
             runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.runningGoal));
 
             runningGoalDataTable.on('length.dt', function (e, settings, len) {
-                console.log('runningGoalDataTable page length: ' + len);
-
                 localStorage.setItem(pageLengthValue.runningGoal, len);
             });
 
@@ -312,15 +330,32 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                        <i class="fas fa-check"></i> Move to Running
-                </button>
-                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    
+                    <button data-id="${row.id}" 
+                            class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                            aria-label="Edit Goal">
+                        <i class="fas fa-edit"></i>
+                        <span class="ml-2">Edit</span>
+                    </button>
+
+                    <!-- Move to Running Button -->
+                    <button data-id="${row.id}" 
+                            class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                            aria-label="Move Goal to Running">
+                        <i class="fas fa-play"></i>
+                        <span class="ml-2">Move to Running</span>
+                    </button>
+
+                    
+                    <button data-id="${row.id}" 
+                            class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                            aria-label="Delete Goal">
+                        <i class="fas fa-trash"></i>
+                        <span class="ml-2">Delete</span>
+                    </button>
+                </div>
+
             `;
         }
 
@@ -329,8 +364,6 @@
             completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.completedGoal));
 
             completedGoalDataTable.on('length.dt', function (e, settings, len) {
-                console.log('completedGoalDataTable page length: ' + len);
-
                 localStorage.setItem(pageLengthValue.completedGoal, len);
             });
 
@@ -343,18 +376,40 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Create?goalId=${row.id}" class="my-1 rounded me-1 bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600">
-                    <i class="fas fa-plus"></i> Add Task
-                </a>
-                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                        <i class="fas fa-check"></i> Move to Running
-                </button>
-                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    
+                    <a href="/Tasks/Create?goalId=${row.id}" 
+                       class="my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
+                       aria-label="Add Task to Goal">
+                        <i class="fas fa-plus"></i>
+                        <span class="ml-2">Add Task</span>
+                    </a>
+
+                    
+                    <button data-id="${row.id}" 
+                            class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
+                            aria-label="Edit Goal">
+                        <i class="fas fa-edit"></i>
+                        <span class="ml-2">Edit</span>
+                    </button>
+
+                    <!-- Move to Running Button -->
+                    <button data-id="${row.id}" 
+                            class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
+                            aria-label="Move Goal to Running">
+                        <i class="fas fa-play"></i>
+                        <span class="ml-2">Move to Running</span>
+                    </button>
+
+                    
+                    <button data-id="${row.id}" 
+                            class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
+                            aria-label="Delete Goal">
+                        <i class="fas fa-trash"></i>
+                        <span class="ml-2">Delete</span>
+                    </button>
+                </div>
+
             `;
         }
 
@@ -363,8 +418,6 @@
             notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.notStartedGoal));
 
             notStartedGoalDataTable.on('length.dt', function (e, settings, len) {
-                console.log('notStartedGoalDataTable page length: ' + len);
-
                 localStorage.setItem(pageLengthValue.notStartedGoal, len);
             });
 
@@ -377,15 +430,29 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <button data-id="${row.id}" class="editGoalBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                        <i class="fas fa-check"></i> Move to Running
-                </button>
-                <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                  <button data-id="${row.id}" 
+                          class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                          aria-label="Edit Goal">
+                    <i class="fas fa-edit"></i>
+                    <span class="ml-2">Edit</span>
+                  </button>
+
+                  <button data-id="${row.id}" 
+                          class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                          aria-label="Move to Running">
+                    <i class="fas fa-play"></i>
+                    <span class="ml-2">Move to Running</span>
+                  </button>
+
+                  <button data-id="${row.id}" 
+                          class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                          aria-label="Delete Goal">
+                    <i class="fas fa-trash"></i>
+                    <span class="ml-2">Delete</span>
+                  </button>
+                </div>
+
             `;
         }
 
@@ -394,8 +461,6 @@
             endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.endedGoal));
 
             endedGoalDataTable.on('length.dt', function (e, settings, len) {
-                console.log('endedGoalDataTable page length: ' + len);
-
                 localStorage.setItem(pageLengthValue.endedGoal, len);
             });
 
@@ -469,6 +534,119 @@
     notStartedGoalDataTable?.length && loadNotStartedGoalData();
     endedGoalDataTable?.length && loadEndedGoalData();
     //loadDeletedGoalData();
+
+    // delete goal
+    $(document).on("click", ".deleteGoalBtn", async function () {
+        const id = $(this).data("id");
+        let parentTable = $(this).closest("table");
+
+        if (!id) {
+            showErrorNotification("Missing Id parameters!");
+            return;
+        }
+
+        try {
+            // Call reusable confirmation function
+            showConfirmationDialog(
+                {
+                    title: 'Are you sure?',
+                    text: 'Do you really want to delete this goal? This action cannot be undone.',
+                },
+                {
+                    url: `/Goals/DeleteGoal`,
+                    type: 'DELETE',
+                    data: { Id: id }
+                },
+                function (response) { // Success callback
+                    parentTable?.DataTable().ajax.reload();
+                },
+                function (error) { // Error callback
+                    console.error('Error deleting goal:', error);
+                }
+            );
+        }
+        catch (error) {
+            showErrorNotification(error.message || "Error: while deleting Goal with Id: " + id);
+            console.error(error);
+        }
+    })
+
+
+    // Mark goal as completed...
+    $(document).on("click", ".markAsComplete", async function () {
+        const id = $(this).data("id");
+
+        if (!id) {
+            showErrorNotification("Missing Id parameters!");
+            return;
+        }
+
+        $.ajax({
+            url: "/Goals/ChangeGoalStatus",
+            method: "POST",
+            data: {
+                Id: id,
+                GoalStatus: goalStatusEnum.completed
+            },
+            success: function (response) {
+                if (response.status) {
+
+                    runningGoalDataTable?.DataTable().ajax.reload();
+
+                    completedGoalDataTable?.DataTable().ajax.reload();
+
+                    showSuccessNotification(response.message);
+                } else {
+                    throw new Error(response.message || "Error: while changing the status of Goal with Id: " + id);
+                }
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                console.error("Error:", error);
+            }
+        })
+    })
+
+    // Move to runnings
+    $(document).on("click", ".moveToRunning", async function () {
+        const id = $(this).data("id");
+        let goalStatus = $(this).closest("table").data("goal-status");
+
+        if (!id) {
+            showErrorNotification("Missing Id parameters!");
+            return;
+        }
+
+        $.ajax({
+            url: "/Goals/ChangeGoalStatus",
+            method: "POST",
+            data: {
+                Id: id,
+                GoalStatus: goalStatusEnum.running
+            },
+            success: function (response) {
+                if (response.status) {
+
+                    runningGoalDataTable.DataTable().ajax.reload();
+
+                    goalStatus === "notStarted" && notStartedGoalDataTable?.DataTable().ajax.reload();
+
+                    goalStatus === "completed" && completedGoalDataTable?.DataTable().ajax.reload();
+
+                    goalStatus === "ended" && endedGoalDataTable?.DataTable().ajax.reload();
+
+
+                    showSuccessNotification(response.message);
+                } else {
+                    showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
+                }
+            },
+            error: function (xhr, status, error) {
+                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                console.error("Error:", error);
+            }
+        })
+    })
 
     /* ----------------------- TinyMCE config + helper ----------------------- */
 

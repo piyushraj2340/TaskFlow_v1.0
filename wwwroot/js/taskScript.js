@@ -14,10 +14,10 @@
     });
 
     const pageLengthValue = Object.freeze({
-        runningTask: "RUNNING_TASK_PAGE_LENGTH",
-        completedTask: "COMPLETED_TASK_PAGE_LENGTH",
-        notStartedTask: "NOT_STARTED_TASK_PAGE_LENGTH",
-        endedTask: "ENDED_TASK_PAGE_LENGTH",
+        runningTask:"RUNNING_TASK_PAGE_LENGTH",
+        completedTask:"COMPLETED_TASK_PAGE_LENGTH",
+        notStartedTask:"NOT_STARTED_TASK_PAGE_LENGTH",
+        endedTask:"ENDED_TASK_PAGE_LENGTH",
     });
 
     const dayMap = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -39,7 +39,7 @@
     // completed data table 
     const taskDeletedDataTable = $("#viewDeletedTaskTableData");
 
-    $(document).on("click", ".deleteTaskBtn", async function () {
+    $(document).on("click",".deleteTaskBtn", async function () {
         const id = $(this).data("id");
         const parrentTable = $(this).closest("table");
 
@@ -67,12 +67,12 @@
                 }
             );
         } catch (error) {
-            showErrorNotification(error.message || "Error: while deleting the Task with Id: " + id)
+            showErrorNotification(error.message ||"Error: while deleting the Task with Id:" + id)
             console.error(error);
         }
     })
 
-    $(document).on("click", ".markAsCompleteTaskBtn", async function () {
+    $(document).on("click",".markAsCompleteTaskBtn", async function () {
         const id = $(this).data("id");
 
         if (!id) {
@@ -81,8 +81,8 @@
         }
 
         $.ajax({
-            url: "/Tasks/ChangeTaskStatus",
-            method: "POST",
+            url:"/Tasks/ChangeTaskStatus",
+            method:"POST",
             data: {
                 Id: id,
                 TaskStatus: taskStatusEnum.completed
@@ -93,12 +93,12 @@
                     setTimeout(() => location.reload(), 1000);
                 }
                 else {
-                    showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
-                    console.error(response.message || "Error: while changing the status of Goal with Id: " + id)
+                    showErrorNotification(response.message ||"Error: while changing the status of Goal with Id:" + id);
+                    console.error(response.message ||"Error: while changing the status of Goal with Id:" + id)
                 }
             },
             error: function (xhr, status, error) {
-                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                showErrorNotification(error ||"Error: while changing the status of Goal with Id:" + id);
                 console.error("Error:", error);
             }
         })
@@ -106,7 +106,7 @@
 
     })
 
-    $(document).on("click", ".moveToRunningTaskBtn", async function () {
+    $(document).on("click",".moveToRunningTaskBtn", async function () {
         const id = $(this).data("id");
         let taskStatus = $(this).closest("table").data("task-status");
 
@@ -116,8 +116,8 @@
         }
 
         $.ajax({
-            url: "/Tasks/ChangeTaskStatus",
-            method: "POST",
+            url:"/Tasks/ChangeTaskStatus",
+            method:"POST",
             data: {
                 Id: id,
                 TaskStatus: taskStatusEnum.running
@@ -128,12 +128,12 @@
                     setTimeout(() => location.reload(), 1000);
                 }
                 else {
-                    showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
-                    console.error(response.message || "Error: while changing the status of Goal with Id: " + id)
+                    showErrorNotification(response.message ||"Error: while changing the status of Goal with Id:" + id);
+                    console.error(response.message ||"Error: while changing the status of Goal with Id:" + id)
                 }
             },
             error: function (xhr, status, error) {
-                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
+                showErrorNotification(error ||"Error: while changing the status of Goal with Id:" + id);
                 console.error("Error:", error);
             }
         })
@@ -145,37 +145,37 @@
         const goalId = getGoalIdFromGoalDetailPage();
 
         if (goalId) {
-            url = url + "?goalId=" + goalId;
+            url = url +"?goalId=" + goalId;
         }
 
         return {
             ajax: {
                 url,
-                type: "POST"
+                type:"POST"
             },
             responsive: true,
             processing: true,
             serverSide: true,
             filter: true,
             columns: [
-                { data: "id", name: "Id" },
+                { data:"id", name:"Id" },
                 {
-                    data: "name",
-                    name: "Name",
+                    data:"name",
+                    name:"Name",
                     render: function (data, type, row) {
                         return `<a href="/Tasks/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
                     }
                 },
                 {
-                    data: "priority",
-                    name: "Priority",
+                    data:"priority",
+                    name:"Priority",
                     render: function (data, type, row) {
                         return returnPriorityBadge(data);
                     }
                 },
                 {
-                    data: "repeat",
-                    name: "Repeat",
+                    data:"repeat",
+                    name:"Repeat",
                     render: function (data, type, row) {
                         
                         switch (data) {
@@ -194,41 +194,52 @@
                     }
                 },
                 {
-                    data: "endDate",
-                    name: "EndDate",
+                    data:"endDate",
+                    name:"EndDate",
                     render: function (data, type, row) {
                         return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
                     }
                 },
                 {
                     data: null,
-                    name: "Action",
-                    defaultContent: "",
+                    name:"Action",
+                    defaultContent:"",
                     render: renderCallBack
                 }
             ],
             order: [[0, 'asc']],
             info: true,
-            lengthMenu: [[5, 10, 50, 100, 250, 500, -1], [5, 10, 50, 100, 250, 500, "All"]],
+            lengthMenu: [[5, 10, 50, 100, 250, 500, -1], [5, 10, 50, 100, 250, 500,"All"]],
             pageLength: pageLength ? pageLength : defaultPageLength
         }
     }
 
     function loadRunningTaskData() {
 
-        let url = "/Tasks/GetAllRunningTaskList";
+        let url ="/Tasks/GetAllRunningTaskList";
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button data-id="${row.id}" class="markAsCompleteTaskBtn my-1 me-1 rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
-                        <i class="fas fa-check"></i> Mark as Complete
-                </button>
-                <button data-id="${row.id}" class="deleteTaskBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    
+                    <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Edit Task">
+                        <i class="fas fa-edit"></i> 
+                        <span class="ml-2">Edit</span>
+                    </a>
+
+                    
+                    <button data-id="${row.id}" class="markAsCompleteTaskBtn my-1 rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 focus:ring-2 focus:ring-green-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Mark as Complete">
+                        <i class="fas fa-check"></i> 
+                        <span class="ml-2">Mark as Complete</span>
+                    </button>
+
+                    
+                    <button data-id="${row.id}" class="deleteTaskBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Delete Task">
+                        <i class="fas fa-trash"></i> 
+                        <span class="ml-2">Delete</span>
+                    </button>
+                </div>
+
             `;
         }
 
@@ -246,19 +257,29 @@
     }
 
     function loadCompletedTaskData() {
-        let url = "/Tasks/GetAllCompletedTaskList";
+        let url ="/Tasks/GetAllCompletedTaskList";
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button data-id="${row.id}" class="moveToRunningTaskBtn my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                        <i class="fas fa-check"></i> Move To Running
-                </button>
-                <button data-id="${row.id}" class="deleteTaskBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    
+                    <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Edit Task">
+                        <i class="fas fa-edit"></i> 
+                        <span class="ml-2">Edit</span>
+                    </a>
+
+                    <!-- Move to Running Task Button -->
+                    <button data-id="${row.id}" class="moveToRunningTaskBtn my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Move to Running">
+                        <i class="fas fa-play-circle"></i> 
+                        <span class="ml-2">Move To Running</span>
+                    </button>
+
+                    
+                    <button data-id="${row.id}" class="deleteTaskBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Delete Task">
+                        <i class="fas fa-trash"></i> 
+                        <span class="ml-2">Delete</span>
+                    </button>
+                </div>
             `;
         }
 
@@ -277,19 +298,37 @@
     }
 
     function loadNotStartedTaskData() {
-        let url = "/Tasks/GetAllNotStartedTaskList";
+        let url ="/Tasks/GetAllNotStartedTaskList";
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button data-id="${row.id}" class="moveToRunningTaskBtn my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                        <i class="fas fa-check"></i> Move To Running
-                </button>
-                <button data-id="${row.id}" class="deleteTaskBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    
+                    <a href="/Tasks/Edit/${row.id}" 
+                       data-id="${row.id}" 
+                       class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                       aria-label="Edit Task">
+                        <i class="fas fa-edit"></i>
+                        <span class="ml-2">Edit</span>
+                    </a>
+
+                    <!-- Move to Running Button -->
+                    <button data-id="${row.id}" 
+                            class="moveToRunningTaskBtn my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                            aria-label="Move to Running">
+                        <i class="fas fa-play"></i>
+                        <span class="ml-2">Move To Running</span>
+                    </button>
+
+                    
+                    <button data-id="${row.id}" 
+                            class="deleteTaskBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                            aria-label="Delete Task">
+                        <i class="fas fa-trash"></i>
+                        <span class="ml-2">Delete</span>
+                    </button>
+                </div>
+
             `;
         }
 
@@ -307,19 +346,37 @@
     }
 
     function loadEndedTaskData() {
-        let url = "/Tasks/GetAllEndedTaskList";
+        let url ="/Tasks/GetAllEndedTaskList";
 
         function renderCallBack(data, type, row) {
             return `
-                <a href="/Tasks/Edit/${row.id}" data-id="${row.id}" class="editTaskBtn my-1 me-1 rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button data-id="${row.id}" class="moveToRunningTaskBtn my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                        <i class="fas fa-check"></i> Move To Running
-                </button>
-                <button data-id="${row.id}" class="deleteTaskBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    
+                    <a href="/Tasks/Edit/${row.id}" 
+                        data-id="${row.id}" 
+                        class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                        aria-label="Edit Task">
+                        <i class="fas fa-edit"></i>
+                        <span class="ml-2">Edit</span>
+                    </a>
+
+                    <!-- Move to Running Button -->
+                    <button data-id="${row.id}" 
+                            class="moveToRunningTaskBtn my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                            aria-label="Move To Running">
+                        <i class="fas fa-play"></i>
+                        <span class="ml-2">Move To Running</span>
+                    </button>
+
+                    
+                    <button data-id="${row.id}" 
+                            class="deleteTaskBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
+                            aria-label="Delete Task">
+                        <i class="fas fa-trash"></i>
+                        <span class="ml-2">Delete</span>
+                    </button>
+                </div>
+
             `;
         }
 
@@ -338,32 +395,32 @@
     function loadDeletedTaskData() {
         deletedDataTableReload = taskDeletedDataTable.DataTable({
             ajax: {
-                url: "/Tasks/GetAllDeletedTaskList",
-                type: "POST"
+                url:"/Tasks/GetAllDeletedTaskList",
+                type:"POST"
             },
             responsive: true,
             processing: true,
             serverSide: true,
             filter: true,
             columns: [
-                { data: "id", name: "id" },
+                { data:"id", name:"id" },
                 {
-                    data: "name",
-                    name: "name",
+                    data:"name",
+                    name:"name",
                     render: function (data, type, row) {
                         return `<a href="/Tasks/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
                     }
                 },
                 {
-                    data: "priority",
-                    name: "priority",
+                    data:"priority",
+                    name:"priority",
                     render: function (data, type, row) {
                         return returnPriorityBadge(data);
                     }
                 },
                 {
-                    data: "repeat",
-                    name: "repeat",
+                    data:"repeat",
+                    name:"repeat",
                     render: function (data, type, row) {
                         switch (data) {
                             case 0:
@@ -378,24 +435,24 @@
                     }
                 },
                 {
-                    data: "taskStatus",
-                    name: "taskStatus",
+                    data:"taskStatus",
+                    name:"taskStatus",
                     render: function (data, type, row) {
                         return returnStatusBadge(data);
                     }
 
                 },
                 {
-                    data: "endDate",
-                    name: "endDate",
+                    data:"endDate",
+                    name:"endDate",
                     render: function (data, type, row) {
                         return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
                     }
                 },
                 {
                     data: null,
-                    name: "Action",
-                    defaultContent: "",
+                    name:"Action",
+                    defaultContent:"",
                     render: function (data, type, row) {
                         return `
                             <button data-id="${row.id}" class="moveToRunningTaskBtn my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
@@ -422,7 +479,7 @@
 
 
     $('#Repeat').on('change', function () {
-        if ($(this).val() === "2") {
+        if ($(this).val() ==="2") {
             $('#RepeatWeekList').removeClass('hidden');
         } else {
             $('#RepeatWeekList').addClass('hidden');
@@ -444,7 +501,7 @@
     });
 
     function getGoalIdFromGoalDetailPage() {
-        var path = window.location.pathname || "";
+        var path = window.location.pathname ||"";
         var parts = path.split("/").filter(Boolean); // remove empty segments
 
         var detailsIndex = parts.indexOf("Details");
@@ -457,6 +514,6 @@
             }
         }
 
-        return ""; // fallback if not found
+        return""; // fallback if not found
     }
 })

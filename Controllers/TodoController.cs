@@ -88,17 +88,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all goals from the service
-            IEnumerable<TodoDTOWithTaskDTO> data;
+            IEnumerable<TodoDTOWithTaskDTO> todoDataWithTask;
 
             if (taskId != null && taskId.HasValue)
             {
                 if (selectDate.HasValue)
                 {
-                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Running, selectDate.Value);
+                    todoDataWithTask = await _service.GetAllTodo(userId, taskId.Value, Status.Running, selectDate.Value);
                 }
                 else
                 {
-                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Running);
+                    todoDataWithTask = await _service.GetAllTodo(userId, taskId.Value, Status.Running);
 
                 }
             }
@@ -106,15 +106,25 @@ namespace TaskMonitoringApp.Controllers
             {
                 if (selectDate.HasValue)
                 {
-                    data = await _service.GetAllTodo(userId, Status.Running, selectDate.Value);
+                    todoDataWithTask = await _service.GetAllTodo(userId, Status.Running, selectDate.Value);
                 }
                 else
                 {
-                    data = await _service.GetAllTodo(userId, Status.Running);
+                    todoDataWithTask = await _service.GetAllTodo(userId, Status.Running);
 
                 }
             }
 
+            var data = _mapper.Map<IEnumerable<TodoWithTaskProductivityDTO>>(todoDataWithTask);
+
+            foreach (var d in data)
+            {
+                if (d != null && d.TaskId > 0)
+                {
+                    var productivity = await _service.GetTodoProgressAnalyses(userId, d.TaskId);
+                    d.TaskProductivity = productivity;
+                }
+            }
 
             // Get total count of records
             totalRecord = data.Count();
@@ -122,10 +132,12 @@ namespace TaskMonitoringApp.Controllers
             // Apply search filter if there's a search value
             if (!string.IsNullOrEmpty(searchValue))
             {
-                // Perform case-insensitive search on multiple fields (Name and Id)
-                data = data.Where(x => x.TaskName.ToLower().Contains(searchValue) ||
-                        x.Id.ToString().Contains(searchValue)
-                        );
+                // Search in TaskName, Id, and Notes (case-insensitive)
+                data = data.Where(x =>
+                    (x.TaskName?.ToLower().Contains(searchValue) ?? false) ||
+                    x.Id.ToString().Contains(searchValue) ||
+                    (x.Notes?.ToLower().Contains(searchValue) ?? false)
+                );
             }
 
             // Get filtered record count after search
@@ -144,6 +156,9 @@ namespace TaskMonitoringApp.Controllers
                         break;
                     case "priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
+                        break;
+                    case "productivity":
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskProductivity?.ProductivityForDay) : data.OrderByDescending(x => x.TaskProductivity?.ProductivityForDay);
                         break;
                     case "repeat":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
@@ -201,16 +216,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all goals from the service
-            IEnumerable<TodoDTOWithTaskDTO> data;
+            IEnumerable<TodoDTOWithTaskDTO> todoDataWithTask; // Renamed variable for consistency with GetRunningTodo
+
             if (taskId != null && taskId.HasValue)
             {
                 if (selectDate.HasValue)
                 {
-                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Completed, selectDate.Value);
+                    todoDataWithTask = await _service.GetAllTodo(userId, taskId.Value, Status.Completed, selectDate.Value);
                 }
                 else
                 {
-                    data = await _service.GetAllTodo(userId, taskId.Value, Status.Completed);
+                    todoDataWithTask = await _service.GetAllTodo(userId, taskId.Value, Status.Completed);
 
                 }
             }
@@ -218,14 +234,28 @@ namespace TaskMonitoringApp.Controllers
             {
                 if (selectDate.HasValue)
                 {
-                    data = await _service.GetAllTodo(userId, Status.Completed, selectDate.Value);
+                    todoDataWithTask = await _service.GetAllTodo(userId, Status.Completed, selectDate.Value);
                 }
                 else
                 {
-                    data = await _service.GetAllTodo(userId, Status.Completed);
+                    todoDataWithTask = await _service.GetAllTodo(userId, Status.Completed);
 
                 }
             }
+
+            // 1. Map to the DTO that includes the productivity field (TodoWithTaskProductivityDTO)
+            var data = _mapper.Map<IEnumerable<TodoWithTaskProductivityDTO>>(todoDataWithTask);
+
+            // 2. Fetch productivity for all records (required for accurate sorting and filtering across the entire dataset)
+            foreach (var d in data)
+            {
+                if (d != null && d.TaskId > 0)
+                {
+                    var productivity = await _service.GetTodoProgressAnalyses(userId, d.TaskId);
+                    d.TaskProductivity = productivity;
+                }
+            }
+
 
             // Get total count of records
             totalRecord = data.Count();
@@ -233,10 +263,12 @@ namespace TaskMonitoringApp.Controllers
             // Apply search filter if there's a search value
             if (!string.IsNullOrEmpty(searchValue))
             {
-                // Perform case-insensitive search on multiple fields (Name and Id)
-                data = data.Where(x => x.TaskName.ToLower().Contains(searchValue) ||
-                        x.Id.ToString().Contains(searchValue)
-                        );
+                // Search in TaskName, Id, and Notes (case-insensitive)
+                data = data.Where(x =>
+                    (x.TaskName?.ToLower().Contains(searchValue) ?? false) ||
+                    x.Id.ToString().Contains(searchValue) ||
+                    (x.Notes?.ToLower().Contains(searchValue) ?? false)
+                );
             }
 
             // Get filtered record count after search
@@ -256,6 +288,10 @@ namespace TaskMonitoringApp.Controllers
                     case "priority":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
                         break;
+                    case "productivity":
+                        // Added productivity sort case, essential for consistency and frontend functionality
+                        data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskProductivity?.ProductivityForDay) : data.OrderByDescending(x => x.TaskProductivity?.ProductivityForDay);
+                        break;
                     case "repeat":
                         data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskPriority) : data.OrderByDescending(x => x.TaskPriority);
                         break;
@@ -271,9 +307,9 @@ namespace TaskMonitoringApp.Controllers
 
             // Paginate the data (skip and take)
             var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
-            var todoData = _mapper.Map<List<TodoDTO>>(datas);
 
-            //if(todoData.) 
+            // Map the final, paginated, enriched data back to the return DTO
+            var todoData = _mapper.Map<List<TodoDTO>>(datas);
 
             // Map the data to GoalDTO using AutoMapper
             var returnObj = new

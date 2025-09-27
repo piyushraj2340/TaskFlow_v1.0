@@ -12,6 +12,17 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 }
 
+<style>
+    .circular-tooltip {
+        @@apply absolute z-50 left-1/2 top-full mt-2 w-48 -translate-x-1/2 bg-white text-gray-800 rounded-lg shadow-lg border border-gray-200 p-3 text-xs;
+        display: none;
+    }
+
+    .circular-meter-group:hover .circular-tooltip {
+        display: block;
+    }
+</style>
+
 <div class="container mx-auto p-8">
     <div class="mb-6 flex flex-col items-start justify-between rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-300 md:flex-row md:items-center md:p-6">
         <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">
@@ -87,21 +98,23 @@
                 </div>
 
                 <!-- Running Task List (Table) -->
+                <div class="w-full overflow-x-auto">
+                    <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                        <thead>
+                            <tr>
+                                <th class="p-2 text-left text-gray-600">Task Id</th>
+                                <th class="p-2 text-left text-gray-600">Task Name</th>
+                                <th class="p-2 text-left text-gray-600">Priority</th>
+                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                <th class="p-2 text-left text-gray-600">Due Date</th>
+                                <th class="p-2 text-left text-gray-600">Notes</th>
+                                <th class="p-2 text-left text-gray-600">Productivity</th>
+                                <th class="p-2 text-left text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
 
-                <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Task Id</th>
-                            <th class="p-2 text-left text-gray-600">Task Name</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Notes</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
-
+                </div>
             </div>
 
 
@@ -115,20 +128,22 @@
                 <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                     <h2 id="CompletedTodoHeadId" class="mb-4 text-xl font-semibold text-gray-700">Completed Today's Tasks</h2>
                 </div>
-
-                <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Task Id</th>
-                            <th class="p-2 text-left text-gray-600">Task Name</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Notes</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+                <div class="w-full overflow-x-auto">
+                    <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
+                        <thead>
+                            <tr>
+                                <th class="p-2 text-left text-gray-600">Task Id</th>
+                                <th class="p-2 text-left text-gray-600">Task Name</th>
+                                <th class="p-2 text-left text-gray-600">Priority</th>
+                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                <th class="p-2 text-left text-gray-600">Due Date</th>
+                                <th class="p-2 text-left text-gray-600">Notes</th>
+                                <th class="p-2 text-left text-gray-600">Productivity</th>
+                                <th class="p-2 text-left text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
         </section>
     </div>
