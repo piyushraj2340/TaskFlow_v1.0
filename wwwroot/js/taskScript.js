@@ -177,7 +177,7 @@
                     data: "repeat",
                     name: "Repeat",
                     render: function (data, type, row) {
-                        console.log(row);
+                        
                         switch (data) {
                             case 0:
                                 return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-red-500 rounded-full shadow-md hover:bg-red-600 transition duration-300 min-w-max">RunOnce</span>';
