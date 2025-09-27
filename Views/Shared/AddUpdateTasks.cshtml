@@ -7,6 +7,9 @@
 
 @await Html.PartialAsync("_ModelStateValidations", errorMessages)
 
+<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <form method="POST" asp-action="@(ViewBag.IsEditMode?"Edit":"Create")" class="space-y-4">
 
     @if (ViewBag.IsEditMode)
@@ -196,7 +199,7 @@
         <!-- Scheduled Start Date Field -->
         <div id="startDateContainer" class="mb-4 @(ViewBag.IsEditMode && Model?.StartOptionType == StartOptions.Scheduled ? "" : "hidden")">
             <label asp-for="StartDate" class="block text-sm font-medium text-gray-600">Start Date</label>
-            <input asp-for="StartDate" type="datetime-local" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
+            <input asp-for="StartDate" type="text" id="startDate" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2">
             <span asp-validation-for="StartDate" class="text-xs text-red-500" id="startDateError">Start date is required when scheduling.</span>
         </div>
     }
@@ -204,7 +207,7 @@
     <!-- Due Date Input -->
     <div>
         <label asp-for="EndDate" class="block text-sm font-medium text-gray-600"></label>
-        <input asp-for="EndDate" type="datetime-local" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <input asp-for="EndDate" type="text" id="endDate" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         <span asp-validation-for="EndDate" class="text-sm text-red-500"></span>
     </div>
 
@@ -353,3 +356,64 @@
     });
 
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Start Date Picker
+    var startPicker = flatpickr("#startDate", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today",
+        theme: "material_blue",
+        onChange: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                // Set minDate for endDate to be after startDate
+                endPicker.set("minDate", selectedDates[0]);
+                // Optionally, clear endDate if it's before new startDate
+                var endInput = document.getElementById("endDate");
+                if (endInput.value) {
+                    var endDate = new Date(endInput.value);
+                    if (endDate <= selectedDates[0]) {
+                        endInput.value = "";
+                    }
+                }
+            }
+        }
+    });
+
+    // End Date Picker
+    var endPicker = flatpickr("#endDate", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today",
+        theme: "material_blue"
+    });
+
+    // Validation: prevent submitting if endDate <= startDate
+    document.querySelector("form").addEventListener("submit", function (e) {
+        var startInput = document.getElementById("startDate");
+        var endInput = document.getElementById("endDate");
+        var startDate = startInput.value ? new Date(startInput.value) : null;
+        var endDate = endInput.value ? new Date(endInput.value) : null;
+        var errorSpan = endInput.nextElementSibling;
+        if (startDate && endDate && endDate <= startDate) {
+            e.preventDefault();
+            errorSpan.textContent = "End date must be after start date.";
+            errorSpan.classList.remove("hidden");
+            endInput.classList.add("border-red-500");
+        } else {
+            errorSpan.classList.add("hidden");
+            endInput.classList.remove("border-red-500");
+        }
+    });
+});
+</script>
+
+<style>
+.flatpickr-calendar { font-family: 'Segoe UI', Arial, sans-serif; }
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+    background: #6366f1 !important; color: #fff !important; border-radius: 50% !important;
+}
+.flatpickr-day.today { border: 2px solid #6366f1 !important; }
+.flatpickr-day.disabled { color: #bbb !important; background: #f3f4f6 !important; }
+</style>
