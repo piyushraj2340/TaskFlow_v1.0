@@ -10,6 +10,7 @@
     <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
     <!-- Flatpickr (Calendar) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 }
 
 <style>
@@ -21,6 +22,81 @@
     .circular-meter-group:hover .circular-tooltip {
         display: block;
     }
+</style>
+
+<!-- Select2 CSS/JS -->
+
+<style>
+    /* Custom Select2 and Modal Styles */
+    .select2-container--default .select2-selection--multiple {
+        border-radius: 0.75rem;
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid #6366f1;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+    }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background: linear-gradient(90deg, #6366f1 60%, #3b82f6 100%);
+            color: #fff;
+            border: none;
+            border-radius: 9999px;
+            font-weight: 500;
+            margin-top: 6px;
+            margin-bottom: 6px;
+            padding: 6px 16px 6px 28px;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #fff;
+            margin-right: 8px;
+            font-size: 1.1em;
+            transition: color 0.2s;
+            left: 1px;
+            top: 4px;
+            border-radius: 50%;
+        }
+
+            .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+                color: #ef4444;
+            }
+
+    #searchTaskModal .select2-dropdown {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 24px rgba(99,102,241,0.12);
+    }
+
+    #selectedTasksContainer .task-tag {
+        background: linear-gradient(90deg, #6366f1 60%, #3b82f6 100%);
+        color: #fff;
+        border-radius: 6px;
+        font-weight: 500;
+        padding: 8px 18px 8px 12px;
+        margin: 4px 0;
+        box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #selectedTasksContainer .remove-task-btn {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+        #selectedTasksContainer .remove-task-btn:hover {
+            color: #ef4444;
+        }
 </style>
 
 <div class="container mx-auto p-8">
@@ -92,9 +168,14 @@
             <div class="mb-8">
                 <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
                     <h2 id="RunningOrMissingHeadId" class="text-xl font-semibold text-gray-700 sm:text-lg">Today's Tasks</h2>
-                    @* <a href="@Url.Action("Create")" id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-                    <i class="fas fa-plus"></i> Add New Todo
-                </a> *@
+
+                    <!-- Add Todo Button (only visible for today) -->
+                    <div id="addTodoBtnContainer" class="mb-4 flex justify-end">
+                        <button id="addTodoButton" class="hidden rounded-lg bg-gradient-to-r from-indigo-500 to-blue-500 px-6 py-2 text-white font-semibold shadow-lg hover:from-indigo-600 hover:to-blue-600 transition-all duration-200">
+                            <i class="fas fa-plus"></i> Add Todo
+                        </button>
+                    </div>
+
                 </div>
 
                 <!-- Running Task List (Table) -->
@@ -150,6 +231,24 @@
 
     @await Html.PartialAsync("AddUpdateTodoNotes")
 
+    <!-- Modal -->
+    <div id="searchTaskModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-900 bg-opacity-60">
+        <div class="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl p-0">
+            <div class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4 rounded-t-2xl">
+                <h2 class="text-xl font-bold text-white">Search & Select Tasks</h2>
+                <button id="closeModalButton" class="text-2xl text-white hover:text-gray-200 transition">&times;</button>
+            </div>
+            <div class="p-6">
+                <label for="taskMultiSelect" class="block mb-2 text-sm font-medium text-gray-700">Search Tasks</label>
+                <select id="taskMultiSelect" multiple="multiple" style="width:100%"></select>
+                <div id="selectedTasksContainer" class="mt-4 flex flex-wrap gap-3"></div>
+            </div>
+            <div class="flex justify-end px-6 pb-6">
+                <button id="confirmTasksButton" class="rounded-lg bg-green-500 px-5 py-2 text-white font-semibold shadow hover:bg-green-600 transition-all duration-200">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     @section Scripts
     {
         @* DataTable *@
@@ -163,5 +262,6 @@
         <script src="~/js/utils.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="~/js/todoScript.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     }
 </div>

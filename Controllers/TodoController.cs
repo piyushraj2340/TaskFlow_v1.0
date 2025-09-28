@@ -397,5 +397,24 @@ namespace TaskMonitoringApp.Controllers
                 return Json(new { status = false, message = ex.Message });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddBulkTodos([FromBody] BulkTodoCreateDTO bulkDto)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+                return Unauthorized();
+
+            try
+            {
+                await _service.AddBulkTodos(userId, bulkDto);
+                return Json(new { status = true, message = "Todos created successfully!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Bulk todo creation failed for user {UserId}", userId);
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
     }
 }

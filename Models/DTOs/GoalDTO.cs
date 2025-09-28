@@ -63,9 +63,11 @@ namespace TaskMonitoringApp.Models.DTOs
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public string? UserId { get; set; }
+
+        public Status? GoalStatus { get; set; }
 
     }
 

@@ -15,7 +15,7 @@ namespace TaskMonitoringApp.Models.Repositories
 
         Task<IEnumerable<T>> GetAllTodoWithStatusByGoalId<T>(string userId, int goalId, Status todoStatus, ResponseDataMode mode) where T : class;
 
-        Task<IEnumerable<T>> GetAllTodoWithStatusByTaskId<T>(string userId, int goalId, Status todoStatus, ResponseDataMode mode) where T : class;
+        Task<IEnumerable<T>> GetAllTodoWithStatusByTaskId<T>(string userId, int taskId, Status todoStatus, ResponseDataMode mode) where T : class;
 
         Task<T> GetTodoByIdAsync<T>(string UserId, int Id, ResponseDataMode mode) where T : class;
 
@@ -34,5 +34,6 @@ namespace TaskMonitoringApp.Models.Repositories
 
         Task UpdateTodoNotesAsync(string userId, int todoId, string notes);
 
+        Task AddBulkTodosAsync(BulkTodoCreateDTO bulkDto);
     }
 }

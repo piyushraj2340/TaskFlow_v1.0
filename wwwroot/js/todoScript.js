@@ -44,6 +44,33 @@
         }
     });
 
+    function returnStatusBadge(status) {
+
+        // Ensure the status is a valid number (not NaN, not undefined, etc.)
+        const data = Number.parseInt(status);
+
+        // Validate if 'status' is a valid number
+        if (isNaN(data) || typeof data !== 'number') {
+            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-900 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
+            // Return an error message or default badge if invalid
+        }
+
+        switch (data) {
+            case 0:
+                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Not Started</span>';
+            case 1:
+                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-blue-500 rounded-full shadow-md hover:bg-blue-600 transition duration-300 min-w-max">Running</span>';
+            case 2:
+                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-green-500 rounded-full shadow-md hover:bg-green-600 transition duration-300 min-w-max">Completed</span>';
+            case 3:
+                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-400 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">End</span>';
+            case 4:
+                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-red-500 rounded-full shadow-md hover:bg-red-600 transition duration-300 min-w-max">Deleted</span>';
+            default:
+                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-900 rounded-full shadow-md hover:bg-gray-950 transition duration-300 min-w-max">Unknown Type</span>';
+        }
+    }
+
     function handelStatusChange(data) {
         $.ajax({
             url: "/Todo/ChangeTodoStatus",
@@ -272,11 +299,11 @@
                             <div class="relative flex flex-col items-center group cursor-help" style="min-width:${size}px;">
                                 <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
                                     <circle
-                                        cx="${size/2}" cy="${size/2}" r="${radius}"
+                                        cx="${size / 2}" cy="${size / 2}" r="${radius}"
                                         stroke="#e5e7eb" stroke-width="${stroke}" fill="none"
                                     />
                                     <circle
-                                        cx="${size/2}" cy="${size/2}" r="${radius}"
+                                        cx="${size / 2}" cy="${size / 2}" r="${radius}"
                                         stroke="${color}" stroke-width="${stroke}" fill="none"
                                         stroke-dasharray="${circumference}"
                                         stroke-dashoffset="${offset}"
@@ -571,6 +598,256 @@
         if (e.key === "Escape") {
             $("#todoNotesModal").fadeOut();
         }
+    });
+});
+
+$(document).ready(function () {
+    // Show Add Todo button only if selected date is today
+    function updateAddTodoButtonVisibility() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selectedDate = $("#taskDatePicker").val() ? new Date($("#taskDatePicker").val()) : today;
+        selectedDate.setHours(0, 0, 0, 0);
+        if (selectedDate.getTime() === today.getTime()) {
+            $("#addTodoButton").removeClass("hidden");
+        } else {
+            $("#addTodoButton").addClass("hidden");
+        }
+    }
+    $("#taskDatePicker, #prevDateBtn, #nextDateBtn").on("change click", updateAddTodoButtonVisibility);
+    updateAddTodoButtonVisibility();
+
+    // Modal logic
+    const searchTaskModal = $("#searchTaskModal");
+    const taskMultiSelect = $("#taskMultiSelect");
+    const selectedTasksContainer = $("#selectedTasksContainer");
+
+    // Open Modal
+    $("#addTodoButton").on("click", function () {
+        searchTaskModal.removeClass("hidden");
+        taskMultiSelect.val(null).trigger('change');
+        selectedTasksContainer.empty();
+    });
+
+    // Close Modal
+    $("#closeModalButton").on("click", function () {
+        searchTaskModal.addClass("hidden");
+    });
+
+    function returnGoalBadge(goal) {
+        const status = Number.parseInt(goal.goalStatus);
+
+        if (isNaN(status)) {
+            return `<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-900 rounded-full shadow-md min-w-max">
+              ${goal.id} - ${goal.name}
+            </span>`;
+        }
+
+        switch (status) {
+            case 0:
+                return `<span title="Status - NotStarted" class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-400 rounded-full shadow-md min-w-max hover:bg-yellow-500 transition duration-300">
+                ${goal.id} - ${goal.name}
+              </span>`;
+            case 1:
+                return `<span title="Status - Running" class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded-full shadow-md min-w-max hover:bg-blue-600 transition duration-300">
+                ${goal.id} - ${goal.name}
+              </span>`;
+            case 2:
+                return `<span title="Status - Completed" class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full shadow-md min-w-max hover:bg-green-600 transition duration-300">
+                ${goal.id} - ${goal.name}
+              </span>`;
+            case 3:
+                return `<span title="Status - Ended" class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-400 rounded-full shadow-md min-w-max hover:bg-gray-500 transition duration-300">
+                ${goal.id} - ${goal.name}
+              </span>`;
+            case 4:
+                return `<span  title="Status - Deleted" class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-full shadow-md min-w-max hover:bg-red-600 transition duration-300">
+                ${goal.id} - ${goal.name}
+              </span>`;
+            default:
+                return `<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-900 rounded-full shadow-md min-w-max">
+                ${goal.id} - ${goal.name}
+              </span>`;
+        }
+    }
+
+
+    // Store selected task IDs for filtering
+    let selectedTaskIds = [];
+
+    // Initialize Select2
+    taskMultiSelect.select2({
+        placeholder: "Search tasks by ID or Name...",
+        minimumInputLength: 1,
+        ajax: {
+            url: function (params) {
+                // Default status: Running (1), can be changed via dropdown if needed
+                return `/Tasks/SearchTasksWithGoals?query=${params.term}&status=1`;
+            },
+            dataType: 'json',
+            delay: 250,
+            processResults: function (data) {
+                if (!data.status) return { results: [] };
+                // Filter out already selected tasks
+                return {
+                    results: data.data
+                        .filter(task => !selectedTaskIds.includes(task.id.toString()))
+                        .map(task => ({
+                            id: task.id,
+                            text: `${task.id} - ${task.name}`,
+                            task: task
+                        }))
+                };
+            }
+        },
+        templateResult: function (data) {
+            if (!data.task) return data.text;
+
+            const goalList = `
+              <div class="flex w-full justify-between">
+                <div class="text-sm text-gray-700">
+                  <span class="text-gray-500 text-xs">Goals:</span>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    ${data.task.goalLists?.map(goal => returnGoalBadge(goal)).join('') || '-'
+                            }
+                  </div>
+                </div>
+              </div>
+            `;
+
+            return $(`
+            <div class="p-4 border flex flex-col items-center justify-center rounded-lg shadow-sm bg-white space-y-1 max-w-xl">
+              <div class="flex w-full justify-between items-center">
+                <div class="flex flex-col"">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-gray-500 text-xs">${data.task.id}</span>
+                </div>
+                <div class="text-lg font-semibold text-gray-800">
+                  ${data.task.name}
+                </div>
+                </div>
+                <div>
+                  ${returnStatusBadge(data.task.taskStatus)}
+                </div>
+              </div>
+
+              ${data.task.goalLists.length ? goalList : ''}
+            </div>
+
+            `);
+        },
+        templateSelection: function (data) {
+            return data.text;
+        }
+    });
+
+    // Display selected tasks as tags with remove
+    taskMultiSelect.on("change", function () {
+        selectedTasksContainer.empty();
+        const selectedData = taskMultiSelect.select2('data');
+        selectedTaskIds = selectedData.map(item => item.id.toString());
+        selectedData.forEach(item => {
+            if (!item.task) return;
+
+            const goalList = `
+              <div class="flex w-full justify-between">
+                <div class="text-sm text-gray-700">
+                  <span class="text-gray-500 text-xs">Goals:</span>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    ${item.task.goalLists?.map(goal => returnGoalBadge(goal)).join('') || '-'
+                }
+                  </div>
+                </div>
+              </div>
+            `;
+
+            const tag = $(`
+                <div class="flex flex-col gap-1 task-tag">
+                     <div class="p-4 border flex flex-col items-center justify-center rounded-lg shadow-sm bg-white space-y-1 max-w-xl">
+                      <div class="flex w-full justify-between items-center">
+                        <div class="flex flex-col"">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="text-gray-500 text-xs">${item.task.id}</span>
+                        </div>
+                        <div class="text-lg font-semibold text-gray-800">
+                          ${item.task.name}
+                        </div>
+                        </div>
+                        <div>
+                          ${returnStatusBadge(item.task.taskStatus)}
+                        </div>
+                      </div>
+
+                      ${item.task.goalLists.length ? goalList : ''}
+                    </div>
+                    <button class="remove-task-btn" data-id="${item.task.id}" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `);
+            selectedTasksContainer.append(tag);
+        });
+    });
+
+    // Remove selected task
+    selectedTasksContainer.on("click", ".remove-task-btn", function () {
+        const idToRemove = $(this).data("id").toString();
+        let selectedVals = taskMultiSelect.val() || [];
+        selectedVals = selectedVals.filter(id => id !== idToRemove);
+        taskMultiSelect.val(selectedVals).trigger('change');
+    });
+
+    // Confirm selected tasks
+    $("#confirmTasksButton").on("click", function () {
+        const selectedData = taskMultiSelect.select2('data');
+        if (selectedData.length === 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "No Task Selected",
+                text: "Please select at least one task.",
+                confirmButtonColor: "#6366f1"
+            });
+            return;
+        }
+        // Gather selected task IDs
+        const taskIds = selectedData.map(d => d.task.id);
+        // Optional: collect notes or other info
+        const notes = ""; // You can add a notes input in the modal if needed
+
+        $.ajax({
+            url: "/Todo/AddBulkTodos",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ taskIds, notes }),
+            success: function (response) {
+                if (response.status) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Todos Created",
+                        text: response.message,
+                        confirmButtonColor: "#6366f1"
+                    });
+                    searchTaskModal.addClass("hidden");
+                    // Optionally reload DataTables or update UI
+                    $("#viewRunningTodoTableData").DataTable().ajax.reload();
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: response.message,
+                        confirmButtonColor: "#ef4444"
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Failed to create todos.",
+                    confirmButtonColor: "#ef4444"
+                });
+            }
+        });
     });
 });
 

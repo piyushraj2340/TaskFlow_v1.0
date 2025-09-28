@@ -33,6 +33,7 @@ namespace TaskMonitoringApp.Models.Services
 
         Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string userId, int goalId, Status status, DateTime from, DateTime end);
         Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string userId, Status status, DateTime from, DateTime end);
-
+        Task<IEnumerable<TaskNameDTO>> SearchTasks(string userId, string query);
+        Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoals(string userId, string query, Status status);
     }
 }

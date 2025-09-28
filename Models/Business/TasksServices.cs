@@ -341,5 +341,19 @@ namespace TaskMonitoringApp.Models.Business
             return taskProductivity;
         }
 
+        public async Task<IEnumerable<TaskNameDTO>> SearchTasks(string userId, string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                throw new ArgumentException("Query cannot be null or empty.", nameof(query));
+            }
+
+            return await _taskRepository.SearchTasks(userId, query);
+        }
+
+        public async Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoals(string userId, string query, Status status)
+        {
+            return await _taskRepository.SearchTasksWithGoals(userId, query, status);
+        }
     }
 }

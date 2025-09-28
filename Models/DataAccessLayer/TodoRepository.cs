@@ -440,5 +440,26 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             todo.UpdatedOn = DateTime.Now;
             await _context.SaveChangesAsync();
         }
+
+        public async Task AddBulkTodosAsync(BulkTodoCreateDTO bulkDto)
+        {
+            if (bulkDto.TaskIds == null || !bulkDto.TaskIds.Any())
+                throw new ArgumentException("No task IDs provided for bulk todo creation.");
+
+            var todos = bulkDto.TaskIds.Select(taskId => new Todo
+            {
+                TaskId = taskId,
+                UserId = bulkDto.UserId,
+                EndDate = bulkDto.EndDate ?? DateTime.Now.AddDays(1),
+                Status = bulkDto.Status,
+                Notes = bulkDto.Notes,
+                CreatedOn = DateTime.Now,
+                UpdatedOn = DateTime.Now,
+                IsDeleted = false
+            }).ToList();
+
+            await _context.Todo.AddRangeAsync(todos);
+            await _context.SaveChangesAsync();
+        }
     }
 }
