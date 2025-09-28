@@ -19,6 +19,8 @@ namespace TaskMonitoringApp.Models.Entities
 
         public bool IsDeleted { get; set; } = false;
 
+        public bool IsManualAdded { get; set; } = false;
+
         public DateTime? DeletedOn { get; set; }
 
         public DateTime? EndedOn { get; set; }

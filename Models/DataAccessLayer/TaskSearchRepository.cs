@@ -59,7 +59,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoalsExcludingRunningTodosAsync(string userId, string query, Status status)
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
 
             var excludedTaskIds = await _context.Todo
                 .Where(todo => todo.UserId == userId && todo.CreatedOn.Date == today)

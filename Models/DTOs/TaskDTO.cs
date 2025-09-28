@@ -20,6 +20,10 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public DateTime? StartDate { get; set; }
 
+        public DateTime? EndedOn { get; set; }
+
+        public DateTime? CompletedOn { get; set; }
+
         public bool IsScheduled { get; set; } = false;
 
         public StartOptions StartOptionType { get; set; }

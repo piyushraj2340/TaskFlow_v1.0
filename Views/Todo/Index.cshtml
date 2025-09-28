@@ -25,84 +25,98 @@
 </style>
 
 <!-- Select2 CSS/JS -->
+<<style>
+     /* --- Main Select2 Input Container --- */
+     #unifiedSearchContainer .select2-container--default .select2-selection--multiple {
+         border: none !important;
+         box-shadow: none !important;
+         min-height: 42px;
+     }
 
-<style>
-    /* Custom Select2 and Modal Styles */
-    .select2-container--default .select2-selection--multiple {
-        border-radius: 0.75rem;
-        min-height: 44px;
-        padding: 8px 12px;
-        border: 1px solid #6366f1;
-        background: #f3f4f6;
-        display: flex;
-        align-items: center;
+     /* --- Container for Selected Tags & Search (within the main input) --- */
+     .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+         display: flex !important;
+         flex-wrap: wrap !important;
+         align-items: center !important;
+         gap: 5px !important;
+         /* Adds space at the bottom for the input field on its own line */
+         padding-bottom: 5px !important;
+     }
+
+     /* --- Individual Selected Tags (Pills) --- */
+     .select2-container--default .select2-selection--multiple .select2-selection__choice {
+         background: linear-gradient(90deg, #6366f1 60%, #3b82f6 100%);
+         color: #fff;
+         border: none;
+         border-radius: 9999px;
+         font-weight: 500;
+         margin-top: 5px !important; /* Spacing for wrapped rows */
+         padding: 6px 16px 6px 28px;
+         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+         display: flex;
+         align-items: center;
+         justify-content: center;
+     }
+
+     /* --- The 'x' remove button on each tag --- */
+     .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+         color: #fff;
+         margin-right: 8px;
+         font-size: 1.1em;
+         transition: color 0.2s;
+         left: 1px;
+         top: 4px;
+         border-radius: 50%;
+     }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+        color: #ef4444;
     }
 
-        .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background: linear-gradient(90deg, #6366f1 60%, #3b82f6 100%);
-            color: #fff;
-            border: none;
-            border-radius: 9999px;
-            font-weight: 500;
-            margin-top: 6px;
-            margin-bottom: 6px;
-            padding: 6px 16px 6px 28px;
-            box-shadow: 0 2px 8px rgba(99,102,241,0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+     /* --- Search Input Field (forces it to a new, full-width line) --- */
+     .select2-container--default .select2-selection--multiple .select2-search--inline {
+         width: 100% !important;
+     }
 
-        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-            color: #fff;
-            margin-right: 8px;
-            font-size: 1.1em;
-            transition: color 0.2s;
-            left: 1px;
-            top: 4px;
-            border-radius: 50%;
-        }
+     .select2-container--default .select2-selection--multiple .select2-search__field {
+         width: 100% !important;
+         margin-top: 8px !important; /* Adds a little space above the cursor */
+     }
 
-            .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-                color: #ef4444;
-            }
+     /* --- Add a blue focus ring to the entire container when Select2 is focused --- */
+     #unifiedSearchContainer.select2-focused {
+         border-color: #6366f1 !important;
+         box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5) !important;
+     }
 
-    #searchTaskModal .select2-dropdown {
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 24px rgba(99,102,241,0.12);
-    }
+     /* --- Dropdown Panel --- */
+     #searchTaskModal .select2-dropdown {
+         border-radius: 0.75rem;
+         box-shadow: 0 4px 24px rgba(99, 102, 241, 0.12);
+     }
 
-    #selectedTasksContainer .task-tag {
-        background: linear-gradient(90deg, #6366f1 60%, #3b82f6 100%);
-        color: #fff;
-        border-radius: 6px;
-        font-weight: 500;
-        padding: 8px 18px 8px 12px;
-        margin: 4px 0;
-        box-shadow: 0 2px 8px rgba(99,102,241,0.08);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+     /* --- Style for the active filter option in the dropdown --- */
+     .status-filter-option.active {
+         background-color: #4f46e5; /* indigo-600 */
+         color: white;
+         font-weight: 600;
+     }
 
-    #selectedTasksContainer .remove-task-btn {
-        background: none;
-        border: none;
-        color: #fff;
-        font-size: 1.1em;
-        cursor: pointer;
-        transition: color 0.2s;
-    }
+     /* --- Styles for the separate selected task cards BELOW the search --- */
+     #selectedTasksContainer .task-card .remove-task-btn {
+         background: none;
+         border: none;
+         color: transparent !important;
+         font-size: 1.1em;
+         cursor: pointer;
+         transition: color 0.2s;
+     }
 
-        #selectedTasksContainer .remove-task-btn:hover {
-            color: #ef4444;
-        }
+     #selectedTasksContainer .task-card:hover .remove-task-btn {
+         color: gray !important;
+     }
 
-    .task-card:hover .remove-task-btn {
-        color: gray !important;
-    }
-
-    .task-card .remove-task-btn:hover {
+    #selectedTasksContainer .task-card .remove-task-btn:hover {
         color: #ef4444 !important;
     }
 </style>
@@ -191,10 +205,11 @@
                     <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
                         <thead>
                             <tr>
-                                <th class="p-2 text-left text-gray-600">Task Id</th>
-                                <th class="p-2 text-left text-gray-600">Task Name</th>
+                                <th class="p-2 text-left text-gray-600">Id</th>
+                                <th class="p-2 text-left text-gray-600">Name</th>
+                                <th class="p-2 text-left text-gray-600">Status</th>
                                 <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                <th class="p-2 text-left text-gray-600">Repeat</th>
                                 <th class="p-2 text-left text-gray-600">Due Date</th>
                                 <th class="p-2 text-left text-gray-600">Notes</th>
                                 <th class="p-2 text-left text-gray-600">Productivity</th>
@@ -221,10 +236,11 @@
                     <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
                         <thead>
                             <tr>
-                                <th class="p-2 text-left text-gray-600">Task Id</th>
-                                <th class="p-2 text-left text-gray-600">Task Name</th>
+                                <th class="p-2 text-left text-gray-600">Id</th>
+                                <th class="p-2 text-left text-gray-600">Name</th>
+                                <th class="p-2 text-left text-gray-600">Status</th>
                                 <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
+                                <th class="p-2 text-left text-gray-600">Repeat</th>
                                 <th class="p-2 text-left text-gray-600">Due Date</th>
                                 <th class="p-2 text-left text-gray-600">Notes</th>
                                 <th class="p-2 text-left text-gray-600">Productivity</th>
@@ -239,7 +255,6 @@
 
     @await Html.PartialAsync("AddUpdateTodoNotes")
 
-    <!-- Modal -->
     <div id="searchTaskModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm">
         <div class="relative w-full max-w-2xl transform rounded-2xl bg-gray-50 shadow-2xl transition-all">
 
@@ -249,9 +264,35 @@
             </div>
 
             <div class="p-6 space-y-6">
+
                 <div>
-                    <label for="taskMultiSelect" class="block mb-2 text-sm font-medium text-gray-800">Search for a task by ID or name</label>
-                    <select id="taskMultiSelect" multiple="multiple" style="width:100%"></select>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-gray-500">Search Tasks</label>
+                        <span class="block text-xs font-medium text-gray-500">
+                            Status: <strong id="selectedStatusText" class="text-indigo-600">All</strong>
+                        </span>
+                    </div>
+                    <div id="unifiedSearchContainer" class="flex items-center w-full border border-gray-300 rounded-lg bg-white transition-all duration-200">
+                        <div class="relative">
+                            <button id="statusFilterDropdownButton" class="flex items-center h-full px-4 py-2 text-gray-500 hover:text-indigo-600 transition">
+                                <i class="fas fa-filter"></i>
+                                <i class="fas fa-chevron-down text-xs ml-2"></i>
+                            </button>
+                            <div id="statusFilterDropdownMenu" class="absolute z-20 w-48 mt-2 -ml-1 bg-white rounded-lg shadow-xl border border-gray-200 hidden">
+                                <ul class="py-1 text-sm text-gray-700">
+                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="4">All</a></li>
+                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="0">Not Started</a></li>
+                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="1">Running</a></li>
+                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="2">Completed</a></li>
+                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="3">Ended</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="h-6 w-px bg-gray-300"></div>
+                        <div class="relative flex-grow">
+                            <select id="taskMultiSelect" multiple="multiple" style="width:100%"></select>
+                        </div>
+                    </div>
                 </div>
 
                 <div>

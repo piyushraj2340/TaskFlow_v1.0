@@ -36,23 +36,30 @@ BEGIN
 	-- 6. what if the task is completed and does the todo itself move to completed on that day or manualy move to running 
 			-- if the task and todo already completed then the todo should not be allowed to change the status...?....
 
+	-- 7. If IsManualAdded is true -> Move to running, Move to Complete allow only for today and yesterday
+
 
 	DECLARE @TodoCurrentStatus iNt;
 	DECLARE @TaskCurrentStatus INT;
 	DECLARE @TaskEndDate DATETIME;
 	DECLARE @TaskIsDeleted BIT;
+	DECLARE @IsManualAdded BIT;
 
 	SELECT
 		@TodoCurrentStatus = td.Status, 
 		@TaskCurrentStatus =  t.TaskStatus,
 		@TaskEndDate =  t.EndDate,
-		@TaskIsDeleted = t.IsDeleted
+		@TaskIsDeleted = t.IsDeleted,
+		@IsManualAdded = td.IsManualAdded
 	FROM Todo td
 	LEFT JOIN Tasks t ON t.Id = td.TaskId
 	WHERE td.UserId = t.UserId
 	AND t.UserId = @UserId
-	AND t.TaskStatus = @Running -- only able to change the status of todo if the task is in running state
-	AND td.IsDeleted = 0
+	AND ( -- only able to change the status of todo if the task is in running or manualy added todo
+        (td.IsManualAdded = 1) 
+        OR
+        (td.IsManualAdded = 0 AND t.TaskStatus = @Running) 
+    ) AND td.IsDeleted = 0
 	AND td.Id = @TodoId
 	AND td.EndDate > @YesterdayDate
 
@@ -86,12 +93,23 @@ BEGIN
 			AND t.Repeat = @RunOnce
 
 
-			UPDATE Todo
-			SET UpdatedOn = @CurrentDateTime,
-				CompletedOn = CASE WHEN @IsTaskActive = 1 THEN @CurrentDateTime END,
-				EndedOn = CASE WHEN @IsTaskActive = 0 THEN @CurrentDateTime END,
-				Status = CASE WHEN @IsTaskActive = 1 THEN @Completed ELSE @Ended END
-			WHERE ID = @TodoId AND UserId = @UserId
+			IF @IsManualAdded = 1
+			BEGIN
+				UPDATE Todo
+				SET UpdatedOn = @CurrentDateTime,
+					CompletedOn = @CurrentDateTime,
+					Status = @Completed 
+				WHERE ID = @TodoId AND UserId = @UserId
+			END
+			ELSE
+			BEGIN
+				UPDATE Todo
+				SET UpdatedOn = @CurrentDateTime,
+					CompletedOn = CASE WHEN @IsTaskActive = 1 THEN @CurrentDateTime END,
+					EndedOn = CASE WHEN @IsTaskActive = 0 THEN @CurrentDateTime END,
+					Status = CASE WHEN @IsTaskActive = 1 THEN @Completed ELSE @Ended END
+				WHERE ID = @TodoId AND UserId = @UserId
+			 END
 
 			COMMIT TRANSACTION;
 		END TRY

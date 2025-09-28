@@ -92,8 +92,11 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             TaskRepeatWeekList = todo.Task.RepeatWeekList,
                             TaskPriority = todo.Task.Priority,
                             TaskEndDate = todo.Task.EndDate,
-                            TaskStatus = todo.Task.TaskStatus
-
+                            TaskStatus = todo.Task.TaskStatus,
+                            IsManualAdded = todo.IsManualAdded,
+                            TaskCompletedOn = todo.Task.CompletedOn,
+                            TaskEndedOn = todo.Task.EndedOn
+                            
                         }).ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
@@ -127,7 +130,10 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             TaskRepeatWeekList = todo.Task.RepeatWeekList,
                             TaskPriority = todo.Task.Priority,
                             TaskEndDate = todo.Task.EndDate,
-                            TaskStatus = todo.Task.TaskStatus
+                            TaskStatus = todo.Task.TaskStatus,
+                            IsManualAdded = todo.IsManualAdded,
+                            TaskCompletedOn = todo.Task.CompletedOn,
+                            TaskEndedOn = todo.Task.EndedOn
 
                         }).ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
@@ -161,7 +167,10 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             TaskRepeatWeekList = todo.Task.RepeatWeekList,
                             TaskPriority = todo.Task.Priority,
                             TaskEndDate = todo.Task.EndDate,
-                            TaskStatus = todo.Task.TaskStatus
+                            TaskStatus = todo.Task.TaskStatus,
+                            IsManualAdded = todo.Task.IsScheduled,
+                            TaskEndedOn = todo.Task.EndedOn,
+                            TaskCompletedOn = todo.Task.CompletedOn
 
                         }).ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
@@ -197,6 +206,8 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             Status = td.Status,
                             UserId = td.UserId,
                             TaskId = td.Task.Id,
+                            IsManualAdded = td.IsManualAdded,
+
                             Task = new TaskDTO()
                             {
                                 Id = td.Task.Id,
@@ -207,7 +218,9 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                                 Repeat = td.Task.Repeat,
                                 RepeatWeekList = td.Task.RepeatWeekList,
                                 TaskStatus = td.Task.TaskStatus,
-                                UserId = td.Task.UserId
+                                UserId = td.Task.UserId,
+                                CompletedOn = td.Task.CompletedOn,
+                                EndedOn = td.Task.EndedOn
                             }
                         })
                         .ToListAsync() as IEnumerable<T>
@@ -237,6 +250,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                         UserId = td.UserId,
                         EndDate = td.EndDate,
                         Status = td.Status,
+                        IsManualAdded = td.IsManualAdded,
                         Task = new TaskDTO()
                         {
                             Id = td.Task.Id,
@@ -247,7 +261,9 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             Priority = td.Task.Priority,
                             Repeat = td.Task.Repeat,
                             RepeatWeekList = td.Task.RepeatWeekList,
-                            UserId = td.Task.UserId
+                            UserId = td.Task.UserId,
+                            CompletedOn = td.CompletedOn,
+                            EndedOn = td.EndedOn
                         }
                     })
                     .AsSingleQuery()
@@ -284,6 +300,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                                 UserId = td.UserId,
                                 Notes = td.Notes,
                                 TaskId = td.Task.Id,
+                                IsManualAdded = td.IsManualAdded,
                                 Task = new TaskDTO()
                                 {
                                     Id = td.Task.Id,
@@ -294,7 +311,9 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                                     Repeat = td.Task.Repeat,
                                     RepeatWeekList = td.Task.RepeatWeekList,
                                     TaskStatus = td.Task.TaskStatus,
-                                    UserId = td.Task.UserId
+                                    UserId = td.Task.UserId,
+                                    CompletedOn = td.Task.CompletedOn,
+                                    EndedOn = td.Task.EndedOn
                                 }
                             })
                             .FirstOrDefaultAsync() as T; 
@@ -450,9 +469,10 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             {
                 TaskId = taskId,
                 UserId = bulkDto.UserId,
-                EndDate = bulkDto.EndDate ?? DateTime.Now.AddDays(1),
+                EndDate = DateTime.Now.AddDays(1),
                 Status = bulkDto.Status,
-                Notes = bulkDto.Notes,
+                IsManualAdded = true,
+                Notes = string.Empty,
                 CreatedOn = DateTime.Now,
                 UpdatedOn = DateTime.Now,
                 IsDeleted = false
