@@ -50,6 +50,7 @@ BEGIN TRANSACTION;
 					td.TaskId,
 					td.UserId,
 					td.Notes,
+					td.IsManualAdded,
 					t.Name AS TaskName,
 					t.EndDate AS TaskEndDate,
 					t.CreatedOn AS TaskCreatedOn, 
@@ -76,13 +77,16 @@ BEGIN TRANSACTION;
 					td.TaskId,
 					td.UserId,
 					td.Notes,
+					td.IsManualAdded,
 					t.Name AS TaskName,
 					t.EndDate AS TaskEndDate,
 					t.TaskStatus AS TaskStatus, 
 					t.Description AS TaskDescription,
 					t.Priority AS TaskPriority,
 					t.Repeat AS TaskRepeat,
-					t.RepeatWeekList As TaskRepeatWeekList
+					t.RepeatWeekList As TaskRepeatWeekList,
+					t.CompletedOn as TaskCompletedOn,
+					t.EndedOn as TaskEndedOn
 				FROM Todo td
 				JOIN Tasks t ON td.TaskId = t.Id
 				WHERE td.UserId = @UserId

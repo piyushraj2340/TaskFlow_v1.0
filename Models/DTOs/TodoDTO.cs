@@ -9,6 +9,7 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public string? Notes { get; set; }
 
+        public bool IsManualAdded { get; set; } = false;
 
         public DateTime? EndDate { get; set; } = DateTime.Now.AddDays(1); // apply for the mid-night or some custom logic...
 
@@ -20,10 +21,10 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public TodoProgressAnalysisDTO? TaskProductivity { get; set; } = null;
 
-
         public TaskDTO? Task { get; set; }
 
         public Users? User { get; set; }
+
     }
 
     public class TodoDTOWithTaskDTO
@@ -32,6 +33,7 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public string? Notes { get; set; }
 
+        public bool IsManualAdded { get; set; } = false;
 
         // todo end date
         public DateTime EndDate { get; set; }
@@ -56,6 +58,10 @@ namespace TaskMonitoringApp.Models.DTOs
         public DateTime TaskEndDate { get; set; }
 
         public Status TaskStatus { get; set; }
+
+        public DateTime? TaskEndedOn { get; set; }
+
+        public DateTime? TaskCompletedOn { get; set; }
     }
 
 
@@ -65,6 +71,7 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public string? Notes { get; set; }
 
+        public bool IsManualAdded { get; set; } = false;
 
         // todo end date
         public DateTime EndDate { get; set; }
@@ -89,6 +96,9 @@ namespace TaskMonitoringApp.Models.DTOs
         public DateTime TaskEndDate { get; set; }
 
         public Status TaskStatus { get; set; }
+        public DateTime? TaskEndedOn { get; set; }
+
+        public DateTime? TaskCompletedOn { get; set; }
         public TodoProgressAnalysisDTO? TaskProductivity { get; set; }
     }
 
