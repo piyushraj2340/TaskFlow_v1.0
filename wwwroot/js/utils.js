@@ -26,6 +26,8 @@
     return formattedDate;
 }
 
+const dayMap = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 function formatShortDate(date) {
     // If the date is a string, convert it into a Date object
     if (typeof date === "string") {
@@ -99,5 +101,31 @@ function returnPriorityBadge(status) {
             return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-500 rounded-full">Low</span>';
         default:
             return '<span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-full">Unknown Type</span>';
+    }
+}
+
+
+function returnRepeatyBadge(status, title='') {
+
+    // Ensure the status is a valid number (not NaN, not undefined, etc.)
+    const data = Number.parseInt(status);
+
+    // Validate if 'status' is a valid number
+    if (isNaN(data) || typeof data !== 'number') {
+        return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
+        // Return an error message or default badge if invalid
+    }
+
+    switch (data) {
+        case 0:
+            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-red-500 rounded-full shadow-md hover:bg-red-600 transition duration-300 min-w-max">RunOnce</span>';
+        case 1:
+            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-green-500 rounded-full shadow-md hover:bg-green-600 transition duration-300 min-w-max">Daily</span>';
+        case 2:
+            return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-400 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max" title="${title}">Weekly</span>`;
+        case 3:
+            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full shadow-md hover:opacity-90 transition duration-300 min-w-max">No Repeat</span>';
+        default:
+            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
     }
 }
