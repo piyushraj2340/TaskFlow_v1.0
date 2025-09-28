@@ -54,30 +54,28 @@ function formatShortDate(date) {
 }
 
 function returnStatusBadge(status) {
+    const parsedStatus = Number.parseInt(status);
 
-    // Ensure the status is a valid number (not NaN, not undefined, etc.)
-    const data = Number.parseInt(status);
+    // Base badge class
+    const baseClass = 'inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white rounded-full shadow-md transition duration-300 min-w-max';
 
-    // Validate if 'status' is a valid number
-    if (isNaN(data) || typeof data !== 'number') {
-        return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-900 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
-        // Return an error message or default badge if invalid
-    }
+    // Badge styles by status code
+    const statusStyles = {
+        0: { label: 'Not Started', bg: 'bg-yellow-400 hover:bg-yellow-500' },
+        1: { label: 'Running', bg: 'bg-blue-500 hover:bg-blue-600' },
+        2: { label: 'Completed', bg: 'bg-green-500 hover:bg-green-600' },
+        3: { label: 'End', bg: 'bg-gray-400 hover:bg-gray-500' },
+        4: { label: 'Deleted', bg: 'bg-red-500 hover:bg-red-600' },
+    };
 
-    switch (data) {
-        case 0:
-            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Not Started</span>';
-        case 1:
-            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-blue-500 rounded-full shadow-md hover:bg-blue-600 transition duration-300 min-w-max">Running</span>';
-        case 2:
-            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-green-500 rounded-full shadow-md hover:bg-green-600 transition duration-300 min-w-max">Completed</span>';
-        case 3:
-            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-400 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">End</span>';
-        case 4:
-            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-red-500 rounded-full shadow-md hover:bg-red-600 transition duration-300 min-w-max">Deleted</span>';
-        default:
-            return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-900 rounded-full shadow-md hover:bg-gray-950 transition duration-300 min-w-max">Unknown Type</span>';
-    }
+    const fallback = {
+        label: 'Unknown Type',
+        bg: 'bg-gray-900 hover:bg-gray-950',
+    };
+
+    const badge = statusStyles[parsedStatus] || fallback;
+
+    return `<span class="${baseClass} ${badge.bg}">${badge.label}</span>`;
 }
 
 

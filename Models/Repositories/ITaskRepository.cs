@@ -28,5 +28,9 @@ namespace TaskMonitoringApp.Models.Repositories
         Task<int> GetTaskCountByTaskStatus(string UserId, int goalId, Status status);
 
         Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string UserId, int goalId, Status status, DateTime from, DateTime end);
+
+        Task<IEnumerable<TaskNameDTO>> SearchTasks(string userId, string query);
+
+        Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoals(string userId, string query, Status status);
     }
 }

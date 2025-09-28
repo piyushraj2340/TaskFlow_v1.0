@@ -845,5 +845,53 @@ namespace TaskMonitoringApp.Controllers
             _logger.LogWarning("ModelState invalid in ChangeTaskStatus for Id={Id}.", Id);
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchTasks(string query)
+        {
+            _logger.LogInformation("Entered SearchTasks with query={Query}", query);
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in SearchTasks.");
+                return Unauthorized();
+            }
+
+            try
+            {
+                var tasks = await _taskService.SearchTasks(userId, query);
+                return Json(new { status = true, data = tasks });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in SearchTasks for query={Query}, userId={UserId}", query, userId);
+                return Json(new { status = false, message = "Error occurred while searching tasks." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchTasksWithGoals(string query, Status status = Status.Running)
+        {
+            _logger.LogInformation("Entered SearchTasksWithGoals with query={Query}, status={Status}", query, status);
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in SearchTasksWithGoals.");
+                return Unauthorized();
+            }
+
+            try
+            {
+                var tasks = await _taskService.SearchTasksWithGoals(userId, query, status);
+                return Json(new { status = true, data = tasks });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in SearchTasksWithGoals for query={Query}, userId={UserId}", query, userId);
+                return Json(new { status = false, message = "Error occurred while searching tasks." });
+            }
+        }
     }
 }

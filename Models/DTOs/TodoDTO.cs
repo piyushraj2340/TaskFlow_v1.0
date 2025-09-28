@@ -102,4 +102,13 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public Status Status { get; set; } = Status.NotStarted;
     }
+
+    public class BulkTodoCreateDTO
+    {
+        public List<int> TaskIds { get; set; } = new();
+        public string UserId { get; set; }
+        public DateTime? EndDate { get; set; } = DateTime.Now.AddDays(1);
+        public Status Status { get; set; } = Status.Running;
+        public string? Notes { get; set; }
+    }
 }

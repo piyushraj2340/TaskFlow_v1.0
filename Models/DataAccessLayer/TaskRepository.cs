@@ -247,5 +247,66 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                     && g.GoalTasks.Any(gt => gt.GoalId == goalId)
                     && g.IsDeleted == false);
         }
+
+        public async Task<IEnumerable<TaskNameDTO>> SearchTasks(string userId, string query)
+        {
+            return await _context.Tasks
+                .Where(t => t.UserId == userId && 
+                            (t.Name.Contains(query) || t.Id.ToString() == query) && 
+                            !t.IsDeleted)
+                .Select(t => new TaskNameDTO
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    UserId = t.UserId
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoals(string userId, string query, Status status)
+        {
+            var tasksQuery = _context.Tasks
+                .Include(t => t.GoalTasks)
+                 .ThenInclude(gt => gt.Goal)
+                .Where(t => t.UserId == userId && !t.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                tasksQuery = tasksQuery.Where(t => t.Name.Contains(query) || t.Id.ToString() == query);
+            }
+
+            if (status != Status.All)
+            {
+                tasksQuery = tasksQuery.Where(t => t.TaskStatus == status);
+            }
+
+            var tasks = await tasksQuery.ToListAsync();
+
+            var result = tasks.Select(t => new TaskDTOWithGoalNameListDTO
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Description = t.Description,
+                Repeat = t.Repeat,
+                RepeatWeekList = t.RepeatWeekList,
+                Priority = t.Priority,
+                EndDate = t.EndDate,
+                StartDate = t.StartDate,
+                IsScheduled = t.IsScheduled,
+                StartOptionType = t.StartOptionType,
+                IsStarted = t.IsStarted,
+                UserId = t.UserId,
+                TaskStatus = t.TaskStatus,
+                GoalLists = t.GoalTasks?.Select(gt => new GoalNameDTO
+                {
+                    Id = gt.GoalId,
+                    Name = gt.Goal?.Name,
+                    UserId = gt.Goal?.UserId,
+                    GoalStatus = gt.Goal?.GoalStatus
+                }).ToList()
+            });
+
+            return result;
+        }
     }
 }
