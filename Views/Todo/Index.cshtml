@@ -97,6 +97,14 @@
         #selectedTasksContainer .remove-task-btn:hover {
             color: #ef4444;
         }
+
+    .task-card:hover .remove-task-btn {
+        color: gray !important;
+    }
+
+    .task-card .remove-task-btn:hover {
+        color: #ef4444 !important;
+    }
 </style>
 
 <div class="container mx-auto p-8">
@@ -232,19 +240,36 @@
     @await Html.PartialAsync("AddUpdateTodoNotes")
 
     <!-- Modal -->
-    <div id="searchTaskModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-900 bg-opacity-60">
-        <div class="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl p-0">
-            <div class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4 rounded-t-2xl">
-                <h2 class="text-xl font-bold text-white">Search & Select Tasks</h2>
-                <button id="closeModalButton" class="text-2xl text-white hover:text-gray-200 transition">&times;</button>
+    <div id="searchTaskModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm">
+        <div class="relative w-full max-w-2xl transform rounded-2xl bg-gray-50 shadow-2xl transition-all">
+
+            <div class="flex items-center justify-between rounded-t-2xl bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4">
+                <h2 class="text-xl font-bold text-white tracking-wide">Add Tasks for Today</h2>
+                <button id="closeModalButton" class="text-2xl text-indigo-100 transition hover:text-white">&times;</button>
             </div>
-            <div class="p-6">
-                <label for="taskMultiSelect" class="block mb-2 text-sm font-medium text-gray-700">Search Tasks</label>
-                <select id="taskMultiSelect" multiple="multiple" style="width:100%"></select>
-                <div id="selectedTasksContainer" class="mt-4 flex flex-wrap gap-3"></div>
+
+            <div class="p-6 space-y-6">
+                <div>
+                    <label for="taskMultiSelect" class="block mb-2 text-sm font-medium text-gray-800">Search for a task by ID or name</label>
+                    <select id="taskMultiSelect" multiple="multiple" style="width:100%"></select>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-medium text-gray-800 mb-3">Selected for Today</h3>
+                    <div id="selectedTasksContainer" class="max-h-[40vh] overflow-y-auto space-y-3 pr-2">
+                        <div id="emptyState" class="flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-lg">
+                            <i class="fas fa-check-circle fa-2x text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">Selected tasks will appear here.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="flex justify-end px-6 pb-6">
-                <button id="confirmTasksButton" class="rounded-lg bg-green-500 px-5 py-2 text-white font-semibold shadow hover:bg-green-600 transition-all duration-200">Confirm</button>
+
+            <div class="flex justify-end space-x-3 rounded-b-2xl bg-gray-100 px-6 py-4">
+                <button id="cancelModalButton" class="rounded-lg bg-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300">Cancel</button>
+                <button id="confirmTasksButton" class="flex items-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                    <i class="fas fa-plus mr-2"></i>Add Selected Tasks
+                </button>
             </div>
         </div>
     </div>
@@ -252,16 +277,16 @@
     @section Scripts
     {
         @* DataTable *@
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
         @* sweetalert *@
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         @* Client side Script *@
         <script src="~/js/sweetAlertScript.js"></script>
         <script src="~/js/utils.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="~/js/todoScript.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     }
 </div>

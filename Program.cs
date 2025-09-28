@@ -32,6 +32,9 @@ builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 builder.Services.AddScoped<INotesRepository, NotesRepository>();
 builder.Services.AddScoped<INotesServices, NotesServices>();
 
+builder.Services.AddScoped<ITaskSearchRepository, TaskSearchRepository>();
+builder.Services.AddScoped<ITaskSearchService, TaskSearchService>();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache(); // Enable In-Memory Caching

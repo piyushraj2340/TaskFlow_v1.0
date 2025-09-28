@@ -20,8 +20,6 @@
         endedTask:"ENDED_TASK_PAGE_LENGTH",
     });
 
-    const dayMap = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
     const defaultPageLength = 5;
 
     // running data table 
@@ -177,20 +175,8 @@
                     data:"repeat",
                     name:"Repeat",
                     render: function (data, type, row) {
-                        
-                        switch (data) {
-                            case 0:
-                                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-red-500 rounded-full shadow-md hover:bg-red-600 transition duration-300 min-w-max">RunOnce</span>';
-                            case 1:
-                                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-green-500 rounded-full shadow-md hover:bg-green-600 transition duration-300 min-w-max">Daily</span>';
-                            case 2:
-                                const days = row.repeatWeekList.map(d => dayMap[d]).join(', ');
-                                return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-400 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max" title="${days}">Weekly</span>`;
-                            case 3:
-                                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full shadow-md hover:opacity-90 transition duration-300 min-w-max">No Repeat</span>';
-                            default:
-                                return '<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition duration-300 min-w-max">Unknown Type</span>';
-                        }
+                        const days = row.repeatWeekList.map(d => dayMap[d]).join(', ');
+                        return returnRepeatyBadge(data, days);                   
                     }
                 },
                 {
