@@ -1,0 +1,20 @@
+﻿@model TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO
+
+
+<article class="relative md:flex md:items-start md:justify-between md:gap-6">
+    <div class="md:w-1/2 md:text-right md:order-1">
+        @await Html.PartialAsync("TimeLineGoalOrTaskDetail", Model)
+    </div>
+
+    <!-- center marker for this item -->
+    <div class="absolute md:static left-0 md:left-auto md:mx-0 md:order-2 md:flex md:items-center md:justify-center md:w-0">
+        <div class="flex items-center md:flex-col md:justify-center md:gap-2">
+            <div class="timeline-dot bg-indigo-400 border-2 border-white shadow-md" aria-hidden></div>
+            <div class="hidden md:block w-px bg-slate-200 h-12"></div>
+        </div>
+    </div>
+
+    <div class="md:w-1/2 md:order-3">
+        @await Html.PartialAsync("NotesLayoutLeftViewTimeLine", Model)
+    </div>
+</article>

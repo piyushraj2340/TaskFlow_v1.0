@@ -36,10 +36,11 @@
             
             @if(User.Identity.IsAuthenticated)
             {
-                <a href="@Url.ActionLink("Index", "Todo")" class="rounded px-4 py-2 hover:bg-indigo-500">Todo</a>
+                <a href="@Url.ActionLink("Index", "Notes")" class="rounded px-4 py-2 hover:bg-indigo-500 timeline">Timeline</a>
+                <a href="@Url.ActionLink("Index", "Todo")" class="rounded px-4 py-2 hover:bg-indigo-500 todo">Todo</a>
                 @* <a href="@Url.ActionLink("Index", "Productivity")" class="rounded px-4 py-2 hover:bg-indigo-500">Productivity</a> *@
-                <a href="@Url.ActionLink("Index", "Tasks")" class="rounded px-4 py-2 hover:bg-indigo-500">Tasks</a>
-                <a href="@Url.ActionLink("Index", "Goals")" class="rounded px-4 py-2 hover:bg-indigo-500">Goals</a>
+                <a href="@Url.ActionLink("Index", "Tasks")" class="rounded px-4 py-2 hover:bg-indigo-500 task">Tasks</a>
+                <a href="@Url.ActionLink("Index", "Goals")" class="rounded px-4 py-2 hover:bg-indigo-500 goal">Goals</a>
                 <!-- Profile Dropdown -->
                 <div class="group relative">
                     <!-- Add 'group' class here -->
@@ -71,10 +72,11 @@
             
             @if(User.Identity.IsAuthenticated)
             {
-                <a href="@Url.ActionLink("Index", "Todo")" class="block px-4 py-2 text-lg text-white">Todo</a>
-                <a href="@Url.ActionLink("Index", "Productivity")" class="block px-4 py-2 text-lg text-white">Productivity</a>
-                <a href="@Url.ActionLink("Index", "Tasks")" class="block px-4 py-2 text-lg text-white">Tasks</a>
-                <a href="@Url.ActionLink("Index", "Goals")" class="block px-4 py-2 text-lg text-white">Goals</a>
+                <a href="@Url.ActionLink("Index", "Notes")" class="rounded px-4 py-2 hover:bg-indigo-500 timeline">Timeline</a>
+                <a href="@Url.ActionLink("Index", "Todo")" class="rounded px-4 py-2 hover:bg-indigo-500 todo">Todo</a>
+                @* <a href="@Url.ActionLink("Index", "Productivity")" class="rounded px-4 py-2 hover:bg-indigo-500">Productivity</a> *@
+                <a href="@Url.ActionLink("Index", "Tasks")" class="rounded px-4 py-2 hover:bg-indigo-500 task">Tasks</a>
+                <a href="@Url.ActionLink("Index", "Goals")" class="rounded px-4 py-2 hover:bg-indigo-500 goal">Goals</a>
 
                 <!-- Profile Dropdown for Mobile -->
                 <div class="relative">
@@ -86,8 +88,8 @@
                         </svg>
                     </button>
                     <div id="mobileDropdown" class="mt-2 hidden space-y-4 overflow-hidden rounded-md bg-indigo-700 p-4 text-white">
-                        <a href="@Url.ActionLink("Index", "AdminDashboard")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Admin Dashboard</a>
-                        <a href="@Url.ActionLink("Index", "Profile")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Profile</a>
+                       @*  <a href="@Url.ActionLink("Index", "AdminDashboard")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Admin Dashboard</a>
+                        <a href="@Url.ActionLink("Index", "Profile")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Profile</a> *@
                         <a href="@Url.ActionLink("Logout", "Account")" class="block px-4 py-2 text-lg hover:bg-indigo-500">Logout</a>
                     </div>
                 </div>
@@ -128,9 +130,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=line-clamp"></script>
 
-    <!-- Chart.js CDN -->
-    @* todo: chart.js need to refactor *@
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/app.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

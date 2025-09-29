@@ -1,0 +1,141 @@
+﻿@model TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO
+@using TaskMonitoringApp.Models.Entities;
+
+
+@{
+    var baseClass = "inline-flex items-center px-3 py-1 text-xs text-white rounded-full";
+}
+
+<div class="inline-block md:ml-auto">
+
+    @if (Model.Goal != null)
+    {
+        <h3 class="text-lg font-semibold text-slate-900 mb-3">
+            <a href="@Url.Action("Details", "Goals", new { Id = Model.Goal.Id })"
+               class="text-blue-600 hover:text-blue-800 hover:underline transition">
+                Goal: #@Model.Goal.Id - @Model.Goal.Name
+            </a>
+        </h3>
+
+        <div class="relative group inline-block w-full">
+            <!-- clamped preview -->
+            <div class="tooltip-preview richtext line-clamp-2 overflow-hidden cursor-help text-left">
+                @Html.Raw(Model.Goal.Description)
+            </div>
+
+            <!-- tooltip with full content -->
+            <div class="tooltip-panel absolute bg-white top-1/2 right-0 transform translate-y-[-50%] w-full hidden z-[9999] group-hover:block border border-slate-300 shadow-xl bg-white p-3 rounded-lg max-h-[400px] p-2 overflow-auto">
+                <div class="tooltip-content richtext text-left">
+                    @Html.Raw(Model.Goal.Description)
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta info -->
+        <div class="mt-3 text-xs text-slate-400 flex gap-3 items-center">
+
+            <div>
+                @switch (Model.Goal.GoalStatus)
+                {
+                    case Status.NotStarted:
+                        <span title="Status" class="@($"{baseClass} bg-yellow-400")">Not Started</span>
+                        break;
+                    case Status.Running:
+                        <span title="Status" class="@($"{baseClass} bg-blue-500")">Running</span>
+                        break;
+                    case Status.Completed:
+                        <span title="Status" class="@($"{baseClass} bg-green-500")">Completed</span>
+                        break;
+                    case Status.Ended:
+                        <span title="Status" class="@($"{baseClass} bg-gray-400")">End</span>
+                        break;
+                    default:
+                        <span title="Status" class="@($"{baseClass} bg-gray-900")">Unknown Type</span>
+                        break;
+                }
+            </div>
+
+            @if (Model.Goal.StartDate != null)
+            {
+                <time datetime="@Model.Goal.StartDate?.ToString("s")">Created: @Model.Goal.StartDate?.ToString("MMM dd, yyyy hh:mm tt")</time>
+            }
+            
+        </div>
+    }
+
+    @if (Model.Task != null)
+    {
+        <h3 class="text-lg font-semibold text-slate-900 mb-3">
+            <a href="@Url.Action("Details", "Tasks", new { Id = Model.Task.Id })"
+               class="text-blue-600 hover:text-blue-800 hover:underline transition">
+                Task: #@Model.Task.Id - @Model.Task.Name
+            </a>
+        </h3>
+
+        <div class="relative group inline-block w-full">
+            <!-- clamped preview -->
+            <div class="tooltip-preview richtext line-clamp-2 overflow-hidden cursor-help text-left">
+                @Html.Raw(Model.Task.Description)
+            </div>
+
+            <!-- tooltip with full content -->
+            <div class="tooltip-panel absolute bg-white top-1/2 right-0 transform translate-y-[-50%] w-full hidden z-[9999] group-hover:block border border-slate-300 shadow-xl bg-white p-3 rounded-lg max-h-[400px] p-2 overflow-auto">
+                <div class="tooltip-content richtext text-left">
+                    @Html.Raw(Model.Task.Description)
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Meta info -->
+        <div class="mt-3 text-xs text-slate-400 flex gap-3 items-center">
+
+            <div>
+                @switch (Model.Task.Priority)
+                {
+
+                    case Priority.High:
+                        <span title="Priority" class="@($"{baseClass} bg-red-500")">High</span>
+                        break;
+                    case Priority.Medium:
+                        <span title="Priority" class="@($"{baseClass} bg-green-500")">Medium</span>
+                        break;
+                    case Priority.Low:
+                        <span title="Priority" class="@($"{baseClass} bg-gray-500")">Low</span>
+                        break;
+                    default:
+                        <span title="Priority" class="@($"{baseClass} bg-yellow-500")">Unknown Type</span>
+                        break;
+                }
+            </div>
+
+
+            <div>
+                @switch (Model.Task.TaskStatus)
+                {
+                    case Status.NotStarted:
+                        <span title="Status" class="@($"{baseClass} bg-yellow-400")">Not Started</span>
+                        break;
+                    case Status.Running:
+                        <span title="Status" class="@($"{baseClass} bg-blue-500")">Running</span>
+                        break;
+                    case Status.Completed:
+                        <span title="Status" class="@($"{baseClass} bg-green-500")">Completed</span>
+                        break;
+                    case Status.Ended:
+                        <span title="Status" class="@($"{baseClass} bg-gray-400")">End</span>
+                        break;
+                    default:
+                        <span title="Status" class="@($"{baseClass} bg-gray-900")">Unknown Type</span>
+                        break;
+                }
+            </div>
+
+
+            @if (Model.Task.StartDate != null)
+            {
+                <time datetime="@Model.Task.StartDate?.ToString("s")">Created: @Model.Task.StartDate?.ToString("MMM dd, yyyy hh:mm tt")</time>
+            }
+        </div>
+    }
+</div>

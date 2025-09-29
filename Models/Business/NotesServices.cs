@@ -40,9 +40,16 @@ namespace TaskMonitoringApp.Models.Business
             await _repository.AddNotes(notesToAdd);
         }
 
+        // existing non-paged method
         public async Task<IEnumerable<NoteDTO>> GetAllNotes(string userId, Status status)
         {
             return await _repository.GetAllNotesAsync<NoteDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        // new paged service method - uses repository paged overload
+        public async Task<IEnumerable<NoteDTO>> GetAllNotes(string userId, Status status, int pageNumber, int pageSize)
+        {
+            return await _repository.GetAllNotesAsync<NoteDTO>(userId, status, pageNumber, pageSize, ResponseDataMode.ModelDTO);
         }
 
         public async Task<IEnumerable<NoteDTOWithGoalDTO>> GetAllNotesByGoalId(string userId, int goalId, Status status)
@@ -50,9 +57,21 @@ namespace TaskMonitoringApp.Models.Business
             return await _repository.GetAllNotesForGoalIdAsync<NoteDTOWithGoalDTO>(userId, goalId, status, ResponseDataMode.ModelDTO); 
         }
 
+        // new paged service method for goal notes
+        public async Task<IEnumerable<NoteDTOWithGoalDTO>> GetAllNotesByGoalId(string userId, int goalId, Status status, int pageNumber, int pageSize)
+        {
+            return await _repository.GetAllNotesForGoalIdAsync<NoteDTOWithGoalDTO>(userId, goalId, status, pageNumber, pageSize, ResponseDataMode.ModelDTO);
+        }
+
         public async Task<IEnumerable<NoteDTOWithTaskDTO>> GetAllNotesByTaskId(string userId, int taskId, Status status)
         {
             return await _repository.GetAllNotesForTaskIdAsync<NoteDTOWithTaskDTO>(userId, taskId, status, ResponseDataMode.ModelDTO); 
+        }
+
+        // new paged service method for task notes
+        public async Task<IEnumerable<NoteDTOWithTaskDTO>> GetAllNotesByTaskId(string userId, int taskId, Status status, int pageNumber, int pageSize)
+        {
+            return await _repository.GetAllNotesForTaskIdAsync<NoteDTOWithTaskDTO>(userId, taskId, status, pageNumber, pageSize, ResponseDataMode.ModelDTO);
         }
 
         public async Task<IEnumerable<Notes>> GetAllNotesWithFullContext(string userId, Status status)
@@ -107,6 +126,55 @@ namespace TaskMonitoringApp.Models.Business
 
             await _repository.UpdateNotes(userId, noteData);
             
+        }
+
+        // New: returns a parent-child tree of notes including Goal & Task DTOs
+        public async Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetAllNotesWithGoalAndTask(string userId, Status status)
+        {
+            // fetch full flat list (no paging at repository level to keep parent/child integrity)
+            var flatList = await _repository.GetAllNotesWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(userId, status, ResponseDataMode.ModelDTO);
+
+            // Build dictionary for quick lookups
+            var dict = flatList.ToDictionary(n => n.Id, n => n);
+
+            // Ensure children lists are mutable (should be by DTO default)
+            foreach (var node in dict.Values)
+            {
+                if (node.Children == null)
+                    node.Children = new List<NoteDTOWithGoalAndTaskDTO>();
+            }
+
+            var roots = new List<NoteDTOWithGoalAndTaskDTO>();
+
+            foreach (var node in dict.Values.OrderByDescending(n => n.TimeStamp))
+            {
+                if (node.ParentNoteId.HasValue && dict.TryGetValue(node.ParentNoteId.Value, out var parent))
+                {
+                    parent.Children.Add(node);
+                }
+                else
+                {
+                    roots.Add(node);
+                }
+            }
+
+            return roots;
+        }
+
+        // New: paged variant — build full tree and then paginate top-level roots to preserve parent-child relationships.
+        public async Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetAllNotesWithGoalAndTask(string userId, Status status, int pageNumber, int pageSize)
+        {
+            var allRoots = (await GetAllNotesWithGoalAndTask(userId, status)).ToList();
+
+            if (pageNumber <= 0 || pageSize <= 0)
+                return allRoots;
+
+            var pagedRoots = allRoots
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return pagedRoots;
         }
     }
 }

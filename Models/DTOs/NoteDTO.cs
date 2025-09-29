@@ -23,6 +23,8 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public int? ParentNoteId { get; set; }
 
+        public NoteDTO? ParentNote { get; set; }
+
         public Status Status { get; set; }
 
         public bool IsPinned { get; set; } = false;
@@ -57,5 +59,8 @@ namespace TaskMonitoringApp.Models.DTOs
         public int TaskId { get; set; }
 
         public TaskDTO? Task { get; set; }
+
+        // Mutable children collection to represent parent-child tree in responses.
+        public ICollection<NoteDTOWithGoalAndTaskDTO> Children { get; set; } = new List<NoteDTOWithGoalAndTaskDTO>();
     }
 }
