@@ -40,7 +40,21 @@ SET NOCOUNT ON;
 		end
 	else if(@Mode = 1)
 		begin
-			select t.Id, t.Name, t.EndDate, t.Priority, t.Repeat, t.RepeatWeekList, t.Description,  t.TaskStatus, t.UserId ,  t.IsScheduled, t.StartDate, t.IsStarted, t.StartOptionType
+			select t.Id, 
+				t.Name,
+				t.EndDate,
+				t.Priority,
+				t.Repeat,
+				t.RepeatWeekList,
+				t.Description,
+				t.TaskStatus,
+				t.UserId,
+				t.CompletedOn,
+				t.EndedOn,
+				t.IsScheduled,
+				t.IsStarted,
+				t.StartDate,
+				t.StartOptionType
 				from Tasks t
 			right join GoalTasks gt on gt.TaskId = t.id
 			where gt.GoalId = @GoalId
