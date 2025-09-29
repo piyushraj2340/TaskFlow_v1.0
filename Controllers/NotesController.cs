@@ -14,10 +14,28 @@ namespace TaskMonitoringApp.Controllers
         private readonly UserManager<Users> _userManager = userManager;
         private readonly ILogger<NotesController> _logger = logger;
 
-        public IActionResult Index()
+        // Index supports optional paging parameters (pageNumber, pageSize)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 5000)
         {
-            _logger.LogInformation("Entered Index action.");
-            return View();
+            _logger.LogInformation("Entered Index action. pageNumber={PageNumber}, pageSize={PageSize}", pageNumber, pageSize);
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in GetAllNotesWithGoalAndTask.");
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                var data = await _service.GetAllNotesWithGoalAndTask(userId, Status.All, pageNumber, pageSize);
+                return View(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GetAllNotesWithGoalAndTask for userId={UserId}.", userId);
+                return View();
+            }
         }
 
         public async Task<IActionResult> Details(int Id)
@@ -159,6 +177,57 @@ namespace TaskMonitoringApp.Controllers
             {
                 _logger.LogError(ex, "Exception in Delete for id={Id}, userId={UserId}.", id, userId);
                 return Json(new { status = false, message = "An error occurred while deleting the note." });
+            }
+        }
+
+        // API: returns notes tree including Goal and Task DTOs, supports paging top-level roots
+        [HttpGet]
+        public async Task<IActionResult> GetAllNotesWithGoalAndTask(Status status = Status.All, int pageNumber = 1, int pageSize = 5)
+        {
+            _logger.LogInformation("Entered GetAllNotesWithGoalAndTask with status={Status}, pageNumber={PageNumber}, pageSize={PageSize}.", status, pageNumber, pageSize);
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in GetAllNotesWithGoalAndTask.");
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                var data = await _service.GetAllNotesWithGoalAndTask(userId, status, pageNumber, pageSize);
+                return Json(new { status = true, message = "Notes loaded.", data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GetAllNotesWithGoalAndTask for userId={UserId}.", userId);
+                return Json(new { status = false, message = "An error occurred while fetching notes." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetJournalNotesPartial(int pageNumber = 1, int pageSize = 5, string? lastDate = null)
+        {
+            _logger.LogInformation("Entered GetJournalNotesPartial pageNumber={PageNumber}, pageSize={PageSize}, lastDate={LastDate}", pageNumber, pageSize, lastDate);
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in GetJournalNotesPartial.");
+                return Unauthorized();
+            }
+
+            try
+            {
+                var notes = await _service.GetAllNotesWithGoalAndTask(userId, Status.All, pageNumber, pageSize);
+                ViewBag.LastDate = lastDate; // optional, used by partial to avoid duplicate header
+                // Render partial that contains the same article/partial structure as Index
+                return PartialView("~/Views/Notes/_JournalNotesItems.cshtml", notes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GetJournalNotesPartial for userId={UserId}.", userId);
+                return StatusCode(500, "An error occurred while fetching notes.");
             }
         }
     }

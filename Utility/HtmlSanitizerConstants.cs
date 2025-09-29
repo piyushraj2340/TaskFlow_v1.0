@@ -1,4 +1,5 @@
 ﻿using Ganss.Xss;
+using System.Text.RegularExpressions;
 
 namespace TaskMonitoringApp.Utility
 {
@@ -104,6 +105,18 @@ namespace TaskMonitoringApp.Utility
                 }
             };
         }
+
+        public static string ToPlainText(string html)
+        {
+            if (string.IsNullOrWhiteSpace(html)) return string.Empty;
+
+            // Very basic strip: remove tags
+            var noTags = Regex.Replace(html, "<.*?>", string.Empty);
+
+            // Optionally decode HTML entities (&nbsp;, &amp;, etc.)
+            return System.Net.WebUtility.HtmlDecode(noTags).Trim();
+        }
+
     }
 
 }

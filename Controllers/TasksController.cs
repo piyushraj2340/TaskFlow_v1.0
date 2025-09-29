@@ -79,7 +79,7 @@ namespace TaskMonitoringApp.Controllers
 
                 ViewBag.tabName = tabName;
 
-                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All);
+                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All, pageNumber: 1, pageSize: 5);
                 var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
 
                 var productivity = await _todoService.GetTodoProgressAnalyses(userId, Id);
@@ -891,6 +891,30 @@ namespace TaskMonitoringApp.Controllers
             {
                 _logger.LogError(ex, "Exception in SearchTasksWithGoals for query={Query}, userId={UserId}", query, userId);
                 return Json(new { status = false, message = "Error occurred while searching tasks." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNotesByTask(int taskId, int pageNumber = 1, int pageSize = 5)
+        {
+            _logger.LogInformation("Entered GetNotesByTask with taskId={TaskId}, pageNumber={PageNumber}, pageSize={PageSize}", taskId, pageNumber, pageSize);
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in GetNotesByTask.");
+                return Unauthorized();
+            }
+
+            try
+            {
+                var notes = await _notesService.GetAllNotesByTaskId(userId, taskId, Status.All, pageNumber, pageSize);
+                return Json(new { status = true, message = "Task notes loaded", data = notes });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GetNotesByTask for taskId={TaskId}, userId={UserId}", taskId, userId);
+                return Json(new { status = false, message = "Error loading notes" });
             }
         }
     }
