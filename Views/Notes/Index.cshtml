@@ -169,9 +169,16 @@
     </svg>
 </button>
 
+@await Html.PartialAsync("AddUpdateNotes")
+
+
 <!-- Minimal JS: implements collapsible behavior without external libs. Wrapped in try/catch to avoid uncaught exceptions causing confusing "Script error." messages. -->
 @section Scripts
 {
+    @* sweetalert *@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
     <!-- PrismJS Core -->
     <link href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
@@ -209,4 +216,21 @@
     <script src="~/js/sweetAlertScript.js"></script>
     <script src="~/js/utils.js"></script>
     <script src="~/js/notesScript.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+            // Listen for clicks on the trigger element
+            $('.collapse-trigger').on('click', function() {
+                // Find the collapsible content associated with this trigger
+                var content = $(this).siblings('.collapsible-content');
+
+                // Toggle the content's visibility with a 300ms animation
+                content.slideToggle(300);
+
+                // Find the icon within the trigger and rotate it 180 degrees
+                $(this).find('i.fa-chevron-down').toggleClass('rotate-180');
+            });
+        });
+    </script>
 }
