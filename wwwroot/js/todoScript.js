@@ -231,7 +231,7 @@
                     searchable: false,
                     render: function (data, type, row) {
                         const days = row.task.repeatWeekList.map(d => dayMap[d]).join(', ');
-                        return returnRepeatyBadge(data, days); 
+                        return returnRepeatyBadge(data, days);
                     }
                 },
                 {
@@ -556,7 +556,9 @@
     });
 
     // Initialize display on load
-    updateDateDisplay();
+    if ($("taskDatePicker").length) {
+        updateDateDisplay();
+    }
 
     function getTaskIdFromTaskDetailPage() {
         var path = window.location.pathname || "";

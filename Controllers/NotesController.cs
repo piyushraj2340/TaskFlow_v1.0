@@ -15,7 +15,7 @@ namespace TaskMonitoringApp.Controllers
         private readonly ILogger<NotesController> _logger = logger;
 
         // Index supports optional paging parameters (pageNumber, pageSize)
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 5000)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 20)
         {
             _logger.LogInformation("Entered Index action. pageNumber={PageNumber}, pageSize={PageSize}", pageNumber, pageSize);
 
@@ -206,7 +206,7 @@ namespace TaskMonitoringApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetJournalNotesPartial(int pageNumber = 1, int pageSize = 5, string? lastDate = null)
+        public async Task<IActionResult> GetJournalNotesPartial(int pageNumber = 1, int pageSize = 20, string? lastDate = null)
         {
             _logger.LogInformation("Entered GetJournalNotesPartial pageNumber={PageNumber}, pageSize={PageSize}, lastDate={LastDate}", pageNumber, pageSize, lastDate);
 
