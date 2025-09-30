@@ -258,66 +258,9 @@
     </div>
 
     @await Html.PartialAsync("AddUpdateTodoNotes")
+    @await Html.PartialAsync("AddTodoSearchTaskModal")
 
-    <div id="searchTaskModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm">
-        <div class="relative w-full max-w-2xl transform rounded-2xl bg-gray-50 shadow-2xl transition-all">
-
-            <div class="flex items-center justify-between rounded-t-2xl bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4">
-                <h2 class="text-xl font-bold text-white tracking-wide">Add Tasks for Today</h2>
-                <button id="closeModalButton" class="text-2xl text-indigo-100 transition hover:text-white">&times;</button>
-            </div>
-
-            <div class="p-6 space-y-6">
-
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-medium text-gray-500">Search Tasks</label>
-                        <span class="block text-xs font-medium text-gray-500">
-                            Status: <strong id="selectedStatusText" class="text-indigo-600">All</strong>
-                        </span>
-                    </div>
-                    <div id="unifiedSearchContainer" class="flex items-center w-full border border-gray-300 rounded-lg bg-white transition-all duration-200">
-                        <div class="relative">
-                            <button id="statusFilterDropdownButton" class="flex items-center h-full px-4 py-2 text-gray-500 hover:text-indigo-600 transition">
-                                <i class="fas fa-filter"></i>
-                                <i class="fas fa-chevron-down text-xs ml-2"></i>
-                            </button>
-                            <div id="statusFilterDropdownMenu" class="absolute z-20 w-48 mt-2 -ml-1 bg-white rounded-lg shadow-xl border border-gray-200 hidden">
-                                <ul class="py-1 text-sm text-gray-700">
-                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="4">All</a></li>
-                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="0">Not Started</a></li>
-                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="1">Running</a></li>
-                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="2">Completed</a></li>
-                                    <li><a href="#" class="status-filter-option block px-4 py-2 hover:bg-gray-100" data-status="3">Ended</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="h-6 w-px bg-gray-300"></div>
-                        <div class="relative flex-grow">
-                            <select id="taskMultiSelect" multiple="multiple" style="width:100%"></select>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-sm font-medium text-gray-800 mb-3">Selected for Today</h3>
-                    <div id="selectedTasksContainer" class="max-h-[40vh] overflow-y-auto space-y-3 pr-2">
-                        <div id="emptyState" class="flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-lg">
-                            <i class="fas fa-check-circle fa-2x text-gray-400 mb-2"></i>
-                            <p class="text-gray-500">Selected tasks will appear here.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-end space-x-3 rounded-b-2xl bg-gray-100 px-6 py-4">
-                <button id="cancelModalButton" class="rounded-lg bg-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-300">Cancel</button>
-                <button id="confirmTasksButton" class="flex items-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
-                    <i class="fas fa-plus mr-2"></i>Add Selected Tasks
-                </button>
-            </div>
-        </div>
-    </div>
+    
 
     @section Scripts
     {

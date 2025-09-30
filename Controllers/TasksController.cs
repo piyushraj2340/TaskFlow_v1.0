@@ -79,7 +79,7 @@ namespace TaskMonitoringApp.Controllers
 
                 ViewBag.tabName = tabName;
 
-                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All, pageNumber: 1, pageSize: 5);
+                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All, pageNumber: 1, pageSize: 20);
                 var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
 
                 var productivity = await _todoService.GetTodoProgressAnalyses(userId, Id);
