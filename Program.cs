@@ -35,6 +35,10 @@ builder.Services.AddScoped<INotesServices, NotesServices>();
 builder.Services.AddScoped<ITaskSearchRepository, TaskSearchRepository>();
 builder.Services.AddScoped<ITaskSearchService, TaskSearchService>();
 
+// register search services
+builder.Services.AddScoped<ISearchRepository, TaskMonitoringApp.Models.DataAccessLayer.SearchRepository>();
+builder.Services.AddScoped<ISearchServices, TaskMonitoringApp.Models.Business.SearchServices>();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache(); // Enable In-Memory Caching

@@ -26,3 +26,12 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #4f46e5;
 }
+
+
+#globalSearchResults {
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+    top: 56px !important;
+}
+
