@@ -36,5 +36,8 @@
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</None>
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="razor Views\Notes\" />
+	</ItemGroup>
 
 </Project>

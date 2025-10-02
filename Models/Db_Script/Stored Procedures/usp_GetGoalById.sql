@@ -32,7 +32,7 @@ SET NOCOUNT ON;
 			END
 		ELSE IF(@Mode = 2)
 			BEGIN 
-				SELECT g.Id, g.Name, g.UserId
+				SELECT g.Id, g.Name, g.UserId, g.GoalStatus
 				FROM Goals g
 				WHERE g.UserId = @UserId AND g.Id = @GoalId AND IsDeleted = 0;
 			END

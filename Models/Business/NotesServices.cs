@@ -176,5 +176,31 @@ namespace TaskMonitoringApp.Models.Business
 
             return pagedRoots;
         }
+
+        // new - create note attached to a Todo
+        public async Task AddNotesWithTodoId(string userId, NoteDTO notes, int todoId)
+        {
+            if (userId != notes.UserId)
+                throw new InvalidOperationException("userId and notes.UserId must be same!");
+
+            var notesToAdd = _mapper.Map<Notes>(notes);
+            notesToAdd.TodoId = todoId;
+            notesToAdd.TimeStamp = DateTime.Now;
+
+            await _repository.AddNotes(notesToAdd);
+        }
+
+        // new - independent note
+        public async Task AddNotesIndependent(string userId, NoteDTO notes)
+        {
+            if (userId != notes.UserId)
+                throw new InvalidOperationException("userId and notes.UserId must be same!");
+
+            var notesToAdd = _mapper.Map<Notes>(notes);
+            notesToAdd.TimeStamp = DateTime.Now;
+            // no parent ids set
+
+            await _repository.AddNotes(notesToAdd);
+        }
     }
 }
