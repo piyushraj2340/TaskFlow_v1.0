@@ -35,6 +35,10 @@ namespace TaskMonitoringApp.Models.Services
 
         Task AddNotesWithTaskId(string userId, NoteDTO notes, int taskId);
 
+        Task AddNotesWithTodoId(string userId, NoteDTO notes, int todoId);
+
+        Task AddNotesIndependent(string userId, NoteDTO notes);
+
         Task UpdateNotes(string userId, NoteDTO noteToUpdate);
 
         Task DeleteNotes(string userId, int noteId);

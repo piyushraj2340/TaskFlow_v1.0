@@ -96,6 +96,16 @@ namespace TaskMonitoringApp.Controllers
                             await _service.AddNotesWithTaskId(userId, note, taskId: AddedWithId);
                             break;
 
+                        case NotesAttachedWith.Todo:
+                            // new: add note attached to a todo
+                            await _service.AddNotesWithTodoId(userId, note, todoId: AddedWithId);
+                            break;
+
+                        case NotesAttachedWith.All:
+                            // independent journal note (no parent)
+                            await _service.AddNotesIndependent(userId, note);
+                            break;
+
                         default:
                             _logger.LogWarning("Invalid request type in Create. AddedWithId={AddedWithId}, noteAddWith={NoteAddWith}.", AddedWithId, noteAddWith);
                             return Json(new { status = false, message = "Invalid Request Type!" });
