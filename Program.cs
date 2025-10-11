@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http.Features;
+﻿using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -10,6 +10,8 @@ using TaskMonitoringApp.Models.DataAccessLayer;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Repositories;
 using TaskMonitoringApp.Models.Services;
+using TaskMonitoringApp.Repositories;
+using TaskMonitoringApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,21 +37,61 @@ builder.Services.AddScoped<INotesServices, NotesServices>();
 builder.Services.AddScoped<ITaskSearchRepository, TaskSearchRepository>();
 builder.Services.AddScoped<ITaskSearchService, TaskSearchService>();
 
+
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddSingleton<IEmailService, LoggingEmailService>();
+
 // register search services
 builder.Services.AddScoped<ISearchRepository, TaskMonitoringApp.Models.DataAccessLayer.SearchRepository>();
 builder.Services.AddScoped<ISearchServices, TaskMonitoringApp.Models.Business.SearchServices>();
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 builder.Services.AddMemoryCache(); // Enable In-Memory Caching
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApplication")));
 
+
 builder.Services.AddIdentity<Users, IdentityRole>(options =>
 {
-    options.User.RequireUniqueEmail = true; // Ensure email is unique
-}).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+// 👇 Add JWT only — DO NOT re-add cookie here
+builder.Services.AddAuthentication()
+    .AddJwtBearer("JwtBearer", options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
+        };
+    });
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -119,6 +161,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+// Use CORS policy
+app.UseCors("AllowAll");
 
 app.UseAuthentication(); // Enable authentication middleware
 app.UseAuthorization();

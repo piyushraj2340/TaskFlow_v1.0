@@ -28,6 +28,8 @@ namespace TaskMonitoringApp.Models.Data
 
         public DbSet<Notes> Notes { get; set; }
 
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
+
         // Adding the sp_entity_data
 
 
@@ -47,6 +49,15 @@ namespace TaskMonitoringApp.Models.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.Token)
+                .IsUnique();
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(rt => rt.User)
+                .WithMany()
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Ensure CalculateDateFor is unique
             modelBuilder.Entity<TodoProgressAnalysis>()
