@@ -14,11 +14,11 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
-stage:
+stages:
 - stage: build
   displayName: 'Build stage'
   jobs:
-  - jobs: Buildjob
+  - job: Buildjob
     displayName: 'Build Job'
     steps:
     - task: NuGetToolInstaller@1
