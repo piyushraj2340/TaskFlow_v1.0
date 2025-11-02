@@ -66,7 +66,7 @@ builder.Services.AddControllers();
 builder.Services.AddMemoryCache(); // Enable In-Memory Caching
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApplication")));
+options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApp_AzureDB")));
 
 
 builder.Services.AddIdentity<Users, IdentityRole>(options =>
