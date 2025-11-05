@@ -4,158 +4,290 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<!-- Add a section for DataTables CSS if this page uses DataTables -->
+<!-- Add a section for DataTables CSS and Font Awesome (for icons) -->
 @section Styles {
     <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <!-- Added Font Awesome for icons, as they are used in the view -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Custom styles for DataTables pagination and mobile layout -->
+    <style>
+        /*
+                                    Increased specificity by prefixing all rules with '.dataTables_wrapper'
+                                    to override DataTables default styles.
+                                */
+
+        /* Apply Tailwind-like button styles to DataTables pagination */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0.75rem !important; /* Adjusted padding for better fit */
+            margin: 0.125rem !important; /* Added small margin for wrapping */
+            border-radius: 12px !important; /* User's requested border-radius */
+            border: 1px solid #D1D5DB !important; /* border-gray-300 */
+            background-color: #FFFFFF !important; /* bg-white */
+            font-size: 0.875rem !important; /* text-sm */
+            font-weight: 500 !important; /* font-medium */
+            color: #374151 !important; /* text-gray-700 */
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+            user-select: none; /* Prevents text selection on click */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; /* shadow-sm */
+            
+        }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+                background-color: #F9FAFB !important; /* hover:bg-gray-50 */
+                border-color: #9CA3AF !important; /* hover:border-gray-400 */
+                box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08) !important; /* shadow-md */
+            }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                background-color: #4F46E5 !important; /* bg-indigo-600 */
+                border-color: #4F46E5 !important; /* border-indigo-600 */
+                color: #FFFFFF !important; /* text-white */
+                font-weight: 600 !important; /* font-semibold */
+                box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1) !important; /* shadow-md */
+            }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+            .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+                background-color: #F3F4F6 !important; /* bg-gray-100 */
+                color: #9CA3AF !important; /* text-gray-400 */
+                cursor: not-allowed;
+                border-color: #D1D5DB !important; /* border-gray-300 */
+                box-shadow: none !important;
+            }
+
+        /* Spacing for table controls */
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-top: 1rem;
+        }
+
+        /* Center pagination on all screen sizes */
+        .dataTables_wrapper .dataTables_paginate {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+        }
+
+        /* Fix mobile alignment for DataTable controls */
+        @@media (max-width: 640px) { /* Targeting sm breakpoint and below */
+            .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info {
+                text-align: left; /* Align all text left */
+                display: block; /* Stack controls */
+                width: 100%;
+            }
+
+                .dataTables_wrapper .dataTables_length label,
+                .dataTables_wrapper .dataTables_filter label {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    width: 100%;
+                    font-size: 0.875rem;
+                    color: #374151 !important;
+                }
+
+                .dataTables_wrapper .dataTables_length select,
+                .dataTables_wrapper .dataTables_filter input[type="search"] {
+                    width: 100%;
+                    margin-top: 0.25rem;
+                    display: block; /* Ensure it takes full width */
+                }
+
+            .dataTables_wrapper .dataTables_filter {
+                margin-top: 1rem;
+                text-align: left !important; /* Override default */
+            }
+            /* REMOVED the 'position: fixed' rules for pagination.
+                                       Pagination will now remain in the normal document flow
+                                       at the bottom of each section.
+                                    */
+        }
+    </style>
 }
+
 <!-- Main Content -->
-<div class="container mx-auto p-8">
+<!-- Added responsive padding (p-4 for mobile, md:p-8 for desktop) -->
+<div class="container mx-auto p-2 md:p-4 lg:p-6">
 
     <!-- Dashboard Stats Section (1st Row) -->
-    <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-indigo-600"><i class="fas fa-trophy"></i></div>
-                <div class="text-lg font-semibold">Goals Achieved</div>
-            </div>
-            <div class="mt-4 text-xl">@Model.CompletedGoals</div>
-        </div>
+    <!-- Merged new layout with original border/shadow style -->
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-        <div class="rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-green-600"><i class="fas fa-check"></i></div>
-                <div class="text-lg font-semibold">Tasks Completed</div>
-            </div>
-            <div class="mt-4 text-xl">@Model.CompletedTasks</div>
-        </div>
-
-        <div class="rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-blue-600"><i class="fas fa-chart-line"></i></div>
-                <div class="text-lg font-semibold">Your Growth</div>
-            </div>
-            <div class="mt-4 text-xl" id="growthPercentage">
-                @if(Model.GrowthPercentage == 0)
-                {
-                    @(Model.GrowthPercentage)<span>% this week</span>
-                } else if(Model.GrowthPercentage > 0)
-                {
-                    <span>+</span> @(Model.GrowthPercentage)<span>% this week</span>
-                } else
-                {
-                    <span>-</span> @(Model.GrowthPercentage)<span>% this week</span>
-                }
+        <!-- Stat Card 1: Goals Achieved -->
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+            <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0 rounded-full bg-indigo-100 p-4">
+                    <i class="fas fa-trophy text-3xl text-indigo-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <!-- Added min-w-0 to allow text to wrap if needed */ -->
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Goals Achieved</div>
+                    <div class="truncate text-3xl font-bold text-gray-900">@Model.CompletedGoals</div>
+                </div>
             </div>
         </div>
 
-        <div class="rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-purple-600"><i class="fas fa-cogs"></i></div>
-                <div class="text-lg font-semibold">Productivity</div>
+        <!-- Stat Card 2: Tasks Completed -->
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+            <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0 rounded-full bg-green-100 p-4">
+                    <i class="fas fa-check text-3xl text-green-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Tasks Completed</div>
+                    <div class="truncate text-3xl font-bold text-gray-900">@Model.CompletedTasks</div>
+                </div>
             </div>
-            <div class="mt-4 text-xl">@Model.Productivity%</div>
+        </div>
+
+        <!-- Stat Card 3: Your Growth -->
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
+            <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0 rounded-full bg-blue-100 p-4">
+                    <i class="fas fa-chart-line text-3xl text-blue-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Your Growth</div>
+                    <div class="truncate text-3xl font-bold">
+                        @if (Model.GrowthPercentage == 0)
+                        {
+                            <span class="text-gray-900">@Model.GrowthPercentage%</span>
+                        }
+                        else if (Model.GrowthPercentage > 0)
+                        {
+                            <span class="text-green-600">+@Model.GrowthPercentage%</span>
+                        }
+                        else
+                        {
+                            <span class="text-red-600">@Model.GrowthPercentage%</span>
+                        }
+                    </div>
+                    <div class="text-xs text-gray-500">this week</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Card 4: Productivity -->
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-purple-600 bg-white p-4 shadow-md shadow-purple-300">
+            <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0 rounded-full bg-purple-100 p-4">
+                    <i class="fas fa-cogs text-3xl text-purple-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Productivity</div>
+                    <div class="text-3xl font-bold text-gray-900">@Model.Productivity%</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Chart Section (2nd Row) -->
-   @*  <div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div class="rounded-lg border-l-4 border-teal-400 bg-white p-6 shadow-sm shadow-teal-300">
+
+    <!-- Chart Section (2nd Row) - Left as commented -->
+    @* <div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="rounded-lg bg-white p-6 shadow-md">
             <h2 class="mb-4 text-lg font-semibold text-gray-700">Growth Chart</h2>
             <canvas id="growthChart"></canvas>
         </div>
-
-        <div class="rounded-lg border-l-4 border-rose-400 bg-white p-6 shadow-sm shadow-rose-300">
+        <div class="rounded-lg bg-white p-6 shadow-md">
             <h2 class="mb-4 text-lg font-semibold text-gray-700">Productivity Chart</h2>
             <canvas id="productivityChart"></canvas>
         </div>
     </div> *@
 
 
-    <section class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
-        <!-- Running Tasks Section -->
-        <div class="mb-8">
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Running Goals</h2>
-                <div>
-                    <button id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-                        <i class="fas fa-plus"></i> Add New Goal
-                    </button>
-                    @* <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
-                    <i class="fas fa-angle-double-right"></i> View All
-                    </button> *@
-                </div>
-            </div>
-
-            <!-- Running Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewRunningGoalTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Id</th>
-                            <th class="p-2 text-left text-gray-600">Goal Name</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+    <!-- Running Goals Section -->
+    <!-- Added back original border/shadow style -->
+    <section class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-4 shadow-md shadow-blue-300">
+        <div class="mb-6">
+            <!-- Updated header and button layout -->
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Running Goals</h2>
+                <!-- Updated button style -->
+                <button id="openModalButton" class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 sm:w-auto">
+                    <i class="fas fa-plus"></i>
+                    <span>Add New Goal</span>
+                </button>
             </div>
         </div>
 
-
+        <!-- Running Goal List (Table) -->
+        <!-- Added overflow-x-auto for table responsiveness -->
+        <div class="overflow-x-auto">
+            <table id="viewRunningGoalTableData" class="w-full min-w-full" style="width:100%">
+                <!-- Modern table header -->
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Goal Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+                <!-- DataTable will populate the tbody -->
+            </table>
+        </div>
     </section>
 
-    <!-- running task Section -->
-    <section class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
-        <!-- Task Heading with Actions -->
-        <!-- Running Tasks Section -->
-        <div class="mb-8">
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Running Tasks</h2>
-                <a href="@Url.Action("Create","Tasks")" id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-                    <i class="fas fa-plus"></i> Add New Task
+    <!-- Running Tasks Section -->
+    <!-- Added back original border/shadow style -->
+    <section class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-4 shadow-md shadow-blue-300">
+        <div class="mb-6">
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Running Tasks</h2>
+                <!-- Styled the <a> tag to match the button -->
+                <a href="@Url.Action("Create", "Tasks")" class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 sm:w-auto">
+                    <i class="fas fa-plus"></i>
+                    <span>Add New Task</span>
                 </a>
             </div>
-
-            <!-- Running Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewRunningTaskTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Task Id</th>
-                            <th class="p-2 text-left text-gray-600">Task Name</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
         </div>
 
-
+        <!-- Running Task List (Table) -->
+        <div class="overflow-x-auto">
+            <table id="viewRunningTaskTableData" class="w-full min-w-full" style="width:100%">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Task Id</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Task Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Repeat Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </section>
 
-
+    <!-- Partial View for Modals -->
     @await Html.PartialAsync("AddUpdateGoals")
 </div>
 
 @section Scripts {
-    @* DataTable *@
+    <!-- DataTable -->
     <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-    @* Sweetalert *@
+    <!-- Sweetalert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @* Client side Script *@
+    <!-- Client side Script -->
     <script src="~/js/sweetAlertScript.js"></script>
     <script src="~/js/modelScript.js"></script>
     <script src="~/js/utils.js"></script>
     <script src="~/js/goalScript.js"></script>
     <script src="~/js/taskScript.js"></script>
 
-   @*  <script>
+    <!-- Chart.js (left commented) -->
+    @* <script>
         // Growth and Productivity Chart.js
         const ctxGrowth = document.getElementById('growthChart').getContext('2d');
         const growthChart = new Chart(ctxGrowth, {
