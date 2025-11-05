@@ -1,64 +1,45 @@
-# ASP.NET
-# Build and test ASP.NET projects.
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
-
-trigger: none
+trigger:
+  branches:
+    include:
+      - azure/prod
 
 pool:
-  vmImage: 'windows-latest'
+  name: Default   # Use your self-hosted agent pool name here
 
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
-stages:
-- stage: build
-  displayName: 'Build stage'
-  jobs:
-  - job: Buildjob
-    displayName: 'Build Job'
-    steps:
-    - task: NuGetToolInstaller@1
+steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET 8 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
 
-    - task: NuGetCommand@2
-      inputs:
-        restoreSolution: '$(solution)'
+- task: DotNetCoreCLI@2
+  displayName: 'Restore NuGet packages'
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
 
-    - task: VSBuild@1
-      inputs:
-        solution: '$(solution)'
-        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
+- task: DotNetCoreCLI@2
+  displayName: 'Build the project'
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
 
-    - task: VSTest@2
-      inputs:
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
+- task: DotNetCoreCLI@2
+  displayName: 'Publish the project'
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
 
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-
-- stage: Deploy
-  displayName: 'Deploy Stage'
-  jobs: 
-    - job: DeployJob
-      displayName: 'Deploy Job'
-      steps: 
-      - task: DownloadBuildArtifacts@1
-        inputs:
-          buildType: 'current'
-          downloadType: 'single'
-          downloadPath: '$(System.ArtifactsDirectory)'
-      - task: AzureRmWebAppDeployment@5
-        inputs:
-          ConnectionType: 'AzureRM'
-          azureSubscription: 'Azure for Students(0987533a-19b8-4c12-8758-c5062d6c2c04)'
-          appType: 'webApp'
-          WebAppName: 'taskmonitoringapp'
-          packageForLinux: '$(System.ArtifactsDirectory)/**/*.zip'
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish build artifacts'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
