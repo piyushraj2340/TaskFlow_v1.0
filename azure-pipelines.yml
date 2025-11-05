@@ -1,7 +1,13 @@
 trigger:
   branches:
     include:
-      - azure/prod
+      - prod/azure
+
+pr:
+  branches:
+    include:
+      - prod/azure
+
 
 pool:
   name: Default   # Use your self-hosted agent pool name here
