@@ -4,225 +4,213 @@
     ViewData["Title"] = "All Goals";
 }
 
-<!-- Add a section for DataTables CSS if this page uses DataTables -->
 @section Styles {
     <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 }
 
 <style>
+    /* Keep your custom dark mode class if needed for specific rows */
     .goal {
         background-color: #18191b;
     }
 </style>
 
-<div class="container mx-auto p-8">
+<div class="container mx-auto p-2 md:p-4 lg:p-6">
 
-    <!-- Dashboard Stats Section (1st Row) -->
-    <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-indigo-600"><i class="fas fa-trophy"></i></div>
-                <div class="text-lg font-semibold">Running Goals</div>
-            </div>
-            <div class="mt-4 text-xl" id="runningGoalCount">@Model.RunningGoal</div>
-        </div>
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-        <div class="rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-green-600"><i class="fas fa-check"></i></div>
-                <div class="text-lg font-semibold">Goals Completed</div>
-            </div>
-            <div class="mt-4 text-xl" id="completedGoalCount">@Model.CompletedGoal</div>
-        </div>
-
-        <div class="rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-blue-600"><i class="fas fa-chart-line"></i></div>
-                <div class="text-lg font-semibold">Your Growth</div>
-            </div>
-            <div class="mt-4 text-xl" id="growthCalculations">
-                @(Model.GrowthPercentage > 0 ? $"+{Model.GrowthPercentage}%" : $"-{Model.GrowthPercentage}%") this week
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-indigo-100 p-4">
+                    <i class="fas fa-trophy text-3xl text-indigo-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Running Goals</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="runningGoalCount">@Model.RunningGoal</div>
+                </div>
             </div>
         </div>
 
-        <div class="rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-purple-600"><i class="fas fa-cogs"></i></div>
-                <div class="text-lg font-semibold">Productivity</div>
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-green-100 p-4">
+                    <i class="fas fa-check text-3xl text-green-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Goals Completed</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="completedGoalCount">@Model.CompletedGoal</div>
+                </div>
             </div>
-            <div class="mt-4 text-xl" id="productivityPercentage">@Model.Productivity%</div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-blue-100 p-4">
+                    <i class="fas fa-chart-line text-3xl text-blue-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Your Growth</div>
+                    <div class="truncate text-3xl font-bold" id="growthCalculations">
+                        @if (Model.GrowthPercentage > 0)
+                        {
+                            <span class="text-green-600">+@Model.GrowthPercentage%</span>
+                        }
+                        else
+                        {
+                            <span class="text-red-600">@Model.GrowthPercentage%</span>
+                        }
+                    </div>
+                    <div class="text-xs text-gray-500">this week</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-purple-100 p-4">
+                    <i class="fas fa-cogs text-3xl text-purple-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Productivity</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="productivityPercentage">@Model.Productivity%</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-        <!-- Running Tasks Section -->
-        <div class="mb-8">
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Running Goals</h2>
-                <div>
-                    <button id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-                        <i class="fas fa-plus"></i> Add New Goal
-                    </button>
-                    @* <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
-                        <i class="fas fa-angle-double-right"></i> View All
-                    </button> *@
-                </div>
-            </div>
-
-            <!-- Running Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewRunningGoalTableData" data-goal-status="running" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Id</th>
-                            <th class="p-2 text-left text-gray-600">Goal Name</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+    <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-4 shadow-md shadow-indigo-300">
+        <div class="mb-6">
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Running Goals</h2>
+                <!-- Updated button style -->
+                <button id="openModalButton" class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 sm:w-auto">
+                    <i class="fas fa-plus"></i>
+                    <span>Add New Goal</span>
+                </button>
             </div>
         </div>
 
-        
+        <div class="overflow-x-auto">
+            <table id="viewRunningGoalTableData" data-goal-status="running" class="w-full min-w-full" style="width:100%">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Goal Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </section>
 
-    <section class="mb-8 rounded-lg border-l-4 border-yellow-500 bg-white p-6 shadow-md shadow-yellow-300">
-        <!-- Not Started Tasks Section -->
-        <div class="mb-8">
-
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="mb-4 text-xl font-semibold text-gray-700">Not Started Goals</h2>
-                @* <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
-                    <i class="fas fa-angle-double-right"></i> View All
+    <section class="mb-8 rounded-lg border-l-4 border-yellow-500 bg-white p-4 shadow-md shadow-yellow-300">
+        <div class="mb-6">
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Not Started Goals</h2>
+                @* <button class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-gray-800 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-gray-900 sm:w-auto">
+                    <i class="fas fa-angle-double-right"></i> <span>View All</span>
                 </button> *@
             </div>
+        </div>
 
-            
-
-            <!-- Not Started Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewNotStartedGoalTableData" data-goal-status="notStarted" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Id</th>
-                            <th class="p-2 text-left text-gray-600">Goal Name</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+        <div class="overflow-x-auto">
+            <table id="viewNotStartedGoalTableData" data-goal-status="notStarted" class="w-full min-w-full" style="width:100%">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Goal Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </section>
 
-     <section class="mb-8 rounded-lg border-l-4 border-green-500 bg-white p-6 shadow-md shadow-green-300">
-        <!-- Completed Tasks Section -->
-        <div class="mb-8">
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="mb-4 text-xl font-semibold text-gray-700">Completed Goals</h2>
-               @*  <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
-                    <i class="fas fa-angle-double-right"></i> View All
-                </button> *@
+    <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-4 shadow-md shadow-green-300">
+        <div class="mb-6">
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Completed Goals</h2>
             </div>
+        </div>
 
-            
-
-            <!-- Completed Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewCompletedGoalTableData" data-goal-status="completed" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Id</th>
-                            <th class="p-2 text-left text-gray-600">Goal Name</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+        <div class="overflow-x-auto">
+            <table id="viewCompletedGoalTableData" data-goal-status="completed" class="w-full min-w-full" style="width:100%">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Goal Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </section>
-    
-    <section class="mb-8 rounded-lg border-l-4 border-gray-600 bg-white p-6 shadow-md shadow-gray-500">
-        <!-- Ended Tasks Section -->
-        <div class="mb-8">
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Ended Goals</h2>
-                @* <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
-                    <i class="fas fa-angle-double-right"></i> View All
-                </button> *@
-            </div>
 
-
-            <!-- Ended Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewEndedGoalTableData" data-goal-status="ended" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Id</th>
-                            <th class="p-2 text-left text-gray-600">Goal Name</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+    <section class="mb-8 rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-400">
+        <div class="mb-6">
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Ended Goals</h2>
             </div>
         </div>
 
-        
+        <div class="overflow-x-auto">
+            <table id="viewEndedGoalTableData" data-goal-status="ended" class="w-full min-w-full" style="width:100%">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Goal Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </section>
 
-
-    <section class="mb-8 rounded-lg border-l-4 border-red-600 bg-white p-6 shadow-md shadow-red-300">
-        <!-- Deleted Tasks Section -->
-        <div class="mb-8">
-            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Deleted Goals</h2>
-@*                  <button id="openModalButton" class="my-1 rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-950">
-                     <i class="fas fa-angle-double-right"></i> View All
-                 </button> *@
-            </div>
-
-
-            <!-- Deleted Task List (Table) -->
-            <div class="overflow-x-auto">
-                <table id="viewDeletedTableData" data-goal-status="deleted" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                    <thead>
-                        <tr>
-                            <th class="p-2 text-left text-gray-600">Id</th>
-                            <th class="p-2 text-left text-gray-600">Goal Name</th>
-                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                            <th class="p-2 text-left text-gray-600">Priority</th>
-                            <th class="p-2 text-left text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+    <section class="mb-8 rounded-lg border-l-4 border-red-600 bg-white p-4 shadow-md shadow-red-300">
+        <div class="mb-6">
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Deleted Goals</h2>
             </div>
         </div>
-        
+
+        <div class="overflow-x-auto">
+            <table id="viewDeletedTableData" data-goal-status="deleted" class="w-full min-w-full" style="width:100%">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Goal Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </section>
 
     @await Html.PartialAsync("AddUpdateGoals")
-
-    @section Scripts
-    {
-        @* DataTable *@
-        <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-        @* sweetalert *@
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-        @* Client side Script *@
-        <script src="~/js/sweetAlertScript.js"></script>
-        <script src="~/js/modelScript.js"></script>
-        <script src="~/js/utils.js"></script>
-        <script src="~/js/goalScript.js"></script>
-    }
 </div>
 
+@section Scripts
+{
+    @* DataTable *@
+    <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
+    @* sweetalert *@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @* Client side Script *@
+    <script src="~/js/sweetAlertScript.js"></script>
+    <script src="~/js/modelScript.js"></script>
+    <script src="~/js/utils.js"></script>
+    <script src="~/js/goalScript.js"></script>
+}

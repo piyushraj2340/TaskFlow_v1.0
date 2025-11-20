@@ -1,20 +1,19 @@
 ﻿@model TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO
 
-<!-- Timeline Item (right side on desktop) -->
-<article class="relative md:flex md:items-start md:justify-between md:gap-6 ">
-    <div class="md:w-1/2 md:order-1">
+<article class="relative flex flex-col md:flex-row md:items-start md:justify-between md:gap-6">
+
+    <div class="w-full pl-10 md:pl-0 md:w-1/2 order-2 md:order-1">
         @await Html.PartialAsync("NotesLayoutRightViewTimeLine", Model)
     </div>
 
-    <!-- center marker -->
-    <div class="absolute md:static left-0 md:left-auto md:mx-0 md:order-2 md:flex md:items-center md:justify-center md:w-0">
-        <div class="flex items-center md:flex-col md:justify-center md:gap-2">
+    <div class="absolute left-[20px] md:static md:left-auto md:mx-0 md:order-2 flex items-start md:items-center justify-center md:w-0 h-full top-0 z-10 transform -translate-x-1/2 md:translate-x-0">
+        <div class="flex items-center md:flex-col md:justify-center md:gap-2 sticky top-4 md:top-0">
             <div class="timeline-dot bg-slate-400 border-2 border-white shadow-sm h-4 w-4 rounded-full" aria-hidden></div>
             <div class="hidden md:block w-px bg-slate-200 h-12"></div>
         </div>
     </div>
 
-    <div class="md:w-1/2 md:order-3">
+    <div class="w-full pl-10 md:pl-0 md:w-1/2 order-1 md:order-3 mt-2 md:mt-0">
         @await Html.PartialAsync("TimeLineGoalOrTaskDetail", Model)
     </div>
 </article>

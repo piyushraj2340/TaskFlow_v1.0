@@ -4,11 +4,9 @@
     ViewData["Title"] = "Today's Tasks";
 }
 
-
 @section Styles {
-    <!-- Add a section for DataTables CSS if this page uses DataTables -->
     <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-    <!-- Flatpickr (Calendar) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 }
@@ -26,240 +24,237 @@
     .todo {
         background-color: #18191b;
     }
-</style>
 
-<!-- Select2 CSS/JS -->
-<style>
-     /* --- Main Select2 Input Container --- */
-     #unifiedSearchContainer .select2-container--default .select2-selection--multiple {
-         border: none !important;
-         box-shadow: none !important;
-         min-height: 42px;
-     }
-
-     /* --- Container for Selected Tags & Search (within the main input) --- */
-     .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-         display: flex !important;
-         flex-wrap: wrap !important;
-         align-items: center !important;
-         gap: 5px !important;
-         /* Adds space at the bottom for the input field on its own line */
-         padding-bottom: 5px !important;
-     }
-
-     /* --- Individual Selected Tags (Pills) --- */
-     .select2-container--default .select2-selection--multiple .select2-selection__choice {
-         background: linear-gradient(90deg, #6366f1 60%, #3b82f6 100%);
-         color: #fff;
-         border: none;
-         border-radius: 9999px;
-         font-weight: 500;
-         margin-top: 5px !important; /* Spacing for wrapped rows */
-         padding: 6px 16px 6px 28px;
-         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
-         display: flex;
-         align-items: center;
-         justify-content: center;
-     }
-
-     /* --- The 'x' remove button on each tag --- */
-     .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-         color: #fff;
-         margin-right: 8px;
-         font-size: 1.1em;
-         transition: color 0.2s;
-         left: 1px;
-         top: 4px;
-         border-radius: 50%;
-     }
-
-    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-        color: #ef4444;
+    /* --- Select2 Custom Styles (Preserved) --- */
+    #unifiedSearchContainer .select2-container--default .select2-selection--multiple {
+        border: none !important;
+        box-shadow: none !important;
+        min-height: 42px;
     }
 
-     /* --- Search Input Field (forces it to a new, full-width line) --- */
-     .select2-container--default .select2-selection--multiple .select2-search--inline {
-         width: 100% !important;
-     }
+    .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 5px !important;
+        padding-bottom: 5px !important;
+    }
 
-     .select2-container--default .select2-selection--multiple .select2-search__field {
-         width: 100% !important;
-         margin-top: 8px !important; /* Adds a little space above the cursor */
-     }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background: linear-gradient(90deg, #6366f1 60%, #3b82f6 100%);
+        color: #fff;
+        border: none;
+        border-radius: 9999px;
+        font-weight: 500;
+        margin-top: 5px !important;
+        padding: 6px 16px 6px 28px;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-     /* --- Add a blue focus ring to the entire container when Select2 is focused --- */
-     #unifiedSearchContainer.select2-focused {
-         border-color: #6366f1 !important;
-         box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5) !important;
-     }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        color: #fff;
+        margin-right: 8px;
+        font-size: 1.1em;
+        transition: color 0.2s;
+        left: 1px;
+        top: 4px;
+        border-radius: 50%;
+    }
 
-     /* --- Dropdown Panel --- */
-     #searchTaskModal .select2-dropdown {
-         border-radius: 0.75rem;
-         box-shadow: 0 4px 24px rgba(99, 102, 241, 0.12);
-     }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            color: #ef4444;
+        }
 
-     /* --- Style for the active filter option in the dropdown --- */
-     .status-filter-option.active {
-         background-color: #4f46e5; /* indigo-600 */
-         color: white;
-         font-weight: 600;
-     }
+    .select2-container--default .select2-selection--multiple .select2-search--inline {
+        width: 100% !important;
+    }
 
-     /* --- Styles for the separate selected task cards BELOW the search --- */
-     #selectedTasksContainer .task-card .remove-task-btn {
-         background: none;
-         border: none;
-         color: transparent !important;
-         font-size: 1.1em;
-         cursor: pointer;
-         transition: color 0.2s;
-     }
+    .select2-container--default .select2-selection--multiple .select2-search__field {
+        width: 100% !important;
+        margin-top: 8px !important;
+    }
 
-     #selectedTasksContainer .task-card:hover .remove-task-btn {
-         color: gray !important;
-     }
+    #unifiedSearchContainer.select2-focused {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5) !important;
+    }
+
+    #searchTaskModal .select2-dropdown {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 24px rgba(99, 102, 241, 0.12);
+    }
+
+    .status-filter-option.active {
+        background-color: #4f46e5;
+        color: white;
+        font-weight: 600;
+    }
+
+    #selectedTasksContainer .task-card .remove-task-btn {
+        background: none;
+        border: none;
+        color: transparent !important;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    #selectedTasksContainer .task-card:hover .remove-task-btn {
+        color: gray !important;
+    }
 
     #selectedTasksContainer .task-card .remove-task-btn:hover {
         color: #ef4444 !important;
     }
 </style>
 
-<div class="container mx-auto p-8">
-    <div class="mb-6 flex flex-col items-start justify-between rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-300 md:flex-row md:items-center md:p-6">
-        <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">
-            Select Date:
-            <span id="selectedDate" class="inline-flex min-w-max items-center rounded bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md transition duration-300 hover:bg-gray-500 sm:text-sm">Today</span>
-        </h2>
+<div class="container mx-auto p-2 md:p-4 lg:p-6">
 
-        <!-- Container for Buttons & Date Picker -->
-        <div class="mt-4 flex w-full flex-col items-center justify-between space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 sm:w-auto md:mt-0">
-            <button id="prevDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
-                <i class="fas fa-arrow-left"></i> Previous
-            </button>
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            <button id="nextDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
-                Next <i class="fas fa-arrow-right"></i>
-            </button>
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-indigo-100 p-4">
+                    <i class="fas fa-trophy text-3xl text-indigo-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Total Tasks</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="totalTodoTaskCount">@Model.TotalTodo</div>
+                </div>
+            </div>
+        </div>
 
-            <input type="text" id="taskDatePicker" class="w-full rounded-md border p-2 shadow-sm sm:w-auto" placeholder="Pick a date">
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-green-100 p-4">
+                    <i class="fas fa-check text-3xl text-green-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Completed</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="completedTodoTaskCount">@Model.TotalCompletedTodo</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-blue-100 p-4">
+                    <i class="fas fa-clipboard text-3xl text-blue-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Pending Task</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="runningTodoTaskCount">@Model.TotalMissedTodo</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-purple-100 p-4">
+                    <i class="fas fa-cogs text-3xl text-purple-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Productivity</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="productivityPercentageTodo">@Model.ProductivityForDay%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-8 rounded-lg border-l-4 border-gray-600 bg-white p-6 shadow-md shadow-gray-400">
+        <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+            <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">
+                Select Date:
+                <span id="selectedDate" class="ml-2 inline-flex min-w-max items-center rounded bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md transition duration-300 hover:bg-gray-600 sm:text-sm">Today</span>
+            </h2>
+
+            <div class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row">
+                <button id="prevDateBtn" class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 sm:w-auto">
+                    <i class="fas fa-arrow-left"></i> <span>Previous</span>
+                </button>
+
+                <button id="nextDateBtn" class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 sm:w-auto">
+                    <span>Next</span> <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <div class="w-full sm:w-auto relative">
+                    <input type="text" id="taskDatePicker" class="w-full rounded-lg border-gray-300 p-2 pl-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:w-40" placeholder="Pick a date">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <i class="fas fa-calendar text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
 
-
-    <!-- Dashboard Stats Section (1st Row) -->
-    <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-indigo-600"><i class="fas fa-trophy"></i></div>
-                <div class="text-lg font-semibold">Total Tasks</div>
-            </div>
-            <div class="mt-4 text-xl" id="totalTodoTaskCount">@Model.TotalTodo</div>
-        </div>
-
-        <div class="rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-green-600"><i class="fas fa-check"></i></div>
-                <div class="text-lg font-semibold">Completed Tasks</div>
-            </div>
-            <div class="mt-4 text-xl" id="completedTodoTaskCount">@Model.TotalCompletedTodo</div>
-        </div>
-
-        <div class="rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-blue-600"><i class="fas fa-clipboard"></i></div>
-                <div class="text-lg font-semibold">Pending Task</div>
-            </div>
-            <div class="mt-4 text-xl" id="runningTodoTaskCount">
-                @Model.TotalMissedTodo
-            </div>
-        </div>
-
-        <div class="rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-purple-600"><i class="fas fa-cogs"></i></div>
-                <div class="text-lg font-semibold">Today's Productivity</div>
-            </div>
-            <div class="mt-4 text-xl" id="productivityPercentageTodo">@Model.ProductivityForDay%</div>
-        </div>
-    </div>
 
     <div id="todoSections" class="flex flex-col">
-        <!-- running task Section -->
-        <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-            <!-- Task Heading with Actions -->
-            <!-- Running Tasks Section -->
-            <div class="mb-8">
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 id="RunningOrMissingHeadId" class="text-xl font-semibold text-gray-700 sm:text-lg">Today's Tasks</h2>
+        <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-4 shadow-md shadow-indigo-300">
+            <div class="mb-6">
+                <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <h2 id="RunningOrMissingHeadId" class="text-2xl font-bold text-gray-900">Today's Tasks</h2>
 
-                    <!-- Add Todo Button (only visible for today) -->
-                    <div id="addTodoBtnContainer" class="mb-4 flex justify-end">
-                        <button id="addTodoButton" class="hidden rounded-lg bg-gradient-to-r from-indigo-500 to-blue-500 px-6 py-2 text-white font-semibold shadow-lg hover:from-indigo-600 hover:to-blue-600 transition-all duration-200">
-                            <i class="fas fa-plus"></i> Add Todo
+                    <div id="addTodoBtnContainer" class="w-full sm:w-auto">
+                        <button id="addTodoButton" class="hidden w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 sm:w-auto sm:inline-flex">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Todo</span>
                         </button>
                     </div>
-
-                </div>
-
-                <!-- Running Task List (Table) -->
-                <div class="w-full overflow-x-auto">
-                    <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left text-gray-600">Id</th>
-                                <th class="p-2 text-left text-gray-600">Name</th>
-                                <th class="p-2 text-left text-gray-600">Status</th>
-                                <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat</th>
-                                <th class="p-2 text-left text-gray-600">Due Date</th>
-                                <th class="p-2 text-left text-gray-600">Notes</th>
-                                <th class="p-2 text-left text-gray-600">Productivity</th>
-                                <th class="p-2 text-left text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
-
                 </div>
             </div>
 
-
+            <div class="overflow-x-auto">
+                <table id="viewRunningTodoTableData" class="w-full min-w-full" style="width:100%">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Repeat</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Notes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Productivity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </section>
 
-        <!-- not-started task section -->
-        <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-            <!-- Completed Tasks Section -->
-            <div class="mb-8">
+        <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-4 shadow-md shadow-green-300">
+            <div class="mb-6">
+                <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <h2 id="CompletedTodoHeadId" class="text-2xl font-bold text-gray-900">Completed Today's Tasks</h2>
+                </div>
+            </div>
 
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 id="CompletedTodoHeadId" class="mb-4 text-xl font-semibold text-gray-700">Completed Today's Tasks</h2>
-                </div>
-                <div class="w-full overflow-x-auto">
-                    <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left text-gray-600">Id</th>
-                                <th class="p-2 text-left text-gray-600">Name</th>
-                                <th class="p-2 text-left text-gray-600">Status</th>
-                                <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat</th>
-                                <th class="p-2 text-left text-gray-600">Due Date</th>
-                                <th class="p-2 text-left text-gray-600">Notes</th>
-                                <th class="p-2 text-left text-gray-600">Productivity</th>
-                                <th class="p-2 text-left text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
+            <div class="overflow-x-auto">
+                <table id="viewCompletedTodoTableData" class="w-full min-w-full" style="width:100%">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Repeat</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Notes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Productivity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </section>
     </div>
 
     @await Html.PartialAsync("AddUpdateTodoNotes")
     @await Html.PartialAsync("AddTodoSearchTaskModal")
-
-    
 
     @section Scripts
     {
@@ -268,8 +263,6 @@
         <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-        @* sweetalert *@
 
         @* Client side Script *@
         <script src="~/js/sweetAlertScript.js"></script>
