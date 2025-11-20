@@ -366,26 +366,28 @@
             const hasNotes = row.notes && row.notes.trim().length > 0;
 
             return `
-                <div class="flex flex-wrap gap-2 items-center">
-                    <!-- Add or Update Notes Button -->
-                    <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="${hasNotes ? 'Update Notes' : 'Add Notes'}">
-                        <i class="fas fa-comment"></i>
-                        <span class="ml-2">${hasNotes ? "Update Notes" : "Add Notes"}</span>
+               <div class="flex flex-nowrap items-center gap-1 justify-start sm:justify-center">
+
+                    <button data-id="${row.id}" 
+                            class="addOrUpdateNotesBtn group flex h-8 w-8 items-center justify-center rounded bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition-colors duration-200"
+                            title="${hasNotes ? 'Update Notes' : 'Add Notes'}">
+                        <i class="fas fa-comment text-sm"></i>
                     </button>
 
-                    <!-- Edit Task Button -->
-                    <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Edit Task">
-                        <i class="fas fa-edit"></i>
-                        <span class="ml-2">Edit Task</span>
+                    <a href="/Tasks/Edit/${row?.taskId}" 
+                       data-id="${row?.taskId}" 
+                       class="editTaskBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors duration-200"
+                       title="Edit Task">
+                        <i class="fas fa-edit text-sm"></i>
                     </a>
 
-                    <!-- Mark as Complete Button -->
-                    <button data-id="${row.id}" class="markAsCompleteToDoBtn my-1 rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 focus:ring-2 focus:ring-green-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Mark as Complete">
-                        <i class="fas fa-check"></i>
-                        <span class="ml-2">Mark as Complete</span>
+                    <button data-id="${row.id}" 
+                            class="markAsCompleteToDoBtn group flex h-8 w-8 items-center justify-center rounded bg-green-100 text-green-600 hover:bg-green-600 hover:text-white transition-colors duration-200"
+                            title="Mark as Complete">
+                        <i class="fas fa-check text-sm"></i>
                     </button>
-                </div>
 
+                </div>
             `;
         }
 
@@ -407,25 +409,28 @@
             const hasNotes = row.notes && row.notes.trim().length > 0;
 
             return `
-                <div class="flex flex-wrap gap-3 items-center">
-                    <!-- Add or Update Notes Button -->
-                    <button data-id="${row.id}" class="addOrUpdateNotesBtn my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="${hasNotes ? 'Update Notes' : 'Add Notes'}">
-                        <i class="fas fa-comment"></i>
-                        <span class="ml-2">${hasNotes ? "Update Notes" : "Add Notes"}</span>
-                    </button>
+               <div class="flex flex-nowrap items-center gap-1 justify-start sm:justify-center">
 
-                    <!-- Edit Task Button -->
-                    <a href="/Tasks/Edit/${row?.taskId}" data-id="${row?.taskId}" class="editTaskBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Edit Task">
-                        <i class="fas fa-edit"></i>
-                        <span class="ml-2">Edit Task</span>
-                    </a>
+                <button data-id="${row.id}" 
+                        class="addOrUpdateNotesBtn group flex h-8 w-8 items-center justify-center rounded bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition-colors duration-200"
+                        title="${hasNotes ? 'Update Notes' : 'Add Notes'}">
+                    <i class="fas fa-comment text-sm"></i>
+                </button>
 
-                    <!-- Move to Running Button -->
-                    <button data-id="${row.id}" class="moveToRunningToDoBtn my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" aria-label="Move to Running">
-                        <i class="fas fa-play-circle"></i> <!-- Consider using a play icon for 'Move to Running' -->
-                        <span class="ml-2">Move to Running</span>
-                    </button>
-                </div>
+                <a href="/Tasks/Edit/${row?.taskId}" 
+                    data-id="${row?.taskId}" 
+                    class="editTaskBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors duration-200"
+                    title="Edit Task">
+                    <i class="fas fa-edit text-sm"></i>
+                </a>
+
+                <button data-id="${row.id}" 
+                        class="moveToRunningToDoBtn group flex h-8 w-8 items-center justify-center rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                        title="Move to Running">
+                    <i class="fas fa-play-circle text-sm"></i>
+                </button>
+
+            </div>
             `;
         }
 
