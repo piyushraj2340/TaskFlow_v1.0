@@ -277,39 +277,33 @@
 
         function renderCallBack(data, type, row) {
             return `
-               <div class="flex flex-wrap gap-2 items-center">
-                
+             <div class="flex flex-nowrap items-center gap-1 justify-start sm:justify-center">
+
                 <a href="/Tasks/Create?goalId=${row.id}" 
-                   class="my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                   aria-label="Add Task">
-                    <i class="fas fa-plus"></i>
-                    <span class="ml-2">Add Task</span>
+                   class="group flex h-8 w-8 items-center justify-center rounded bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition-colors duration-200"
+                   title="Add Task">
+                    <i class="fas fa-plus text-sm"></i>
                 </a>
 
-                
                 <button data-id="${row.id}" 
-                        class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                        aria-label="Edit Goal">
-                    <i class="fas fa-edit"></i>
-                    <span class="ml-2">Edit</span>
+                        class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors duration-200"
+                        title="Edit Goal">
+                    <i class="fas fa-edit text-sm"></i>
                 </button>
 
-                
-                <button data-id="${row.id}" class="markAsComplete my-1 rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                        aria-label="Mark Goal as Complete">
-                    <i class="fas fa-check"></i>
-                    <span class="ml-2">Mark as Complete</span>
+                <button data-id="${row.id}" 
+                        class="markAsComplete group flex h-8 w-8 items-center justify-center rounded bg-green-100 text-green-600 hover:bg-green-600 hover:text-white transition-colors duration-200"
+                        title="Mark as Complete">
+                    <i class="fas fa-check text-sm"></i>
                 </button>
 
-                
                 <button data-id="${row.id}" 
-                        class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                        aria-label="Delete Goal">
-                    <i class="fas fa-trash"></i>
-                    <span class="ml-2">Delete</span>
+                        class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200"
+                        title="Delete Goal">
+                    <i class="fas fa-trash text-sm"></i>
                 </button>
+
             </div>
-
             `;
         }
 
@@ -330,30 +324,26 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <div class="flex flex-wrap gap-2 items-center">
-                    
+                <div class="flex flex-nowrap items-center gap-1 justify-start sm:justify-center">
+
                     <button data-id="${row.id}" 
-                            class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                            aria-label="Edit Goal">
-                        <i class="fas fa-edit"></i>
-                        <span class="ml-2">Edit</span>
+                            class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors duration-200"
+                            title="Edit Goal">
+                        <i class="fas fa-edit text-sm"></i>
                     </button>
 
-                    <!-- Move to Running Button -->
                     <button data-id="${row.id}" 
-                            class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                            aria-label="Move Goal to Running">
-                        <i class="fas fa-play"></i>
-                        <span class="ml-2">Move to Running</span>
+                            class="moveToRunning group flex h-8 w-8 items-center justify-center rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                            title="Start / Move to Running">
+                        <i class="fas fa-play text-xs pl-0.5"></i>
                     </button>
 
-                    
                     <button data-id="${row.id}" 
-                            class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                            aria-label="Delete Goal">
-                        <i class="fas fa-trash"></i>
-                        <span class="ml-2">Delete</span>
+                            class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200"
+                            title="Delete Goal">
+                        <i class="fas fa-trash text-sm"></i>
                     </button>
+
                 </div>
 
             `;
@@ -376,38 +366,32 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <div class="flex flex-wrap gap-2 items-center">
-                    
+                <div class="flex flex-nowrap items-center gap-1 justify-start sm:justify-center">
+
                     <a href="/Tasks/Create?goalId=${row.id}" 
-                       class="my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                       aria-label="Add Task to Goal">
-                        <i class="fas fa-plus"></i>
-                        <span class="ml-2">Add Task</span>
+                       class="group flex h-8 w-8 items-center justify-center rounded bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition-colors duration-200"
+                       title="Add Task">
+                        <i class="fas fa-plus text-sm"></i>
                     </a>
 
-                    
                     <button data-id="${row.id}" 
-                            class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                            aria-label="Edit Goal">
-                        <i class="fas fa-edit"></i>
-                        <span class="ml-2">Edit</span>
+                            class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors duration-200"
+                            title="Edit Goal">
+                        <i class="fas fa-edit text-sm"></i>
                     </button>
 
-                    <!-- Move to Running Button -->
                     <button data-id="${row.id}" 
-                            class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                            aria-label="Move Goal to Running">
-                        <i class="fas fa-play"></i>
-                        <span class="ml-2">Move to Running</span>
+                            class="moveToRunning group flex h-8 w-8 items-center justify-center rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                            title="Start / Move to Running">
+                        <i class="fas fa-play text-xs pl-0.5"></i>
                     </button>
 
-                    
                     <button data-id="${row.id}" 
-                            class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                            aria-label="Delete Goal">
-                        <i class="fas fa-trash"></i>
-                        <span class="ml-2">Delete</span>
+                            class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200"
+                            title="Delete Goal">
+                        <i class="fas fa-trash text-sm"></i>
                     </button>
+
                 </div>
 
             `;
@@ -430,29 +414,27 @@
 
         function renderCallBack(data, type, row) {
             return `
-                <div class="flex flex-wrap gap-2 items-center">
-                  <button data-id="${row.id}" 
-                          class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                          aria-label="Edit Goal">
-                    <i class="fas fa-edit"></i>
-                    <span class="ml-2">Edit</span>
-                  </button>
+               <div class="flex flex-nowrap items-center gap-1 justify-start sm:justify-center">
 
-                  <button data-id="${row.id}" 
-                          class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                          aria-label="Move to Running">
-                    <i class="fas fa-play"></i>
-                    <span class="ml-2">Move to Running</span>
-                  </button>
+                    <button data-id="${row.id}" 
+                            class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors duration-200"
+                            title="Edit Goal">
+                        <i class="fas fa-edit text-sm"></i>
+                    </button>
 
-                  <button data-id="${row.id}" 
-                          class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                          aria-label="Delete Goal">
-                    <i class="fas fa-trash"></i>
-                    <span class="ml-2">Delete</span>
-                  </button>
+                    <button data-id="${row.id}" 
+                            class="moveToRunning group flex h-8 w-8 items-center justify-center rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                            title="Move to Running">
+                        <i class="fas fa-play text-xs pl-0.5"></i>
+                    </button>
+
+                    <button data-id="${row.id}" 
+                            class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200"
+                            title="Delete Goal">
+                        <i class="fas fa-trash text-sm"></i>
+                    </button>
+
                 </div>
-
             `;
         }
 
