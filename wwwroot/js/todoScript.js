@@ -731,7 +731,7 @@ $(document).ready(function () {
         dropdownMenu.find('.status-filter-option[data-status=4]').click();
     });
 
-    $("#closeModalButton, #cancelModalButton").on("click", () => searchTaskModal.addClass("hidden"));
+    $("#closeTodoModalButton, #cancelModalButton").on("click", () => searchTaskModal.addClass("hidden"));
 
     // --- DROPDOWN INTERACTION LOGIC ---
     dropdownButton.on("click", function () {
