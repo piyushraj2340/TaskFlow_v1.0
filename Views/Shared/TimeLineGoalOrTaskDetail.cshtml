@@ -77,7 +77,7 @@
                 </span>
                 <div class="mt-0.5 flex items-center gap-1.5 text-[10px] font-medium text-slate-400 md:justify-end">
                     <i class="far fa-clock text-[9px]"></i>
-                    @Model.TimeStamp?.ToString("hh:mm tt")
+                    @Model.TimeStamp?.ToString("F")
                 </div>
             </div>
 
@@ -97,6 +97,17 @@
                     <div class="absolute -bottom-1.5 right-8 h-3 w-3 rotate-45 border-b border-r border-slate-200 bg-white"></div>
                 </div>
             </div>
+        </div>
+    }
+
+
+    @if(Model.Task == null && Model.Goal == null)
+    {
+        <div class="relative flex flex-col gap-1.5 rounded-xl border border-transparent p-2.5 transition-all duration-200 md:items-end">
+
+            <h3 class="text-base font-bold text-slate-800 transition-colors md:text-right leading-tight">
+                Journal Notes
+            </h3>
         </div>
     }
 </div>
