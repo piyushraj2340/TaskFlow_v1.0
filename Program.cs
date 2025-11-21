@@ -37,11 +37,20 @@ builder.Services.AddScoped<INotesServices, NotesServices>();
 builder.Services.AddScoped<ITaskSearchRepository, TaskSearchRepository>();
 builder.Services.AddScoped<ITaskSearchService, TaskSearchService>();
 
+builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
+builder.Services.AddScoped<ICollectionService, CollectionService>();
+
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IItemService, ItemService>();
+
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+
 builder.Services.AddSingleton<IEmailService, LoggingEmailService>();
 
 // register search services
