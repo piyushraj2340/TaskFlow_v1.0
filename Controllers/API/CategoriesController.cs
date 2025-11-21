@@ -5,7 +5,7 @@ using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Services;
 
-namespace TaskMonitoringApp.Controllers
+namespace TaskMonitoringApp.Controllers.API
 {
     [Authorize]
     [ApiController]
