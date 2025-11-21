@@ -6,7 +6,7 @@ using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Services;
 
-namespace TaskMonitoringApp.Controllers
+namespace TaskMonitoringApp.Controllers.API
 {
     [Authorize]
     [ApiController]
@@ -64,7 +64,7 @@ namespace TaskMonitoringApp.Controllers
                 return BadRequest(new { message = error });
             }
 
-            return CreatedAtAction(nameof(GetItem), new { collectionId = collectionId, itemId = newItem.ItemId }, newItem);
+            return CreatedAtAction(nameof(GetItem), new { collectionId, itemId = newItem.ItemId }, newItem);
         }
 
         // PUT: api/collections/5/items/1
