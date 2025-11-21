@@ -44,7 +44,7 @@
                     @Html.Raw(Model.Goal.Description)
                 </div>
 
-                <div class="custom-tooltip pointer-events-none absolute bottom-full right-0 z-[100] mb-3 opacity-0 transition-all duration-200 transform translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto rounded-xl border border-slate-200 bg-white p-2 shadow-2xl w-full">
+                <div class="custom-tooltip pointer-events-none absolute bottom-full right-0 z-[100] mb-3 opacity-0 transition-all duration-200 transform translate-y-1 group-hover:opacity-100 group-hover:translate-y-[50%] group-hover:pointer-events-auto rounded-xl border border-slate-200 bg-white p-2 shadow-2xl w-full">
                     <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3 rounded-t-xl">
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Goal Description</span>
                         <i class="fas fa-bullseye text-indigo-400"></i>
@@ -52,7 +52,6 @@
                     <div class="richtext max-h-60 overflow-y-auto p-4 text-sm text-left text-slate-700 leading-relaxed">
                         @Html.Raw(Model.Goal.Description)
                     </div>
-                    <div class="absolute -bottom-1.5 right-8 h-3 w-3 rotate-45 border-b border-r border-slate-200 bg-white"></div>
                 </div>
             </div>
         </div>
@@ -86,7 +85,7 @@
                     @Html.Raw(Model.Task.Description)
                 </div>
 
-                <div class="custom-tooltip pointer-events-none absolute bottom-full right-0 z-[100] mb-3 opacity-0 transition-all duration-200 transform translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto rounded-xl border border-slate-200 bg-white p-2 shadow-2xl w-full">
+                <div class="custom-tooltip pointer-events-none absolute bottom-full right-0 z-[100] mb-3 opacity-0 transition-all duration-200 transform translate-y-1 group-hover:opacity-100 group-hover:translate-y-[50%] group-hover:pointer-events-auto rounded-xl border border-slate-200 bg-white p-2 shadow-2xl w-full">
                     <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3 rounded-t-xl">
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Task Description</span>
                         <i class="fas fa-tasks text-indigo-400"></i>
@@ -94,7 +93,6 @@
                     <div class="richtext max-h-60 overflow-y-auto p-4 text-sm text-left text-slate-700 leading-relaxed">
                         @Html.Raw(Model.Task.Description)
                     </div>
-                    <div class="absolute -bottom-1.5 right-8 h-3 w-3 rotate-45 border-b border-r border-slate-200 bg-white"></div>
                 </div>
             </div>
         </div>
