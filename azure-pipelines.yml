@@ -10,7 +10,8 @@ pr:
 
 
 pool:
-  name: Default   # Use your self-hosted agent pool name here
+  vmImage: windows-latest
+   # Use your self-hosted agent pool name here
 
 variables:
   buildConfiguration: 'Release'
