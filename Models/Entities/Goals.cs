@@ -70,5 +70,13 @@ namespace TaskMonitoringApp.Models.Entities
         public Users? User { get; set; }
 
         public IEnumerable<GoalTask>? GoalTasks { get; set; }
+
+        // Multi-level Goal Relationships
+        public int? ParentId { get; set; }
+
+        [ForeignKey("ParentId")]
+        public Goals? Parent { get; set; }
+
+        public ICollection<Goals>? SubGoals { get; set; }
     }
 }
