@@ -31,5 +31,9 @@ namespace TaskMonitoringApp.Models.Services
         Task<IEnumerable<GoalNameDTO>> GetGoalNameBySearchQuery(string userId, string searchQuery);
 
         Task<GoalNameDTO> GetGoalNameById(string userId, int goalId);
+
+        // New Methods for Multi-level
+        Task<IEnumerable<GoalDTO>> GetRootGoals(string userId, Status status);
+        Task<IEnumerable<GoalDTO>> GetChildGoals(string userId, int parentId);
     }
 }

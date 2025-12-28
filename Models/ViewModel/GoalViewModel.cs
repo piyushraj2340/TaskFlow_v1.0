@@ -19,6 +19,9 @@ namespace TaskMonitoringApp.Models.ViewModel
         public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
 
         public TaskProductivityDTO TaskProductivity { get; set; }
+
+        // Added SubGoals property to fix the error in Details view
+        public IEnumerable<GoalDTO>? SubGoals { get; set; }
     }
 
     public class GoalWithTaskNameListViewModel : GoalViewModel

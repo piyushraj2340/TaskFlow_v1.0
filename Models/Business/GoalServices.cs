@@ -45,6 +45,7 @@ namespace TaskMonitoringApp.Models.Business
                 throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(goals.EndDate));
             }
 
+            // ParentId is mapped automatically by AutoMapper if names match
             await _goalRepository.AddGoalAsync(UserId, goalToAdd);
         }
 
@@ -71,6 +72,10 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task UpdateGoal(string UserId, GoalDTO goals)
         {
+            if(goals.Id == goals.ParentId)
+            {
+                throw new ArgumentException("ParentId and GoalId not be same.");
+            }
             if (DateTime.Now > goals.EndDate)
             {
                 throw new ArgumentException("The end date must be in the future.");
@@ -98,8 +103,35 @@ namespace TaskMonitoringApp.Models.Business
                 goals.StartOptionType = findAndUpdateGoal.StartOptionType;
             }
 
+            if (goals.ParentId.HasValue && goals.ParentId > 0)
+            {
+                if (goals.ParentId == goals.Id)
+                {
+                    throw new ArgumentException("A goal cannot be its own parent. Please select a different parent goal.", nameof(goals.ParentId));
+                }
+                // Check for circular reference
+                var parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.ParentId.Value, ResponseDataMode.Model);
+                while (parentGoal != null)
+                {
+                    if (parentGoal.ParentId == goals.Id)
+                    {
+                        throw new ArgumentException("Circular reference detected. A goal cannot be a parent of its own descendant.", nameof(goals.ParentId));
+                    }
+                    if (parentGoal.ParentId.HasValue)
+                    {
+                        parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, parentGoal.ParentId.Value, ResponseDataMode.Model);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
 
             _mapper.Map(goals, findAndUpdateGoal);
+
+            findAndUpdateGoal.Parent = null;
 
             // if the goal is scheduled and the start date is less than the current date then the goal is started...
             if (findAndUpdateGoal.IsScheduled && findAndUpdateGoal.StartDate <= DateTime.Now && !findAndUpdateGoal.IsStarted)
@@ -235,6 +267,20 @@ namespace TaskMonitoringApp.Models.Business
         public async Task<GoalNameDTO> GetGoalNameById(string UserId, int Id)
         {
             return await _goalRepository.GetGoalByIdAsync<GoalNameDTO>(UserId, Id, ResponseDataMode.ModelNameDTO);
+        }
+
+        // --- New Implementations ---
+
+        public async Task<IEnumerable<GoalDTO>> GetRootGoals(string userId, Status status)
+        {
+            // We need to implement this in Repository or use EF directly here if Repository is generic
+            // Assuming we add specific methods to IGoalRepository
+            return await _goalRepository.GetRootGoalsAsync(userId, status);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetChildGoals(string userId, int parentId)
+        {
+            return await _goalRepository.GetChildGoalsAsync(userId, parentId);
         }
     }
 }
