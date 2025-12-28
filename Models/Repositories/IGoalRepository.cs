@@ -24,5 +24,9 @@ namespace TaskMonitoringApp.Models.Repositories
         Task<int> GetGoalCountByGoalStatusAndDateTimeRange(string userId, Status status, DateTime from, DateTime end);
 
         Task<IEnumerable<GoalNameDTO>> GetGoalNameBySearchQueryAsync(string userId,  string searchQuery);
+
+        // New Methods
+        Task<IEnumerable<GoalDTO>> GetRootGoalsAsync(string userId, Status status);
+        Task<IEnumerable<GoalDTO>> GetChildGoalsAsync(string userId, int parentId);
     }
 }

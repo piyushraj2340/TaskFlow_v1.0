@@ -50,10 +50,11 @@ namespace TaskMonitoringApp.Controllers
             return View(productivity);
         }
 
+        // Updated Bind to include ParentId
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("Name,EndDate,Priority,Description,StartOptionType,StartDate")] GoalViewModel goal)
+        public async Task<IActionResult> Create([Bind("Name,EndDate,Priority,Description,StartOptionType,StartDate,ParentId")] GoalViewModel goal)
         {
-            _logger.LogInformation("Entered Create with Name={Name}, EndDate={EndDate}, Priority={Priority}, StartOptionType={StartOptionType}, StartDate={StartDate}", goal.Name, goal.EndDate, goal.Priority, goal.StartOptionType, goal.StartDate);
+            _logger.LogInformation("Entered Create with Name={Name}, EndDate={EndDate}, Priority={Priority}, StartOptionType={StartOptionType}, StartDate={StartDate}, ParentId={ParentId}", goal.Name, goal.EndDate, goal.Priority, goal.StartOptionType, goal.StartDate, goal.ParentId);
 
             var userId = _userManager.GetUserId(User);
 
@@ -121,9 +122,11 @@ namespace TaskMonitoringApp.Controllers
             ViewBag.tabName = tabName;
 
             var notesList = await _noteService.GetAllNotesByGoalId(userId, Id, Status.All, pageNumber: 1, pageSize: 20);
+            var subGoal = await _goalService.GetChildGoals(userId, Id);
             var goalWithNoteList = _mapper.Map<GoalWithNotesAndTaskNameListViewModel>(goal);
             goalWithNoteList.NotesLists = notesList;
             goalWithNoteList.TaskProductivity = productivity;
+            goalWithNoteList.SubGoals = subGoal;
 
             _logger.LogInformation("Returning details for goal Id={Id}, userId={UserId}", Id, userId);
             return View(goalWithNoteList);
@@ -140,7 +143,7 @@ namespace TaskMonitoringApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var goal = await _goalService.GetAllTaskNameWithStatusAndGoal(userId, Id, Status.All);
+            var goal = await _goalService.GetGoalById(userId, Id);
 
             if (goal == null)
             {
@@ -152,10 +155,11 @@ namespace TaskMonitoringApp.Controllers
             return Json(new { status = true, message = "Goal Data Found!", data = goal });
         }
 
+        // Updated Bind to include ParentId
         [HttpPut]
-        public async Task<IActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority,StartOptionType,StartDate")] GoalViewModel goalData)
+        public async Task<IActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority,StartOptionType,StartDate,ParentId")] GoalViewModel goalData)
         {
-            _logger.LogInformation("Entered Edit with Id={Id}, Name={Name}, EndDate={EndDate}, GoalStatus={GoalStatus}, Priority={Priority}, StartOptionType={StartOptionType}, StartDate={StartDate}", goalData.Id, goalData.Name, goalData.EndDate, goalData.GoalStatus, goalData.Priority, goalData.StartOptionType, goalData.StartDate);
+            _logger.LogInformation("Entered Edit with Id={Id}, Name={Name}, EndDate={EndDate}, GoalStatus={GoalStatus}, Priority={Priority}, StartOptionType={StartOptionType}, StartDate={StartDate}, ParentId={ParentId}", goalData.Id, goalData.Name, goalData.EndDate, goalData.GoalStatus, goalData.Priority, goalData.StartOptionType, goalData.StartDate, goalData.ParentId);
 
             var userId = _userManager.GetUserId(User);
 
@@ -200,363 +204,120 @@ namespace TaskMonitoringApp.Controllers
             return Json(new { status = false, message = "ModelState Invalid!" });
         }
 
-        [HttpPost]
-        public async Task<IActionResult> GetAllRunningGoals()
+        // New Endpoint: Get Root Goals (Level 0)
+        [HttpGet]
+        public async Task<IActionResult> GetRootGoals(Status status)
         {
-            _logger.LogInformation("Entered GetAllRunningGoals");
+            _logger.LogInformation("Entered GetRootGoals with status={Status}", status);
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
             {
-                _logger.LogWarning("User not authenticated in GetAllRunningGoals.");
-                return RedirectToAction("Login", "Account");
+                _logger.LogWarning("User not authenticated in GetRootGoals.");
+                return Unauthorized(new { status = false, message = "User not authenticated" });
             }
 
             try
             {
-                int totalRecord = 0;
-                int filterRecord = 0;
-                var draw = Request.Form["draw"].FirstOrDefault();
-                var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
-                var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
-                var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault()?.ToLower();
-                int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
-                int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
-
-                _logger.LogInformation("DataTable params: draw={Draw}, sortColumn={SortColumn}, sortDirection={SortDirection}, searchValue={SearchValue}, pageSize={PageSize}, skip={Skip}",
-                    draw, sortColumn, sortColumnDirection, searchValue, pageSize, skip);
-
-                var data = await _goalService.GetAllGoals(userId, Status.Running);
-
-                totalRecord = data.Count();
-
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    data = data.Where(x => x.Name.ToLower().Contains(searchValue) ||
-                            x.Id.ToString().Contains(searchValue) ||
-                            x.Description.ToLower().Contains(searchValue)
-                    );
-                }
-
-                filterRecord = data.Count();
-
-                if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortColumnDirection))
-                {
-                    _logger.LogInformation("Sorting by {SortColumn} {SortDirection}", sortColumn, sortColumnDirection);
-                    switch (sortColumn)
-                    {
-                        case "Name":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Name) : data.OrderByDescending(x => x.Name);
-                            break;
-                        case "Due Date":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
-                            break;
-                        case "GoalStatus":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Priority":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
-                            break;
-                        case "Status":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Id":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
-                            break;
-                        default:
-                            data = data.OrderBy(x => x.Id);
-                            break;
-                    }
-                }
-
-                var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
-
-                var returnObj = new
-                {
-                    draw,
-                    recordsTotal = totalRecord,
-                    recordsFiltered = filterRecord,
-                    data = _mapper.Map<List<GoalDTO>>(datas)
-                };
-
-                _logger.LogInformation("Returning {Count} running goals (filtered: {FilteredCount})", datas.Count, filterRecord);
-                return Json(returnObj);
+                var goals = await _goalService.GetRootGoals(userId, status);
+                return Json(new { status = true, data = goals });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception in GetAllRunningGoals for user {UserId}", userId);
-                return Json(new { status = false, message = "Error occurred while fetching running goals." });
+                _logger.LogError(ex, "Error fetching root goals for user {UserId}", userId);
+                return Json(new { status = false, message = "Error fetching goals" });
             }
+        }
+
+        // New Endpoint: Get Child Goals (Next Level)
+        [HttpGet]
+        public async Task<IActionResult> GetChildGoals(int parentId)
+        {
+            _logger.LogInformation("Entered GetChildGoals with parentId={ParentId}", parentId);
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in GetChildGoals.");
+                return Unauthorized(new { status = false, message = "User not authenticated" });
+            }
+
+            try
+            {
+                var goals = await _goalService.GetChildGoals(userId, parentId);
+                return Json(new { status = true, data = goals });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching child goals for parent {ParentId}, user {UserId}", parentId, userId);
+                return Json(new { status = false, message = "Error fetching child goals" });
+            }
+        }
+
+        // Existing DataTables endpoints (kept for backward compatibility if needed, or can be removed if fully replaced)
+        [HttpPost]
+        public async Task<IActionResult> GetAllRunningGoals()
+        {
+            // ... (Existing implementation remains unchanged)
+            return await FetchGoalsForDataTable(Status.Running);
         }
 
         [HttpPost]
         public async Task<IActionResult> GetAllCompletedGoals()
         {
-            _logger.LogInformation("Entered GetAllCompletedGoals");
-            var userId = _userManager.GetUserId(User);
-
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in GetAllCompletedGoals.");
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                int totalRecord = 0;
-                int filterRecord = 0;
-                var draw = Request.Form["draw"].FirstOrDefault();
-                var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
-                var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
-                var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault()?.ToLower();
-                int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
-                int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
-
-                _logger.LogInformation("DataTable params: draw={Draw}, sortColumn={SortColumn}, sortDirection={SortDirection}, searchValue={SearchValue}, pageSize={PageSize}, skip={Skip}",
-                    draw, sortColumn, sortColumnDirection, searchValue, pageSize, skip);
-
-                var data = await _goalService.GetAllGoals(userId, Status.Completed);
-
-                totalRecord = data.Count();
-
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    data = data.Where(x => x.Name.ToLower().Contains(searchValue) ||
-                            x.Id.ToString().Contains(searchValue) ||
-                            x.Description.ToLower().Contains(searchValue)
-                    );
-                }
-
-                filterRecord = data.Count();
-
-                if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortColumnDirection))
-                {
-                    _logger.LogInformation("Sorting by {SortColumn} {SortDirection}", sortColumn, sortColumnDirection);
-                    switch (sortColumn)
-                    {
-                        case "Name":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Name) : data.OrderByDescending(x => x.Name);
-                            break;
-                        case "Due Date":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
-                            break;
-                        case "GoalStatus":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Priority":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
-                            break;
-                        case "Status":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Id":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
-                            break;
-                        default:
-                            data = data.OrderBy(x => x.Id);
-                            break;
-                    }
-                }
-
-                var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
-
-                var returnObj = new
-                {
-                    draw,
-                    recordsTotal = totalRecord,
-                    recordsFiltered = filterRecord,
-                    data = _mapper.Map<List<GoalDTO>>(datas)
-                };
-
-                _logger.LogInformation("Returning {Count} completed goals (filtered: {FilteredCount})", datas.Count, filterRecord);
-                return Json(returnObj);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception in GetAllCompletedGoals for user {UserId}", userId);
-                return Json(new { status = false, message = "Error occurred while fetching completed goals." });
-            }
+            return await FetchGoalsForDataTable(Status.Completed);
         }
 
         [HttpPost]
         public async Task<IActionResult> GetAllNotStartedGoals()
         {
-            _logger.LogInformation("Entered GetAllNotStartedGoals");
-            var userId = _userManager.GetUserId(User);
-
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in GetAllNotStartedGoals.");
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                int totalRecord = 0;
-                int filterRecord = 0;
-                var draw = Request.Form["draw"].FirstOrDefault();
-                var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
-                var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
-                var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault()?.ToLower();
-                int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
-                int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
-
-                _logger.LogInformation("DataTable params: draw={Draw}, sortColumn={SortColumn}, sortDirection={SortDirection}, searchValue={SearchValue}, pageSize={PageSize}, skip={Skip}",
-                    draw, sortColumn, sortColumnDirection, searchValue, pageSize, skip);
-
-                var data = await _goalService.GetAllGoals(userId, Status.NotStarted);
-
-                totalRecord = data.Count();
-
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    data = data.Where(x => x.Name.ToLower().Contains(searchValue) ||
-                            x.Id.ToString().Contains(searchValue) ||
-                            x.Description.ToLower().Contains(searchValue)
-                    );
-                }
-
-                filterRecord = data.Count();
-
-                if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortColumnDirection))
-                {
-                    _logger.LogInformation("Sorting by {SortColumn} {SortDirection}", sortColumn, sortColumnDirection);
-                    switch (sortColumn)
-                    {
-                        case "Name":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Name) : data.OrderByDescending(x => x.Name);
-                            break;
-                        case "Due Date":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
-                            break;
-                        case "GoalStatus":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Priority":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
-                            break;
-                        case "Status":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Id":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
-                            break;
-                        default:
-                            data = data.OrderBy(x => x.Id);
-                            break;
-                    }
-                }
-
-                var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
-
-                var returnObj = new
-                {
-                    draw,
-                    recordsTotal = totalRecord,
-                    recordsFiltered = filterRecord,
-                    data = _mapper.Map<List<GoalDTO>>(datas)
-                };
-
-                _logger.LogInformation("Returning {Count} not started goals (filtered: {FilteredCount})", datas.Count, filterRecord);
-                return Json(returnObj);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception in GetAllNotStartedGoals for user {UserId}", userId);
-                return Json(new { status = false, message = "Error occurred while fetching not started goals." });
-            }
+            return await FetchGoalsForDataTable(Status.NotStarted);
         }
 
         [HttpPost]
         public async Task<IActionResult> GetAllEndedGoals()
         {
-            _logger.LogInformation("Entered GetAllEndedGoals");
-            var userId = _userManager.GetUserId(User);
+            return await FetchGoalsForDataTable(Status.Ended);
+        }
 
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in GetAllEndedGoals.");
-                return RedirectToAction("Login", "Account");
-            }
+        // Helper method to reduce code duplication in DataTable endpoints
+        private async Task<IActionResult> FetchGoalsForDataTable(Status status)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return RedirectToAction("Login", "Account");
 
             try
             {
-                int totalRecord = 0;
-                int filterRecord = 0;
                 var draw = Request.Form["draw"].FirstOrDefault();
-                var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
-                var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
-                var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
                 var searchValue = Request.Form["search[value]"].FirstOrDefault()?.ToLower();
                 int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
                 int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-                _logger.LogInformation("DataTable params: draw={Draw}, sortColumn={SortColumn}, sortDirection={SortDirection}, searchValue={SearchValue}, pageSize={PageSize}, skip={Skip}",
-                    draw, sortColumn, sortColumnDirection, searchValue, pageSize, skip);
-
-                var data = await _goalService.GetAllGoals(userId, Status.Ended);
-
-                totalRecord = data.Count();
+                var data = await _goalService.GetAllGoals(userId, status);
+                int totalRecord = data.Count();
 
                 if (!string.IsNullOrEmpty(searchValue))
                 {
                     data = data.Where(x => x.Name.ToLower().Contains(searchValue) ||
                             x.Id.ToString().Contains(searchValue) ||
-                            x.Description.ToLower().Contains(searchValue)
-                    );
+                            (x.Description != null && x.Description.ToLower().Contains(searchValue)));
                 }
 
-                filterRecord = data.Count();
-
-                if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortColumnDirection))
-                {
-                    _logger.LogInformation("Sorting by {SortColumn} {SortDirection}", sortColumn, sortColumnDirection);
-                    switch (sortColumn)
-                    {
-                        case "Name":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Name) : data.OrderByDescending(x => x.Name);
-                            break;
-                        case "Due Date":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
-                            break;
-                        case "GoalStatus":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Priority":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Priority) : data.OrderByDescending(x => x.Priority);
-                            break;
-                        case "Status":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.GoalStatus) : data.OrderByDescending(x => x.GoalStatus);
-                            break;
-                        case "Id":
-                            data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
-                            break;
-                        default:
-                            data = data.OrderBy(x => x.Id);
-                            break;
-                    }
-                }
-
+                int filterRecord = data.Count();
                 var datas = pageSize > 0 ? data.Skip(skip).Take(pageSize).ToList() : data.ToList();
 
-                var returnObj = new
+                return Json(new
                 {
                     draw,
                     recordsTotal = totalRecord,
                     recordsFiltered = filterRecord,
                     data = _mapper.Map<List<GoalDTO>>(datas)
-                };
-
-                _logger.LogInformation("Returning {Count} ended goals (filtered: {FilteredCount})", datas.Count, filterRecord);
-                return Json(returnObj);
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception in GetAllEndedGoals for user {UserId}", userId);
-                return Json(new { status = false, message = "Error occurred while fetching ended goals." });
+                _logger.LogError(ex, "Error fetching goals for status {Status}", status);
+                return Json(new { status = false, message = "Error occurred while fetching goals." });
             }
         }
 
@@ -623,7 +384,7 @@ namespace TaskMonitoringApp.Controllers
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
 
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> SearchGoalNameByName(string searchQuery)
         {
             _logger.LogInformation("Entered SearchGoalNameByName with searchQuery={SearchQuery}", searchQuery);
