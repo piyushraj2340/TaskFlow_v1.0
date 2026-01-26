@@ -87,6 +87,7 @@
             allowClear: true,
             ajax: {
                 url: '/Goals/SearchGoalNameByName',
+                method: "post",
                 dataType: 'json',
                 delay: 250,
                 data: (params) => ({ searchQuery: params.term }),
@@ -421,7 +422,10 @@
             success: function (response) {
                 if (response?.status) {
                     showSuccessNotification(response.message);
-                    setTimeout(() => location.reload(), 500);
+                    window.removeEventListener('beforeunload', (e) => {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    });                    setTimeout(() => location.reload(), 500);
                 } else {
                     showErrorNotification(response?.message);
                     if (!$subGoalModeContainer.hasClass('hidden')) $parentGoalSelect.prop('disabled', true);
