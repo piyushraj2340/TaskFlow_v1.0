@@ -17,6 +17,11 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task AddNewGoal(string UserId, GoalDTO goals)
         {
+            if (goals.Id == goals.ParentId)
+            {
+                throw new ArgumentException("ParentId and GoalId not be same.");
+            }
+
             var userId = goals.UserId ?? throw new ArgumentNullException(nameof(goals.UserId), "UserId Is Required!.");
 
             if (userId != UserId)
@@ -44,6 +49,34 @@ namespace TaskMonitoringApp.Models.Business
             {
                 throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(goals.EndDate));
             }
+
+
+            if (goals.ParentId.HasValue && goals.ParentId > 0)
+            {
+                if (goals.ParentId == goals.Id)
+                {
+                    throw new ArgumentException("A goal cannot be its own parent. Please select a different parent goal.", nameof(goals.ParentId));
+                }
+                // Check for circular reference
+                var parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.ParentId.Value, ResponseDataMode.Model);
+                while (parentGoal != null)
+                {
+                    if (parentGoal.ParentId == goals.Id)
+                    {
+                        throw new ArgumentException("Circular reference detected. A goal cannot be a parent of its own descendant.", nameof(goals.ParentId));
+                    }
+                    if (parentGoal.ParentId.HasValue)
+                    {
+                        parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, parentGoal.ParentId.Value, ResponseDataMode.Model);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            goalToAdd.Parent = null;
 
             // ParentId is mapped automatically by AutoMapper if names match
             await _goalRepository.AddGoalAsync(UserId, goalToAdd);
