@@ -384,7 +384,7 @@ namespace TaskMonitoringApp.Controllers
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
 
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> SearchGoalNameByName(string searchQuery)
         {
             _logger.LogInformation("Entered SearchGoalNameByName with searchQuery={SearchQuery}", searchQuery);
