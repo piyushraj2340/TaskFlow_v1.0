@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.EntityFrameworkCore;
+using TaskMonitoringApp.Models.Data;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Repositories;
@@ -7,8 +9,10 @@ using TaskMonitoringApp.Models.Services;
 
 namespace TaskMonitoringApp.Models.Business
 {
-    public class NotesServices(IMapper mapper, INotesRepository repository) : INotesServices
+    public class NotesServices(IMapper mapper, INotesRepository repository, ApplicationDbContext context) : INotesServices // Added context direct access for lightweight filter fetching or inject specific repos
     {
+        // Note: Ideally inject IGoalRepository/ITaskRepository, but using Context here to keep it short for the "Filter Menu" logic
+        private readonly ApplicationDbContext _context = context; 
         private readonly INotesRepository _repository = repository;
         private readonly IMapper _mapper = mapper;
 
@@ -201,6 +205,83 @@ namespace TaskMonitoringApp.Models.Business
             // no parent ids set
 
             await _repository.AddNotes(notesToAdd);
+        }
+
+        // MODIFIED
+        public async Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetAllNotesWithGoalAndTask(
+            string userId, 
+            Status status, 
+            int pageNumber, 
+            int pageSize,
+            int? filterGoalId = null, 
+            int? filterTaskId = null, 
+            string? searchQuery = null)
+        {
+            // Note: We are now passing filters to repository directly
+            var roots = await _repository.GetAllNotesWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(
+                userId, 
+                status, 
+                pageNumber, 
+                pageSize, 
+                ResponseDataMode.ModelDTO, 
+                filterGoalId, 
+                filterTaskId, 
+                searchQuery,
+                onlyPinned: false // Don't filter only pinned here, we want timeline
+            );
+
+            return roots;
+        }
+
+        // NEW
+        public async Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetPinnedNotes(
+             string userId, 
+             int? filterGoalId = null, 
+             int? filterTaskId = null, 
+             string? searchQuery = null)
+        {
+            // Fetch only pinned notes
+            return await _repository.GetAllNotesWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(
+                userId, 
+                Status.All, 
+                pageNumber: 1, 
+                pageSize: 100, // Reasonable limit for pinned items
+                ResponseDataMode.ModelDTO, 
+                filterGoalId, 
+                filterTaskId, 
+                searchQuery,
+                onlyPinned: true
+            );
+        }
+
+        // NEW
+        public async Task<FilterMenuDataDTO> GetFilterOptionsWithCounts(string userId)
+        {
+            return await _repository.GetFilterOptionsWithCountsAsync(userId);
+        }
+
+        public async Task<NoteDTOWithGoalAndTaskDTO> GetNoteByIdWithGoalAndTask(string userId, int noteId)
+        {
+            // NEW: Fetch specific note with formatting
+            return await _repository.GetNoteByIdWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(userId, noteId, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<(int PageNumber, NoteDTOWithGoalAndTaskDTO Note)> GetNotePageAndContext(string userId, int noteId, int pageSize, Status status, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null)
+        {
+            if (pageSize <= 0) pageSize = 20;
+
+            // 1. Get Position
+            int position = await _repository.GetNotePositionAsync(userId, noteId, status, filterGoalId, filterTaskId, searchQuery);
+            
+            if (position == -1) return (0, null);
+
+            // 2. Calculate Page: Ceiling(Position / PageSize)
+            int pageNumber = (int)Math.Ceiling((double)position / pageSize);
+
+            // 3. Fetch the actual note data to return context
+            var note = await _repository.GetNoteByIdWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(userId, noteId, ResponseDataMode.ModelDTO);
+
+            return (pageNumber, note);
         }
     }
 }

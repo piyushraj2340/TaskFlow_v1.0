@@ -1,0 +1,62 @@
+@using System.Text.RegularExpressions
+@model IEnumerable<TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO>
+
+@{
+    string GetPlainText(string html, int length = 100)
+    {
+        if (string.IsNullOrEmpty(html)) return "";
+        var plainText = Regex.Replace(html, "<.*?>", " ");
+        plainText = System.Net.WebUtility.HtmlDecode(plainText).Trim();
+        return plainText.Length > length ? plainText.Substring(0, length) + "..." : plainText;
+    }
+
+    var count = Model?.Count() ?? 0;
+}
+
+<div id="pinned-metadata" data-total="@count" class="hidden"></div>
+
+@if (Model != null && Model.Any())
+{
+    var i = 0;
+    foreach (var note in Model)
+    {
+        var hiddenClass = i == 0 ? "" : "hidden opacity-0";
+        var description = GetPlainText(note.Content);
+
+        <div class="pinned-item @hiddenClass w-full h-full flex flex-col justify-center cursor-pointer transition-all duration-500"
+             data-index="@(i + 1)"
+             onclick="scrollToNote(@note.Id)">
+
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors truncate">
+                    @note.Title
+                </span>
+
+                @if (note.Goal != null)
+                {
+                    <span class="text-[9px] px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md font-bold uppercase tracking-tighter whitespace-nowrap">
+                        @note.Goal.Name
+                    </span>
+                }
+            </div>
+
+            <p class="text-xs text-slate-500 truncate max-w-2xl">
+                @if (!string.IsNullOrEmpty(description))
+                {
+                    @description
+                }
+                else
+                {
+                    <span class="italic text-slate-300">Quick highlight entry...</span>
+                }
+            </p>
+        </div>
+        i++;
+    }
+}
+else
+{
+    <div class="flex items-center h-full text-xs text-slate-400 italic">
+        No active pins found in this view.
+    </div>
+}

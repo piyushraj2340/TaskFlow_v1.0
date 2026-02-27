@@ -44,9 +44,31 @@ namespace TaskMonitoringApp.Models.Services
         Task DeleteNotes(string userId, int noteId);
 
         // New: returns a parent-child tree of notes with Goal and Task included
-        Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetAllNotesWithGoalAndTask(string userId, Status status);
+        Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetAllNotesWithGoalAndTask(
+            string userId, 
+            Status status, 
+            int pageNumber, 
+            int pageSize, 
+            int? filterGoalId = null, 
+            int? filterTaskId = null, 
+            string? searchQuery = null
+        );
 
-        // New: paged variant (service will build tree then page top-level roots to preserve parent-child integrity)
-        Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetAllNotesWithGoalAndTask(string userId, Status status, int pageNumber, int pageSize);
+        // NEW: Get Pinned Notes specifically
+        Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetPinnedNotes(
+             string userId, 
+             int? filterGoalId = null, 
+             int? filterTaskId = null, 
+             string? searchQuery = null
+        );
+        
+        // NEW: Get Filter Menu Options (Goals and Tasks names)
+        Task<FilterMenuDataDTO> GetFilterOptionsWithCounts(string userId);
+
+        // NEW: Method for single note fetch with full context
+        Task<NoteDTOWithGoalAndTaskDTO> GetNoteByIdWithGoalAndTask(string userId, int noteId);
+
+        // Returns (PageNumber, NoteDTO)
+        Task<(int PageNumber, NoteDTOWithGoalAndTaskDTO Note)> GetNotePageAndContext(string userId, int noteId, int pageSize, Status status, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null);
     }
 }
