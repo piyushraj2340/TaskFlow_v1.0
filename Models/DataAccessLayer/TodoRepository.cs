@@ -482,5 +482,28 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             await _context.Todo.AddRangeAsync(todos);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Tasks>> GetCandidateTasksForTodoAsync(string userId)
+        {
+            return await _context.Tasks
+                .Where(t => t.UserId == userId && t.TaskStatus == Status.Running && !t.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<int>> GetExistingTodoTaskIdsAsync(string userId, DateTime today, DateTime tomorrow)
+        {
+            return await _context.Todo
+                .Where(td => td.UserId == userId && !td.IsDeleted && td.CreatedOn >= today && td.CreatedOn < tomorrow)
+                .Select(td => td.TaskId)
+                .ToListAsync();
+        }
+
+        public async Task AddTodosBulkAsync(IEnumerable<Todo> todos)
+        {
+            if (todos == null || !todos.Any()) return;
+
+            await _context.Todo.AddRangeAsync(todos);
+            await _context.SaveChangesAsync();
+        }
     }
 }

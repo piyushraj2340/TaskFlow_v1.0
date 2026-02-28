@@ -36,5 +36,7 @@ namespace TaskMonitoringApp.Models.Services
         Task UpdateTodoNotes(string userId, int todoId, string notes);
 
         Task AddBulkTodos(string userId, BulkTodoCreateDTO bulkDto);
+
+        Task GenerateTodosFromTasksAsync(string userId);
     }
 }
