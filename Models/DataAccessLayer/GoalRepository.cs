@@ -126,10 +126,81 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task UpdateGoalStatusAsync(string userId, int goalId, Status statusToChange)
         {
-            var userIdParam = new SqlParameter("@UserId", userId);
-            var goalIdParam = new SqlParameter("@GoalId", goalId);
-            var statusToChangeParam = new SqlParameter("@StatusToUpdate", statusToChange);
-            await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeGoalStatus @UserId, @GoalId, @StatusToUpdate", userIdParam, goalIdParam, statusToChangeParam).ToListAsync();
+            var currentDateTime = DateTime.Now;
+
+            var goal = await _context.Goals
+                .FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId && g.IsDeleted == false && g.EndDate > currentDateTime);
+
+            if (goal == null)
+            {
+                throw new NotFoundException("Goal Not Found! Goal Must be in Active State");
+            }
+
+            var currentGoalStatus = goal.GoalStatus;
+
+            if (statusToChange == Status.NotStarted)
+            {
+                if (currentGoalStatus == Status.Running)
+                {
+                    goal.GoalStatus = Status.NotStarted;
+                    goal.UpdatedOn = currentDateTime;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Goal must be in running state!");
+                }
+            }
+            else if (statusToChange == Status.Running)
+            {
+                if (currentGoalStatus == Status.NotStarted || currentGoalStatus == Status.Completed || currentGoalStatus == Status.Ended)
+                {
+                    goal.GoalStatus = Status.Running;
+                    goal.UpdatedOn = currentDateTime;
+
+                    if (currentGoalStatus == Status.NotStarted && !goal.IsStarted)
+                    {
+                        goal.IsStarted = true;
+                        goal.StartedOn = currentDateTime;
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Goal must be in Active State!");
+                }
+            }
+            else if (statusToChange == Status.Completed)
+            {
+                if (currentGoalStatus == Status.Running)
+                {
+                    goal.GoalStatus = Status.Completed;
+                    goal.UpdatedOn = currentDateTime;
+                    goal.CompletedOn = currentDateTime;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Goal must be in running state!");
+                }
+            }
+            else if (statusToChange == Status.Ended)
+            {
+                if (currentGoalStatus == Status.Running)
+                {
+                    goal.GoalStatus = Status.Ended;
+                    goal.UpdatedOn = currentDateTime;
+                    goal.EndedOn = currentDateTime;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Goal must be in running state!");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid Goal Status!");
+            }
+
+            _context.Goals.Update(goal);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<int> GetGoalCountByGoalStatus(string UserId, Status status)
