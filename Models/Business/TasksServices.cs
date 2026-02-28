@@ -35,7 +35,11 @@ namespace TaskMonitoringApp.Models.Business
                 throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(task.EndDate));
             }
 
-            await _taskRepository.AddTasksAsync(userId, task, goalIds);
+            var goalIdList = string.IsNullOrWhiteSpace(goalIds) 
+                ? new List<int>() 
+                : goalIds.Split(',').Select(int.Parse).ToList();
+
+            await _taskRepository.AddUpdateTaskWithGoalsAsync(userId, task, goalIdList, 1);
         }
 
         public async Task DeleteTask(string userId, int Id)
@@ -131,8 +135,12 @@ namespace TaskMonitoringApp.Models.Business
                 oldTask.TaskStatus = Status.Running;
             }
 
+            var goalIdList = string.IsNullOrWhiteSpace(goalIds) 
+                ? new List<int>() 
+                : goalIds.Split(',').Select(int.Parse).ToList();
 
-            await _taskRepository.UpdateTasksAsync(userId, oldTask, goalIds);
+            var taskDtoToUpdate = _mapper.Map<TaskDTO>(oldTask);
+            await _taskRepository.AddUpdateTaskWithGoalsAsync(userId, taskDtoToUpdate, goalIdList, 2);
         }
 
         public async Task UpdateTask(string userId, TaskDTO task)

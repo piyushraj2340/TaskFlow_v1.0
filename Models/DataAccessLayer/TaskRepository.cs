@@ -309,5 +309,108 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
             return result;
         }
+
+        public async Task<int> AddUpdateTaskWithGoalsAsync(string userId, TaskDTO taskDto, IEnumerable<int> goalIds, int mode)
+        {
+            var currentDateTime = DateTime.Now;
+            int returnedTaskId = taskDto.Id;
+
+            // Mode 1: Add
+            if (mode == 1)
+            {
+                var isStartedCalculated = taskDto.IsScheduled && taskDto.StartDate <= currentDateTime;
+                var newTask = new Tasks
+                {
+                    Name = taskDto.Name,
+                    StartDate = taskDto.StartDate,
+                    IsScheduled = taskDto.IsScheduled,
+                    StartOptionType = taskDto.StartOptionType,
+                    IsStarted = isStartedCalculated,
+                    StartedOn = isStartedCalculated ? currentDateTime : null,
+                    EndDate = taskDto.EndDate.Value,
+                    CreatedOn = currentDateTime,
+                    UpdatedOn = currentDateTime,
+                    TaskStatus = isStartedCalculated ? Status.Running : taskDto.TaskStatus,
+                    Description = taskDto.Description,
+                    Priority = taskDto.Priority,
+                    Repeat = taskDto.Repeat,
+                    RepeatWeekList = taskDto.RepeatWeekList,
+                    UserId = userId
+                };
+
+                await _context.Tasks.AddAsync(newTask);
+                await _context.SaveChangesAsync();
+
+                returnedTaskId = newTask.Id;
+            }
+            // Mode 2: Update
+            else if (mode == 2)
+            {
+                var existingTask = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskDto.Id && t.UserId == userId && !t.IsDeleted);
+                if (existingTask == null)
+                {
+                    throw new NotFoundException("Task Data Not Found!");
+                }
+
+                existingTask.Name = taskDto.Name;
+                existingTask.EndDate = taskDto.EndDate.Value;
+                existingTask.UpdatedOn = currentDateTime;
+                existingTask.TaskStatus = taskDto.TaskStatus;
+                existingTask.Description = taskDto.Description;
+                existingTask.Priority = taskDto.Priority;
+                existingTask.Repeat = taskDto.Repeat;
+                existingTask.RepeatWeekList = taskDto.RepeatWeekList;
+
+                _context.Tasks.Update(existingTask);
+                await _context.SaveChangesAsync();
+            }
+
+            // Relationship updates
+            var incomingGoalIds = goalIds?.ToList() ?? new List<int>();
+
+            // Delete relations not in incoming list
+            var relationsToRemove = await _context.GoalTasks
+                .Where(gt => gt.TaskId == returnedTaskId && gt.UserId == userId && !incomingGoalIds.Contains(gt.GoalId))
+                .ToListAsync();
+
+            if (relationsToRemove.Any())
+            {
+                _context.GoalTasks.RemoveRange(relationsToRemove);
+            }
+
+            // Add new relations
+            if (incomingGoalIds.Any())
+            {
+                var existingRelationGoalIds = await _context.GoalTasks
+                    .Where(gt => gt.TaskId == returnedTaskId && gt.UserId == userId)
+                    .Select(gt => gt.GoalId)
+                    .ToListAsync();
+
+                var newGoalIds = incomingGoalIds.Except(existingRelationGoalIds).ToList();
+
+                if (newGoalIds.Any())
+                {
+                    var validGoals = await _context.Goals
+                        .Where(g => newGoalIds.Contains(g.Id) && 
+                                    (g.GoalStatus == Status.Running || g.GoalStatus == Status.NotStarted) && 
+                                    !g.IsDeleted && 
+                                    g.EndDate > currentDateTime)
+                        .Select(g => g.Id)
+                        .ToListAsync();
+
+                    var newRelations = validGoals.Select(goalId => new GoalTask
+                    {
+                        GoalId = goalId,
+                        TaskId = returnedTaskId,
+                        UserId = userId
+                    });
+
+                    await _context.GoalTasks.AddRangeAsync(newRelations);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return returnedTaskId;
+        }
     }
 }
