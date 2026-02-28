@@ -217,6 +217,10 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<TaskProductivityDTO> GetTaskProductivity(string userId)
         {
+            // Sync states efficiently before analytics calculation
+            await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            await _taskRepository.UpdateEndedTasksAsync(userId);
+            
             int runningTask = await _taskRepository.GetTaskCountByTaskStatus(userId, Status.Running);
 
             // Overall productivity...
@@ -285,6 +289,10 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<TaskProductivityDTO> GetTaskProductivity(string userId, int goalId)
         {
+            // Sync states efficiently before analytics calculation
+            await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            await _taskRepository.UpdateEndedTasksAsync(userId);
+
             int runningTask = await _taskRepository.GetTaskCountByTaskStatus(userId, goalId, Status.Running);
 
             // Overall productivity...
@@ -379,6 +387,26 @@ namespace TaskMonitoringApp.Models.Business
             if (taskStatus == Status.Running || taskStatus == Status.All)
             {
                 await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId, goalId, taskStatus, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithDynamicStatusUpdatesAsync(string userId, Status status)
+        {
+            if (status != Status.Completed && status != Status.Archived)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+                await _taskRepository.UpdateEndedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksAsync<TaskDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(string userId, int goalId, Status taskStatus)
+        {
+            if (taskStatus != Status.Completed && taskStatus != Status.Archived)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+                await _taskRepository.UpdateEndedTasksAsync(userId);
             }
             return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId, goalId, taskStatus, ResponseDataMode.ModelDTO);
         }

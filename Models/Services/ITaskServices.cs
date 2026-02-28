@@ -39,5 +39,8 @@ namespace TaskMonitoringApp.Models.Services
 
         Task<IEnumerable<TaskDTO>> GetAllTasksWithAutoStartAsync(string userId, Status status);
         Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithAutoStartAsync(string userId, int goalId, Status taskStatus);
+
+        Task<IEnumerable<TaskDTO>> GetAllTasksWithDynamicStatusUpdatesAsync(string userId, Status status);
+        Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(string userId, int goalId, Status taskStatus);
     }
 }

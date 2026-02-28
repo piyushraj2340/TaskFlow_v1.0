@@ -341,7 +341,7 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<IEnumerable<GoalDTO>> GetAllGoalsWithDynamicStatusUpdatesAsync(string userId, Status status)
         {
-            if (status != Status.Completed && status != Status.Deleted)
+            if (status != Status.Completed && status != Status.Archived)
             {
                 await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
                 await _goalRepository.UpdateEndedGoalsAsync(userId);
@@ -351,7 +351,7 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<IEnumerable<GoalDTO>> GetRootGoalsWithDynamicStatusUpdatesAsync(string userId, Status status)
         {
-            if (status != Status.Completed && status != Status.Deleted)
+            if (status != Status.Completed && status != Status.Archived)
             {
                 await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
                 await _goalRepository.UpdateEndedGoalsAsync(userId);

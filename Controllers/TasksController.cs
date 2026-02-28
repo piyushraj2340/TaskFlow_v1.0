@@ -358,17 +358,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Running);
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Running);
             
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.Running);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.Running);
             }
             else
             {
-                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Running);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Running);
             }
 
             // Get total count of records
@@ -451,16 +451,16 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Completed);
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Completed);
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.Completed);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.Completed);
             }
             else
             {
-                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Completed);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Completed);
             }
 
             // Get total count of records
@@ -543,17 +543,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.NotStarted);
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.NotStarted);
 
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.NotStarted);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.NotStarted);
             }
             else
             {
-                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.NotStarted);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.NotStarted);
             }
 
             // Get total count of records
@@ -618,7 +618,6 @@ namespace TaskMonitoringApp.Controllers
         [HttpPost]
         public async Task<IActionResult> GetAllEndedTaskList(int? goalId)
         {
-
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
@@ -637,17 +636,16 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Ended);
-
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Ended);
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.Ended);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.Ended);
             }
             else
             {
-                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Ended);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Ended);
             }
 
             // Get total count of records
@@ -707,216 +705,6 @@ namespace TaskMonitoringApp.Controllers
 
             // Return the result as JSON
             return Json(returnObj);
-        }
-
-        //[HttpPost]
-        //public async Task<IActionResult> GetAllDeletedTaskList()
-        //{
-        //    var userId = _userManager.GetUserId(User);
-
-        //    if (userId == null)
-        //    {
-        //        return RedirectToAction("Login", "Account");
-        //    }
-
-        //    int totalRecord = 0;
-        //    int filterRecord = 0;
-        //    var draw = Request.Form["draw"].FirstOrDefault();
-        //    var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
-        //    var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
-        //    var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-        //    var searchValue = Request.Form["search[value]"].FirstOrDefault();
-        //    int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
-        //    int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
-
-        //    // Get all tasks from the service
-        //    var data = await _taskService.GetAllTasks(userId, Status.Deleted);
-
-        //    // Get total count of records
-        //    totalRecord = data.Count();
-
-        //    // Apply search filter if there's a search value
-        //    if (!string.IsNullOrEmpty(searchValue))
-        //    {
-        //        // Perform case-insensitive search on multiple fields (Name and Id)
-        //        data = data.Where(x => x.Name?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
-        //    }
-
-        //    // Get filtered record count after search
-        //    filterRecord = data.Count();
-
-        //    // Apply sorting if there is a valid column and direction
-        //    if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortColumnDirection))
-        //    {
-        //        switch (sortColumn)
-        //        {
-        //            case "Name":
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Name) : data.OrderByDescending(x => x.Name);
-        //                break;
-        //            case "EndDate":
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
-        //                break;
-        //            case "TaskStatus":
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskStatus) : data.OrderByDescending(x => x.TaskStatus);
-        //                break;
-        //            case "Id":
-        //                // Sorting by Id (numerical)
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
-        //                break;
-        //            default:
-        //                data = data.OrderBy(x => x.Id); // Default sort by Id if no valid column is provided
-        //                break;
-        //        }
-        //    }
-
-        //    // Paginate the data (skip and take)
-        //    var empList = data.Skip(skip).Take(pageSize).ToList();
-
-        //    // Map the data to TaskDTO using AutoMapper
-        //    var returnObj = new
-        //    {
-        //        draw = draw,
-        //        recordsTotal = totalRecord,
-        //        recordsFiltered = filterRecord,
-        //        data = _mapper.Map<List<TaskDTO>>(empList)
-        //    };
-
-        //    // Return the result as JSON
-        //    return Json(returnObj);
-        //}
-
-        [HttpDelete]
-        public async Task<IActionResult> DeleteTask(int Id)
-        {
-            _logger.LogInformation("Entered DeleteTask with Id={Id}", Id);
-            var userId = _userManager.GetUserId(User);
-
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in DeleteTask.");
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                await _taskService.DeleteTask(userId, Id);
-                _logger.LogInformation("Task deleted for Id={Id}, userId={UserId}", Id, userId);
-                return Json(new { status = true, message = $"Task with Id: {Id} deleted successfully!" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception in DeleteTask for Id={Id}, userId={UserId}", Id, userId);
-                return Json(new { status = false, message = "Error occurred while deleting task." });
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> ChangeTaskStatus(int Id, [Bind("Id,TaskStatus")] TaskStatusDTO taskUpdate)
-        {
-            _logger.LogInformation("Entered ChangeTaskStatus with Id={Id}, TaskStatus={TaskStatus}", Id, taskUpdate.TaskStatus);
-            var userId = _userManager.GetUserId(User);
-
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in ChangeTaskStatus.");
-                return RedirectToAction("Login", "Account");
-            }
-
-            if (Id != taskUpdate.Id)
-            {
-                _logger.LogWarning("Invalid Parameter Id in ChangeTaskStatus. Expected: {ExpectedId}, Received: {ActualId}", taskUpdate.Id, Id);
-                return Json(new { status = false, message = "Invalid Parameter Id!" });
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    await _taskService.UpdateTaskStatus(userId, taskUpdate.Id, taskUpdate.TaskStatus);
-                    _logger.LogInformation("Task status updated for Id={Id}, userId={UserId}, newStatus={TaskStatus}", Id, userId, taskUpdate.TaskStatus);
-                    return Json(new { status = true, message = $"Task with Id {Id} Status changed to {taskUpdate.TaskStatus}!" });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Exception in ChangeTaskStatus for Id={Id}, userId={UserId}", Id, userId);
-                    return Json(new { status = false, message = "Error occurred while changing task status." });
-                }
-            }
-
-            _logger.LogWarning("ModelState invalid in ChangeTaskStatus for Id={Id}.", Id);
-            return Json(new { status = false, message = "ModelState is not valid!" });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> SearchTasks(string query)
-        {
-            _logger.LogInformation("Entered SearchTasks with query={Query}", query);
-            var userId = _userManager.GetUserId(User);
-
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in SearchTasks.");
-                return Unauthorized();
-            }
-
-            try
-            {
-                var tasks = await _taskService.SearchTasks(userId, query);
-                return Json(new { status = true, data = tasks });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception in SearchTasks for query={Query}, userId={UserId}", query, userId);
-                return Json(new { status = false, message = "Error occurred while searching tasks." });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> SearchTasksWithGoals(string query, Status status = Status.Running)
-        {
-            _logger.LogInformation("Entered SearchTasksWithGoals with query={Query}, status={Status}", query, status);
-            var userId = _userManager.GetUserId(User);
-
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in SearchTasksWithGoals.");
-                return Unauthorized();
-            }
-
-            try
-            {
-                var tasks = await _taskService.SearchTasksWithGoals(userId, query, status);
-                return Json(new { status = true, data = tasks });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception in SearchTasksWithGoals for query={Query}, userId={UserId}", query, userId);
-                return Json(new { status = false, message = "Error occurred while searching tasks." });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetNotesByTask(int taskId, int pageNumber = 1, int pageSize = 5)
-        {
-            _logger.LogInformation("Entered GetNotesByTask with taskId={TaskId}, pageNumber={PageNumber}, pageSize={PageSize}", taskId, pageNumber, pageSize);
-
-            var userId = _userManager.GetUserId(User);
-            if (userId == null)
-            {
-                _logger.LogWarning("User not authenticated in GetNotesByTask.");
-                return Unauthorized();
-            }
-
-            try
-            {
-                var notes = await _notesService.GetAllNotesByTaskId(userId, taskId, Status.All, pageNumber, pageSize);
-                return Json(new { status = true, message = "Task notes loaded", data = notes });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception in GetNotesByTask for taskId={TaskId}, userId={UserId}", taskId, userId);
-                return Json(new { status = false, message = "Error loading notes" });
-            }
         }
     }
 }
