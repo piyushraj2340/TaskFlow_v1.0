@@ -364,5 +364,23 @@ namespace TaskMonitoringApp.Models.Business
         {
             return await _taskRepository.SearchTasksWithGoals(userId, query, status);
         }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithAutoStartAsync(string userId, Status status)
+        {
+            if (status == Status.Running || status == Status.All)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksAsync<TaskDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithAutoStartAsync(string userId, int goalId, Status taskStatus)
+        {
+            if (taskStatus == Status.Running || taskStatus == Status.All)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId, goalId, taskStatus, ResponseDataMode.ModelDTO);
+        }
     }
 }

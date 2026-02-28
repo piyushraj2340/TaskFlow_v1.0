@@ -548,5 +548,33 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             await _context.SaveChangesAsync();
             return returnedTaskId;
         }
+
+        public async Task UpdateAutoStartedTasksAsync(string userId)
+        {
+            var currentDateTime = DateTime.Now;
+
+            var tasksToUpdate = await _context.Tasks
+                .Where(t => t.UserId == userId 
+                         && t.IsScheduled 
+                         && !t.IsStarted 
+                         && t.StartDate < currentDateTime 
+                         && t.TaskStatus == Status.NotStarted 
+                         && !t.IsDeleted)
+                .ToListAsync();
+
+            if (tasksToUpdate.Any())
+            {
+                foreach (var task in tasksToUpdate)
+                {
+                    task.TaskStatus = Status.Running;
+                    task.UpdatedOn = currentDateTime;
+                    task.IsStarted = true;
+                    task.StartedOn = currentDateTime;
+                }
+
+                _context.Tasks.UpdateRange(tasksToUpdate);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

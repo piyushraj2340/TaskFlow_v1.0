@@ -35,5 +35,7 @@ namespace TaskMonitoringApp.Models.Repositories
         Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoals(string userId, string query, Status status);
         
         Task<int> AddUpdateTaskWithGoalsAsync(string userId, TaskDTO task, IEnumerable<int> goalIds, int mode);
+
+        Task UpdateAutoStartedTasksAsync(string userId);
     }
 }

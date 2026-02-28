@@ -358,17 +358,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.Running);
+            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Running);
             
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Running);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.Running);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.Running);
+                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Running);
             }
 
             // Get total count of records
@@ -451,16 +451,16 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.Completed);
+            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Completed);
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Completed);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.Completed);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.Completed);
+                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Completed);
             }
 
             // Get total count of records
@@ -543,17 +543,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.NotStarted);
+            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.NotStarted);
 
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.NotStarted);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.NotStarted);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.NotStarted);
+                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.NotStarted);
             }
 
             // Get total count of records
@@ -637,17 +637,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.Ended);
+            //var data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Ended);
 
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Ended);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithAutoStartAsync(userId, goalId.Value, Status.Ended);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.Ended);
+                data = await _taskService.GetAllTasksWithAutoStartAsync(userId, Status.Ended);
             }
 
             // Get total count of records
