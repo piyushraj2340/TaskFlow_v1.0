@@ -87,7 +87,7 @@
             allowClear: true,
             ajax: {
                 url: '/Goals/SearchGoalNameByName',
-                method: "post",
+                method: "get",
                 dataType: 'json',
                 delay: 250,
                 data: (params) => ({ searchQuery: params.term }),
@@ -290,6 +290,34 @@
             <button data-id="${row.id}" class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete Goal"><i class="fas fa-trash text-sm"></i></button>
         </div>`;
 
+    const returnStatusBadge = (status) => {
+        let classes = "";
+        let text = "";
+
+        switch (parseInt(status)) {
+            case goalStatusEnum.notStarted:
+                classes = "bg-slate-100 text-slate-600 border-slate-200";
+                text = "Not Started";
+                break;
+            case goalStatusEnum.running:
+                classes = "bg-blue-100 text-blue-700 border-blue-200";
+                text = "Running";
+                break;
+            case goalStatusEnum.completed:
+                classes = "bg-green-100 text-green-700 border-green-200";
+                text = "Completed";
+                break;
+            case goalStatusEnum.ended:
+                classes = "bg-red-100 text-red-700 border-red-200";
+                text = "Ended";
+                break;
+            default:
+                return "";
+        }
+
+        return `<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${classes}">${text}</span>`;
+    };
+
     const dataTableObject = (url, actionRenderer, pageLengthKey) => {
         const pageLength = localStorage.getItem(pageLengthKey);
         return {
@@ -300,8 +328,16 @@
                     data: "name", name: "Name",
                     render: function (data, type, row) {
                         const hasChildren = row.subGoalsCount > 0;
-                        const toggle = hasChildren ? `<i class="fas fa-chevron-right tree-toggle mr-2 text-gray-400 cursor-pointer" data-id="${row.id}"></i>` : `<span class="mr-6"></span>`;
-                        return `<div class="flex items-center">${toggle}<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:underline font-medium">${data} ${row.subGoalsCount > 0 ? '(' + row.subGoalsCount + ')' : ''}</a></div>`;
+                        const toggle = hasChildren ? `<i class="fas fa-chevron-right tree-toggle mr-2 text-gray-400 cursor-pointer" data-id="${row.id}" data-status="${row.goalStatus}"></i>` : `<span class="mr-6"></span>`;
+
+                        const countBadge = row.subGoalsCount > 0 ? ` <span class="text-gray-400 text-sm">(${row.subGoalsCount})</span>` : '';
+
+                        return `
+                            <div class="flex items-center">
+                                ${toggle}
+                                <a href="/Goals/Details/${row.id}" class="text-blue-600 hover:underline font-medium">${data}</a>
+                                ${countBadge}
+                            </div>`;
                     }
                 },
                 { data: "endDate", render: (data) => `<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full">${formatShortDate(data)}</span>` },
@@ -317,10 +353,15 @@
 
     /* ----------------------- Tree Table Expansion ----------------------- */
 
-    function renderGoalRow(goal, level = 0) {
+    function renderGoalRow(goal, level = 0, parentStatus = null) {
         const hasChildren = goal.subGoalsCount > 0;
         const paddingClass = `level-${Math.min(level, 4)}`;
-        const toggleIcon = hasChildren ? `<i class="fas fa-chevron-right tree-toggle mr-2 text-gray-400 hover:text-gray-600 cursor-pointer" data-id="${goal.id}" data-level="${level}"></i>` : `<span class="mr-6"></span>`;
+        const toggleIcon = hasChildren ? `<i class="fas fa-chevron-right tree-toggle mr-2 text-gray-400 hover:text-gray-600 cursor-pointer" data-status="${parentStatus}" data-id="${goal.id}" data-level="${level}"></i>` : `<span class="mr-6"></span>`;
+        let statusBadge = "";
+
+        if (level > 0 && parentStatus !== null && parseInt(goal.goalStatus) !== parseInt(parentStatus)) {
+            statusBadge = returnStatusBadge(goal.goalStatus);
+        }
 
         let actions = "";
         if (goal.goalStatus == goalStatusEnum.running) actions = runningActions(goal);
@@ -330,7 +371,11 @@
         return `
             <tr data-id="${goal.id}" data-level="${level}" class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap ${paddingClass}">
-                    <div class="flex items-center">${toggleIcon}<a href="/Goals/Details/${goal.id}" class="text-blue-500 hover:underline font-medium">${goal.name}</a></div>
+                    <div class="flex items-center">
+                        ${toggleIcon}
+                        <a href="/Goals/Details/${goal.id}" class="text-blue-600 hover:underline font-medium">${goal.name}</a>
+                        ${statusBadge}
+                    </div>            
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full">${formatShortDate(goal.endDate)}</span></td>
                 <td class="px-6 py-4 whitespace-nowrap">${returnPriorityBadge(goal.priority)}</td>
@@ -344,6 +389,7 @@
         const $row = $icon.closest('tr');
         const parentId = $icon.data('id');
         const currentLevel = parseInt($row.data('level') || 0);
+        const parentStatus = $icon.data('status');
 
         if ($icon.hasClass('fa-chevron-down')) {
             $icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
@@ -356,7 +402,7 @@
             $.get(`/Goals/GetChildGoals?parentId=${parentId}`, function (response) {
                 if (response?.data) {
                     let html = '';
-                    response.data.forEach(child => html += renderGoalRow(child, currentLevel + 1));
+                    response.data.forEach(child => html += renderGoalRow(child, currentLevel + 1, parentStatus));
                     $row.after(html);
                 }
             });
@@ -383,6 +429,19 @@
         $("#goalStatus").val(data.goalStatus ?? goalStatusEnum.notStarted);
         $("#goalDescription").val(data.description || "");
 
+        // --- FIX: Handle Parent Goal for Select2 ---
+        if ($parentGoalSelect.length) {
+            if (data.parentId && data.parentName) {
+                // Create a new option and select it
+                var newOption = new Option(data.parentName, data.parentId, true, true);
+                $parentGoalSelect.empty().append(newOption).trigger('change');
+            } else {
+                // Clear if there is no parent
+                $parentGoalSelect.val(null).trigger('change');
+            }
+        }
+        // -------------------------------------------
+
         const startOpt = data.startOptionType ?? startOptionValues.manual;
         $goalModal.find(`input[name="goalStart"][value="${startOpt}"]`).prop('checked', true);
         $("#startDateContainer").toggleClass('hidden', +startOpt !== startOptionValues.scheduled);
@@ -396,6 +455,11 @@
 
     $goalForm.on('submit', function (e) {
         e.preventDefault();
+
+        // 1. DISABLE TRACKING IMMEDIATELY
+        // This stops the "Unsaved Changes" prompt from triggering during save
+        stopTrackingChanges();
+
         if (typeof tinymce !== "undefined") tinymce.triggerSave();
 
         // Temporarily enable for serialization
@@ -422,14 +486,22 @@
             success: function (response) {
                 if (response?.status) {
                     showSuccessNotification(response.message);
-                    window.removeEventListener('beforeunload', (e) => {
+
+                    // 2. Remove the browser listener so refresh doesn't prompt
+                    window.removeEventListener('beforeunload', function (e) {
                         e.preventDefault();
                         e.returnValue = '';
-                    });                    setTimeout(() => location.reload(), 500);
+                    });
+
+                    setTimeout(() => location.reload(), 500);
                 } else {
                     showErrorNotification(response?.message);
+                    
+                    // 3. RE-ENABLE TRACKING IF SAVE FAILED
+                    // If there's a validation error, we want to keep tracking 
+                    // so the user doesn't lose their corrections!
                     if (!$subGoalModeContainer.hasClass('hidden')) $parentGoalSelect.prop('disabled', true);
-                }
+                    startTrackingChanges();                }
             }
         });
     });
@@ -520,21 +592,41 @@
     };
 
 
-    const handleModalOpen = () => {
-        setTimeout(() => setupTinyMCE('textarea[name="goalDescriptions"]', tinymceConfig), 100);
+    const handleModalOpen = (initialContent = "") => {
+        // 1. Give the DOM a moment to be visible
+        setTimeout(() => {
+            setupTinyMCE('textarea[name="goalDescriptions"]', tinymceConfig, initialContent);
+        }, 100);
     };
-
-    function setupTinyMCE(selector, config) {
+    function setupTinyMCE(selector, config, initialContent) {
         const $target = $(selector);
         if (!$target.length) return;
+
         let editorId = $target.attr('id') || 'tmce-' + Math.random().toString(36).substring(2, 9);
         $target.attr('id', editorId);
-        if (tinymce.get(editorId)) tinymce.get(editorId).remove();
-        tinymce.init({
-            ...config,
-            selector: `#${editorId}`,
-            setup: (ed) => ed.on('init', () => ed.setContent($target.val() || ""))
-        });
+
+        const editor = tinymce.get(editorId);
+
+        if (editor) {
+            // 2. If editor exists, just update the content and reset dirty flag
+            editor.setContent(initialContent || "");
+            editor.undoManager.clear(); // Prevents "Undo" from bringing back old data
+        } else {
+            // 3. If editor doesn't exist, initialize it
+            tinymce.init({
+                ...config,
+                selector: `#${editorId}`,
+                setup: (ed) => {
+                    ed.on('init', () => {
+                        ed.setContent(initialContent || $target.val() || "");
+                    });
+                    // Ensure the dirty check logic works with TinyMCE
+                    ed.on('Change KeyUp', function () {
+                        tinymce.triggerSave(); // Keep the hidden textarea in sync
+                    });
+                }
+            });
+        }
     }
 
     function initTable(tableSelector, url, actionRenderer, storageKey) {
@@ -549,4 +641,243 @@
     initTable(completedGoalDataTable, "/Goals/GetAllCompletedGoals", archiveActions, pageLengthValue.completedGoal);
     initTable(notStartedGoalDataTable, "/Goals/GetAllNotStartedGoals", notStartedActions, pageLengthValue.notStartedGoal);
     initTable(endedGoalDataTable, "/Goals/GetAllEndedGoals", archiveActions, pageLengthValue.endedGoal);
+
+
+    /* ----------------------- Status & Delete Action Handlers ----------------------- */
+
+    // 1. Handle Delete Goal
+    $(document).on("click", ".deleteGoalBtn", function () {
+        const id = $(this).data("id");
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will permanently delete the goal and its sub-goals!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // Red
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/Goals/DeleteGoal/${id}`,
+                    method: "DELETE",
+                    success: function (response) {
+                        if (response?.status) {
+                            showSuccessNotification(response.message);
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            showErrorNotification(response?.message || "Delete failed.");
+                        }
+                    },
+                    error: () => showErrorNotification("An error occurred while deleting the goal.")
+                });
+            }
+        });
+    });
+
+    // 2. Handle Status Changes (Mark as Complete / Move to Running)
+    // 1. Handle Move to Running (Start Goal)
+    $(document).on("click", ".moveToRunning", function () {
+        const goalId = $(this).data("id");
+
+        // Check for child goals before proceeding
+        $.get(`/Goals/GetChildGoals?parentId=${goalId}`, function (response) {
+            const subGoals = (response && response.status) ? response.data : [];
+
+            if (subGoals.length > 0) {
+                handleMultiLevelStatusChange(goalId, subGoals, goalStatusEnum.running, "Running");
+            } else {
+                // Standard single goal update
+                updateSingleGoalStatus(goalId, goalStatusEnum.running, "Goal started successfully!");
+            }
+        });
+    });
+
+    // 2. Main Logic Handler for Multi-level Status Transitions
+    async function handleMultiLevelStatusChange(parentId, subGoals, targetStatus, statusName) {
+        const isRunning = targetStatus === goalStatusEnum.running;
+        const actionVerb = isRunning ? "start" : "complete";
+
+        // QUESTION 1: Update all sub-goals?
+        const result1 = await Swal.fire({
+            title: `Multi-level Goal: ${statusName}`,
+            text: `Do you want to ${actionVerb} all sub-goals as well?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: `Yes, ${actionVerb} all`,
+            cancelButtonText: 'No',
+            confirmButtonColor: isRunning ? '#2563eb' : '#10b981', // Blue for Running, Green for Complete
+            cancelButtonColor: '#6b7280'
+        });
+
+        if (result1.isConfirmed) {
+            // ACTION: Update all via Promise.all
+            Swal.showLoading();
+            const promises = subGoals.map(sg =>
+                $.ajax({
+                    url: `/Goals/ChangeGoalStatus/${sg.id}`,
+                    method: "POST",
+                    data: { Id: sg.id, GoalStatus: targetStatus }
+                })
+            );
+            promises.push($.ajax({
+                url: `/Goals/ChangeGoalStatus/${parentId}`,
+                method: "POST",
+                data: { Id: parentId, GoalStatus: targetStatus }
+            }));
+
+            await Promise.all(promises);
+            showSuccessNotification(`Parent and all sub-goals are now ${statusName}.`);
+            setTimeout(() => location.reload(), 500);
+
+        } else if (result1.dismiss === Swal.DismissReason.cancel) {
+
+            // QUESTION 2: De-attach sub-goals?
+            const result2 = await Swal.fire({
+                title: 'Sub-goal Relationship',
+                text: "Do you want to de-attach these sub-goals (make them root goals) and only update this parent?",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, de-attach and update',
+                cancelButtonText: `No, just update parent`,
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (result2.isConfirmed) {
+                // ACTION: Bulk De-attach using the new API
+                Swal.showLoading();
+
+                const goalIdsToDeattach = subGoals.map(sg => sg.id);
+
+                $.ajax({
+                    url: `/Goals/DeattachSubGoals`,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(goalIdsToDeattach),
+                    success: async function (response) {
+                        if (response.status) {
+                            // After de-attaching, complete the parent
+                            updateSingleGoalStatus(parentId, targetStatus, `Sub-goals de-attached. Parent is now ${statusName}.`);
+                        } else {
+                            showErrorNotification("Failed to de-attach sub-goals.");
+                        }
+                    }
+                });
+            } else if (result2.dismiss === Swal.DismissReason.cancel) {
+                // ACTION: Just update parent status, leave sub-goals attached
+                updateSingleGoalStatus(parentId, targetStatus, `Parent goal moved to ${statusName}.`);
+            }
+        }
+    }
+
+
+    $(document).on("click", ".markAsComplete", function () {
+        const goalId = $(this).data("id");
+
+        // 1. First, fetch child goals to see if this is a multi-level goal
+        $.get(`/Goals/GetChildGoals?parentId=${goalId}`, function (response) {
+            const subGoals = (response && response.status) ? response.data : [];
+
+            if (subGoals.length > 0) {
+                handleMultiLevelCompletion(goalId, subGoals, "Goal completed successfully!");
+            } else {
+                // Standard single goal completion
+                updateSingleGoalStatus(goalId, goalStatusEnum.completed);
+            }
+        });
+    });
+
+    async function handleMultiLevelCompletion(parentId, subGoals) {
+        // QUESTION 1: Mark all as complete?
+        const result1 = await Swal.fire({
+            title: 'Multi-level Goal Detected',
+            text: "Do you want to mark all sub-goals as complete as well?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, complete all',
+            cancelButtonText: 'No',
+            confirmButtonColor: '#10b981', // Green
+            cancelButtonColor: '#6b7280'
+        });
+
+        if (result1.isConfirmed) {
+            // ACTION: Mark all complete (Loop + Promise.all)
+            const promises = subGoals.map(sg =>
+                $.ajax({
+                    url: `/Goals/ChangeGoalStatus/${sg.id}`,
+                    method: "POST",
+                    data: { Id: sg.id, GoalStatus: goalStatusEnum.completed }
+                })
+            );
+            // Add the parent to the list
+            promises.push($.ajax({
+                url: `/Goals/ChangeGoalStatus/${parentId}`,
+                method: "POST",
+                data: { Id: parentId, GoalStatus: goalStatusEnum.completed }
+            }));
+
+            await Promise.all(promises);
+            showSuccessNotification("Parent and all sub-goals completed!");
+            setTimeout(() => location.reload(), 500);
+
+        } else if (result1.dismiss === Swal.DismissReason.cancel) {
+
+            // QUESTION 2: De-attach sub-goals?
+            const result2 = await Swal.fire({
+                title: 'Sub-goal Handling',
+                text: "Do you want to de-attach these sub-goals (make them root goals) before completing the parent?",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, de-attach and complete',
+                cancelButtonText: 'No, just complete parent',
+                confirmButtonColor: '#4f46e5', // Indigo
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (result2.isConfirmed) {
+                // ACTION: Bulk De-attach using the new API
+                Swal.showLoading();
+
+                const goalIdsToDeattach = subGoals.map(sg => sg.id);
+
+                $.ajax({
+                    url: `/Goals/DeattachSubGoals`,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(goalIdsToDeattach),
+                    success: async function (response) {
+                        if (response.status) {
+                            // After de-attaching, complete the parent
+                            updateSingleGoalStatus(parentId, targetStatus, `Sub-goals de-attached. Parent is now ${statusName}.`);
+                        } else {
+                            showErrorNotification("Failed to de-attach sub-goals.");
+                        }
+                    }
+                });
+            } else if (result2.dismiss === Swal.DismissReason.cancel) {
+                // ACTION: Just update parent status
+                updateSingleGoalStatus(parentId, goalStatusEnum.completed);
+            }
+        }
+    }
+
+    // Helper to handle simple status updates
+    function updateSingleGoalStatus(id, status, customMessage) {
+        $.ajax({
+            url: `/Goals/ChangeGoalStatus/${id}`,
+            method: "POST",
+            data: { Id: id, GoalStatus: status },
+            success: function (response) {
+                if (response?.status) {
+                    showSuccessNotification(customMessage || "Status updated successfully!");
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showErrorNotification(response?.message);
+                }
+            }
+        });
+    }
+
 });

@@ -144,7 +144,7 @@ namespace TaskMonitoringApp.Models.Business
                     throw new ArgumentException("A goal cannot be its own parent. Please select a different parent goal.", nameof(goals.ParentId));
                 }
                 // Check for circular reference
-                var parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.ParentId.Value, ResponseDataMode.Model);
+                var parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.ParentId.Value, ResponseDataMode.Model, RequestDataMode.AsNoTracking);
                 while (parentGoal != null)
                 {
                     if (parentGoal.ParentId == goals.Id)
@@ -153,7 +153,7 @@ namespace TaskMonitoringApp.Models.Business
                     }
                     if (parentGoal.ParentId.HasValue)
                     {
-                        parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, parentGoal.ParentId.Value, ResponseDataMode.Model);
+                        parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, parentGoal.ParentId.Value, ResponseDataMode.Model, RequestDataMode.AsNoTracking);
                     }
                     else
                     {
@@ -357,6 +357,14 @@ namespace TaskMonitoringApp.Models.Business
                 await _goalRepository.UpdateGoalStateAsync(userId);
             }
             return await _goalRepository.GetRootGoalsAsync(userId, status);
+        }
+
+        public async Task<bool> DeattachSubGoals(string userId, List<int> goalIds)
+        {
+            if (goalIds == null || !goalIds.Any()) return false;
+
+            await _goalRepository.DeattachSubGoalsAsync(userId, goalIds);
+            return true;
         }
     }
 }

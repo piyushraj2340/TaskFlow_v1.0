@@ -43,5 +43,6 @@ namespace TaskMonitoringApp.Models.Services
         // Dynamic State wrappers
         Task<IEnumerable<GoalDTO>> GetAllGoalsWithDynamicStatusUpdatesAsync(string userId, Status status);
         Task<IEnumerable<GoalDTO>> GetRootGoalsWithDynamicStatusUpdatesAsync(string userId, Status status);
+        Task<bool> DeattachSubGoals(string userId, List<int> goalIds);
     }
 }

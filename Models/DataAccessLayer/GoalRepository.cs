@@ -63,21 +63,26 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             };
         }
 
-        public async Task<T> GetGoalByIdAsync<T>(string userId, int id, ResponseDataMode mode) where T : class
+        public async Task<T> GetGoalByIdAsync<T>(string userId, int id, ResponseDataMode mode, RequestDataMode requestData = RequestDataMode.AsTracking) where T : class
         {
+            // 1. Start with the base query
             var baseQuery = _context.Goals.Where(g => g.UserId == userId && g.Id == id && g.IsDeleted == false);
+
+            // 2. Apply Tracking or NoTracking based on the parameter
+            if (requestData == RequestDataMode.AsNoTracking)
+            {
+                baseQuery = baseQuery.AsNoTracking();
+            }
+            // Note: EF Core tracks by default, so we don't need an 'else' for AsTracking
 
             switch (mode)
             {
                 case ResponseDataMode.Model:
-                    
                     var dataGoalModel = await baseQuery.FirstOrDefaultAsync();
-
                     return dataGoalModel as T
-                            ?? throw new NotFoundException($"Goal with ID {id} not found or does not belong to user {userId}.");
+                        ?? throw new NotFoundException($"Goal ID {id} not found.");
 
                 case ResponseDataMode.ModelDTO:
-
                     var dataGoalDTO = await baseQuery
                         .Select(g => new GoalDTO
                         {
@@ -94,14 +99,12 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             UserId = g.UserId,
                             ParentId = g.ParentId,
                             ParentName = g.Parent != null ? g.Parent.Name : null,
-                            SubGoalsCount = _context.Goals.Count(sg => sg.ParentId == g.Id && sg.IsDeleted == false)
+                            SubGoalsCount = _context.Goals.Count(sg => sg.ParentId == g.Id && !sg.IsDeleted)
                         }).FirstOrDefaultAsync();
 
-                    return dataGoalDTO as T
-                            ?? throw new NotFoundException($"Goal with ID {id} not found or does not belong to user {userId}.");
+                    return dataGoalDTO as T ?? throw new NotFoundException($"Goal ID {id} not found.");
 
                 case ResponseDataMode.ModelNameDTO:
-
                     var dataGoalNameDTO = await baseQuery
                         .Select(g => new GoalNameDTO
                         {
@@ -111,13 +114,12 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             GoalStatus = g.GoalStatus
                         }).FirstOrDefaultAsync();
 
-                    return dataGoalNameDTO as T
-                            ?? throw new NotFoundException($"Goal with ID {id} not found or does not belong to user {userId}.");
+                    return dataGoalNameDTO as T ?? throw new NotFoundException($"Goal ID {id} not found.");
 
-                default: throw new InvalidOperationException("Invalid Operations While Fetching Goals Data.");
+                default:
+                    throw new InvalidOperationException("Invalid Operations While Fetching Goals Data.");
             }
         }
-
         public async Task<IEnumerable<T>> GetAllGoalsWithStatusByTaskId<T>(string userId, int taskId, Status status, ResponseDataMode mode) where T : class
         {
             var currentDateTime = DateTime.Now;
@@ -429,6 +431,29 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 _context.Goals.UpdateRange(goalsToUpdate);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task DeattachSubGoalsAsync(string userId, List<int> goalIds)
+        {
+            // 1. Fetch only the IDs that exist for this specific user
+            var existingIds = await _context.Goals
+                .Where(g => g.UserId == userId && goalIds.Contains(g.Id))
+                .Select(g => g.Id)
+                .ToListAsync();
+
+            // 2. Find the difference (IDs provided by user but not found in DB for them)
+            var invalidIds = goalIds.Except(existingIds).ToList();
+
+            // 3. Throw a generic Exception if any ID is missing or unauthorized
+            if (invalidIds.Any())
+            {
+                throw new InvalidOperationException($"Validation failed. The following Goal IDs are invalid or unauthorized: {string.Join(", ", invalidIds)}");
+            }
+
+            // 4. Update only if validation passes
+            await _context.Goals
+                .Where(g => g.UserId == userId && goalIds.Contains(g.Id))
+                .ExecuteUpdateAsync(setters => setters.SetProperty(g => g.ParentId, (int?)null));
         }
     }
 }

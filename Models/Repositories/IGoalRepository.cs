@@ -8,7 +8,7 @@ namespace TaskMonitoringApp.Models.Repositories
     {
         Task<IEnumerable<T>> GetAllGoalsAsync<T>(string userId, Status status, ResponseDataMode mode) where T : class;
 
-        Task<T> GetGoalByIdAsync<T>(string userId, int Id, ResponseDataMode mode) where T : class;
+        Task<T> GetGoalByIdAsync<T>(string userId, int Id, ResponseDataMode mode, RequestDataMode requestData = RequestDataMode.AsTracking) where T : class;
 
         Task<IEnumerable<T>> GetAllGoalsWithStatusByTaskId<T>(string userId, int taskId, Status status, ResponseDataMode mode) where T : class;
 
@@ -33,5 +33,7 @@ namespace TaskMonitoringApp.Models.Repositories
         Task UpdateAutoStartedGoalsAsync(string userId);
         Task UpdateEndedGoalsAsync(string userId);
         Task UpdateGoalStateAsync(string userId);
+
+        Task DeattachSubGoalsAsync(string userId, List<int> goalIds);
     }
 }

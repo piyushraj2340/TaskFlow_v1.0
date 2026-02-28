@@ -386,7 +386,7 @@ namespace TaskMonitoringApp.Controllers
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
 
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> SearchGoalNameByName(string searchQuery)
         {
             _logger.LogInformation("Entered SearchGoalNameByName with searchQuery={SearchQuery}", searchQuery);
@@ -432,6 +432,30 @@ namespace TaskMonitoringApp.Controllers
             {
                 _logger.LogError(ex, "Exception in GetNotesByGoal for goalId={GoalId}, userId={UserId}", goalId, userId);
                 return Json(new { status = false, message = "Error loading notes" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeattachSubGoals([FromBody] List<int> goalIds)
+        {
+            _logger.LogInformation("Attempting to de-attach goals: {GoalIds}", string.Join(",", goalIds));
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Unauthorized();
+
+            try
+            {
+                var result = await _goalService.DeattachSubGoals(userId, goalIds);
+                if (result)
+                {
+                    return Json(new { status = true, message = "Sub-goals successfully de-attached into root goals." });
+                }
+                return Json(new { status = false, message = "No valid goal IDs provided." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error de-attaching goals for user {UserId}", userId);
+                return Json(new { status = false, message = "An error occurred during de-attachment." });
             }
         }
     }

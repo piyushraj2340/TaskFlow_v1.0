@@ -6,4 +6,10 @@ namespace TaskMonitoringApp.Models.Enums
         ModelDTO,
         ModelNameDTO
     }
+
+    public enum RequestDataMode
+    {
+        AsTracking, 
+        AsNoTracking
+    }
 }
