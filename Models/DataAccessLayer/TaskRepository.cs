@@ -59,22 +59,46 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<IEnumerable<T>> GetAllTasksAsync<T>(string UserId, Status status, ResponseDataMode mode) where T : class
         {
-            var userIdParam = new SqlParameter("@UserId", UserId);
-            var statusParam = new SqlParameter("@Status", status);
-            var modeParam = new SqlParameter("@Mode", mode);
+            var baseQuery = _context.Tasks.Where(t => t.UserId == UserId && t.IsDeleted == false);
+
+            if (status != Status.All) // Replaces conditional: (@Status IS NULL OR t.TaskStatus = @Status) assuming All = 4 acts as bypass.
+            {
+                baseQuery = baseQuery.Where(t => t.TaskStatus == status);
+            }
 
             return mode switch
             {
-                ResponseDataMode.Model => await _context.Tasks
-                                            .FromSqlRaw("EXEC usp_GetAllTasksWithStatus @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                ResponseDataMode.Model => await baseQuery
                                             .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Tasks Data Not Found!"),
 
-                ResponseDataMode.ModelDTO => await _context.TaskDTOs
-                                                .FromSqlRaw("EXEC usp_GetAllTasksWithStatus @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                ResponseDataMode.ModelDTO => await baseQuery
+                                                .Select(t => new TaskDTO
+                                                {
+                                                    Id = t.Id,
+                                                    Name = t.Name,
+                                                    EndDate = t.EndDate,
+                                                    Priority = t.Priority,
+                                                    Repeat = t.Repeat,
+                                                    RepeatWeekList = t.RepeatWeekList,
+                                                    Description = t.Description,
+                                                    TaskStatus = t.TaskStatus,
+                                                    UserId = t.UserId,
+                                                    IsScheduled = t.IsScheduled,
+                                                    StartDate = t.StartDate,
+                                                    IsStarted = t.IsStarted,
+                                                    StartOptionType = t.StartOptionType,
+                                                    CompletedOn = t.CompletedOn,
+                                                    EndedOn = t.EndedOn
+                                                })
                                                 .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Tasks Data Not Found!"),
 
-                ResponseDataMode.ModelNameDTO => await _context.TaskNameDTOs
-                                                    .FromSqlRaw("EXEC usp_GetAllTasksWithStatus @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                ResponseDataMode.ModelNameDTO => await baseQuery
+                                                    .Select(t => new TaskNameDTO
+                                                    {
+                                                        Id = t.Id,
+                                                        Name = t.Name,
+                                                        UserId = t.UserId
+                                                    })
                                                     .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Tasks Data Not Found!"),
 
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Tasks Data.")
@@ -122,23 +146,48 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<IEnumerable<T>> GetAllTasksWithStatusByGoalId<T>(string userId, int goalId, Status taskStatus, ResponseDataMode mode) where T : class
         {
-            var userIdParam = new SqlParameter("@UserId", userId);
-            var taskStatusParam = new SqlParameter("@Status", taskStatus);
-            var goalIdParam = new SqlParameter("@GoalId", goalId);
-            var modeParam = new SqlParameter("@Mode", mode);
+            var baseQuery = _context.GoalTasks
+                .Where(gt => gt.GoalId == goalId && gt.UserId == userId && gt.Task.UserId == userId && gt.Task.IsDeleted == false);
+
+            if (taskStatus != Status.All) // Mapping 4 = All via enum bypass
+            {
+                baseQuery = baseQuery.Where(gt => gt.Task.TaskStatus == taskStatus);
+            }
 
             return mode switch
             {
-                ResponseDataMode.Model => await _context.Tasks
-                                            .FromSqlRaw("EXEC usp_GetAllTasksWithStatusByGoalId @UserId, @Status, @GoalId, @Mode", userIdParam, taskStatusParam, goalIdParam, modeParam)
+                ResponseDataMode.Model => await baseQuery
+                                            .Select(gt => gt.Task)
                                             .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Tasks Data Not Found!"),
 
-                ResponseDataMode.ModelDTO => await _context.TaskDTOs
-                                                .FromSqlRaw("EXEC usp_GetAllTasksWithStatusByGoalId @UserId, @Status, @GoalId, @Mode", userIdParam, taskStatusParam, goalIdParam, modeParam)
+                ResponseDataMode.ModelDTO => await baseQuery
+                                                .Select(gt => new TaskDTO
+                                                {
+                                                    Id = gt.Task.Id,
+                                                    Name = gt.Task.Name,
+                                                    EndDate = gt.Task.EndDate,
+                                                    Priority = gt.Task.Priority,
+                                                    Repeat = gt.Task.Repeat,
+                                                    RepeatWeekList = gt.Task.RepeatWeekList,
+                                                    Description = gt.Task.Description,
+                                                    TaskStatus = gt.Task.TaskStatus,
+                                                    UserId = gt.Task.UserId,
+                                                    IsScheduled = gt.Task.IsScheduled,
+                                                    StartDate = gt.Task.StartDate,
+                                                    IsStarted = gt.Task.IsStarted,
+                                                    StartOptionType = gt.Task.StartOptionType,
+                                                    CompletedOn = gt.Task.CompletedOn,
+                                                    EndedOn = gt.Task.EndedOn
+                                                })
                                                 .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Tasks Data Not Found!"),
 
-                ResponseDataMode.ModelNameDTO => await _context.TaskNameDTOs
-                                                .FromSqlRaw("EXEC usp_GetAllTasksWithStatusByGoalId @UserId, @Status, @GoalId, @Mode", userIdParam, taskStatusParam, goalIdParam, modeParam)
+                ResponseDataMode.ModelNameDTO => await baseQuery
+                                                .Select(gt => new TaskNameDTO
+                                                {
+                                                    Id = gt.Task.Id,
+                                                    Name = gt.Task.Name,
+                                                    UserId = gt.Task.UserId
+                                                })
                                                 .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Tasks Data Not Found!"),
 
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Tasks Data.")
