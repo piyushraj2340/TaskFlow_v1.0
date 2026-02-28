@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TodoMonitoringApp.Models.Entities;
 
 namespace TaskMonitoringApp.Models.Services

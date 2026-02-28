@@ -17,6 +17,7 @@ using TaskMonitoringApp.Models.DTOs;
 using AutoMapper;
 using TaskMonitoringApp.Exceptions;
 using System.Collections;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.DataAccessLayer
 {

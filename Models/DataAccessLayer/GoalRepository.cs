@@ -6,6 +6,7 @@ using TaskMonitoringApp.Exceptions;
 using TaskMonitoringApp.Models.Data;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Repositories;
 
 namespace TaskMonitoringApp.Models.DataAccessLayer

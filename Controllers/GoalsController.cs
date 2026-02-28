@@ -9,6 +9,8 @@ using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Services;
 using TaskMonitoringApp.Models.ViewModel;
+using TaskMonitoringApp.Models.Enums; 
+
 
 namespace TaskMonitoringApp.Controllers
 {

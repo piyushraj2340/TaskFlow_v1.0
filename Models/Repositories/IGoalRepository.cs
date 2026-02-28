@@ -1,5 +1,6 @@
 ﻿using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.Repositories
 {

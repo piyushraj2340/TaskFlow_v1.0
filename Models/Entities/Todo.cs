@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System.ComponentModel.DataAnnotations;
+using TaskMonitoringApp.Models.Enums;
 using TodoMonitoringApp.Models.Entities;
 
 namespace TaskMonitoringApp.Models.Entities

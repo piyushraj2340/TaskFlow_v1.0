@@ -1,34 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TaskMonitoringApp.Models.Enums; // Added using
 
 namespace TaskMonitoringApp.Models.Entities
 {
-    public enum Status
-    {
-        NotStarted = 0,
-        Running = 1,
-        Completed = 2,
-        Ended = 3,
-        All = 4,
-        Draft = 5,
-        Published = 6,
-        Archived = 7,
-    }
-
-    public enum ResponseDataMode
-    {
-        Model = 0,
-        ModelDTO,
-        ModelNameDTO
-    }
-
-    public enum StartOptions
-    {
-        Manual = 0,
-        Scheduled,
-        Immediate
-    }
-
     public class Goals
     {
         public int Id { get; set; }

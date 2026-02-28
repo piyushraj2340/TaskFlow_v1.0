@@ -1,4 +1,6 @@
-﻿namespace TaskMonitoringApp.Models.Entities
+﻿using TaskMonitoringApp.Models.Enums;
+
+namespace TaskMonitoringApp.Models.Entities
 {
     public enum NotesAttachedWith
     {
