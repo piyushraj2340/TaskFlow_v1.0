@@ -123,7 +123,7 @@ namespace TaskMonitoringApp.Controllers
                     }
                     else
                     {
-                        todoDataWithTask = await _service.GetAllTodo(userId, Status.Running);
+                        todoDataWithTask = await _service.AddAndGetTodosFromTaskAsync(userId, Status.Running);
                     }
                 }
 

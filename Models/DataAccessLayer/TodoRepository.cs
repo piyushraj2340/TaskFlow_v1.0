@@ -505,5 +505,96 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             await _context.Todo.AddRangeAsync(todos);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<T>> GetAllTodosFromTaskWithoutSpAsync<T>(string userId, Status status, ResponseDataMode mode) where T : class
+        {
+            var today = DateTime.Today; // Start of today
+            var tomorrow = today.AddDays(1);  // Start of tomorrow
+
+            if (mode == ResponseDataMode.Model)
+            {
+                var query = _context.Todo
+                    .Include(td => td.Task)
+                    .Where(td => td.UserId == userId && td.CreatedOn >= today && td.CreatedOn < tomorrow);
+
+                if (status != Status.All)
+                {
+                    query = query.Where(td => td.Status == status);
+                }
+
+                var result = await query.Select(td => new TodoWithTask
+                {
+                    Id = td.Id,
+                    EndDate = td.EndDate,
+                    Status = td.Status,
+                    CreatedOn = td.CreatedOn,
+                    UpdatedOn = td.UpdatedOn,
+                    DeletedOn = td.DeletedOn,
+                    TaskId = td.TaskId,
+                    UserId = td.UserId,
+                    // Notes = td.Notes, // Not mapped in the original TodoWithTask model class structure
+                    // IsManualAdded = td.IsManualAdded, // Not mapped in the original TodoWithTask model class structure
+                    TaskName = td.Task.Name,
+                    TaskEndDate = td.Task.EndDate,
+                    TaskCreatedOn = td.Task.CreatedOn,
+                    TaskUpdatedOn = td.Task.UpdatedOn,
+                    TaskDeletedOn = td.Task.DeletedOn,
+                    TaskStatus = td.Task.TaskStatus,
+                    TaskDescription = td.Task.Description,
+                    TaskPriority = td.Task.Priority,
+                    TaskRepeat = td.Task.Repeat,
+                    TaskRepeatWeekList = td.Task.RepeatWeekList
+                }).ToListAsync();
+
+                if (result == null || !result.Any())
+                {
+                    throw new NotFoundException("Todo Data Not Found!");
+                }
+
+                return result as IEnumerable<T>;
+            }
+            else if (mode == ResponseDataMode.ModelDTO)
+            {
+                var query = _context.Todo
+                    .Include(td => td.Task)
+                    .Where(td => td.UserId == userId && td.CreatedOn >= today && td.CreatedOn < tomorrow);
+
+                if (status != Status.All)
+                {
+                    query = query.Where(td => td.Status == status);
+                }
+
+                var result = await query.Select(td => new TodoDTOWithTaskDTO
+                {
+                    Id = td.Id,
+                    EndDate = td.EndDate,
+                    Status = td.Status,
+                    TaskId = td.TaskId,
+                    UserId = td.UserId,
+                    Notes = td.Notes,
+                    IsManualAdded = td.IsManualAdded,
+                    TaskName = td.Task.Name,
+                    TaskEndDate = td.Task.EndDate,
+                    TaskStatus = td.Task.TaskStatus,
+                    TaskDescription = td.Task.Description,
+                    TaskPriority = td.Task.Priority,
+                    TaskRepeat = td.Task.Repeat,
+                    TaskRepeatWeekList = td.Task.RepeatWeekList,
+                    TaskCompletedOn = td.Task.CompletedOn,
+                    TaskEndedOn = td.Task.EndedOn
+                }).ToListAsync();
+
+                if (result == null || !result.Any())
+                {
+                    throw new NotFoundException("Todo Data Not Found!");
+                }
+
+                return result as IEnumerable<T>;
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid @Mode To Access Data From Data Base");
+            }
+        }
     }
 }

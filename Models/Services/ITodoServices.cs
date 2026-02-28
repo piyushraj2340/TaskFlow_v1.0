@@ -38,5 +38,7 @@ namespace TaskMonitoringApp.Models.Services
         Task AddBulkTodos(string userId, BulkTodoCreateDTO bulkDto);
 
         Task GenerateTodosFromTasksAsync(string userId);
+
+        Task<IEnumerable<TodoDTOWithTaskDTO>> AddAndGetTodosFromTaskAsync(string userId, Status status);
     }
 }

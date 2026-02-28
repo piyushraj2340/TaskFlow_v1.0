@@ -42,5 +42,7 @@ namespace TaskMonitoringApp.Models.Repositories
         Task<IEnumerable<int>> GetExistingTodoTaskIdsAsync(string userId, DateTime today, DateTime tomorrow);
 
         Task AddTodosBulkAsync(IEnumerable<Todo> todos);
+
+        Task<IEnumerable<T>> GetAllTodosFromTaskWithoutSpAsync<T>(string userId, Status status, ResponseDataMode mode) where T : class;
     }
 }
