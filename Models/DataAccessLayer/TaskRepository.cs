@@ -193,12 +193,81 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task UpdateTaskStatusAsync(string userId, int taskId, Status statusToChange)
         {
-            var userIdParam = new SqlParameter("@UserId", userId);
-            var taskIdParam = new SqlParameter("@TaskId", taskId);
-            var statusToChangeParam = new SqlParameter("@StatusToUpdate", statusToChange);
+            var currentDateTime = DateTime.Now;
 
-            await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeTaskStatus @UserId, @TaskId, @StatusToUpdate", userIdParam, taskIdParam, statusToChangeParam)
-                .ToListAsync();
+            var task = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == taskId && t.UserId == userId && t.IsDeleted == false && t.EndDate > currentDateTime);
+
+            if (task == null)
+            {
+                throw new NotFoundException("Task Not Found! Task Must be in Active State");
+            }
+
+            var currentTaskStatus = task.TaskStatus;
+
+            if (statusToChange == Status.NotStarted)
+            {
+                if (currentTaskStatus == Status.Running)
+                {
+                    task.TaskStatus = Status.NotStarted;
+                    task.UpdatedOn = currentDateTime;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Task must be in running state!");
+                }
+            }
+            else if (statusToChange == Status.Running)
+            {
+                if (currentTaskStatus == Status.NotStarted || currentTaskStatus == Status.Completed || currentTaskStatus == Status.Ended)
+                {
+                    task.TaskStatus = Status.Running;
+                    task.UpdatedOn = currentDateTime;
+
+                    if (currentTaskStatus == Status.NotStarted && !task.IsStarted)
+                    {
+                        task.IsStarted = true;
+                        task.StartedOn = currentDateTime;
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Task must be in Active State!");
+                }
+            }
+            else if (statusToChange == Status.Completed)
+            {
+                if (currentTaskStatus == Status.Running)
+                {
+                    task.TaskStatus = Status.Completed;
+                    task.UpdatedOn = currentDateTime;
+                    task.CompletedOn = currentDateTime;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Task must be in running state!");
+                }
+            }
+            else if (statusToChange == Status.Ended)
+            {
+                if (currentTaskStatus == Status.Running)
+                {
+                    task.TaskStatus = Status.Ended;
+                    task.UpdatedOn = currentDateTime;
+                    task.EndedOn = currentDateTime;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Task must be in running state!");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid Task Status!");
+            }
+
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<int> GetTaskCountByTaskStatus(string UserId, Status status)
