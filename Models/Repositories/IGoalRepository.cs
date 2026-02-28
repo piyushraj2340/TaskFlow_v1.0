@@ -29,5 +29,6 @@ namespace TaskMonitoringApp.Models.Repositories
         // New Methods
         Task<IEnumerable<GoalDTO>> GetRootGoalsAsync(string userId, Status status);
         Task<IEnumerable<GoalDTO>> GetChildGoalsAsync(string userId, int parentId);
+        Task UpdateAutoStartedGoalsAsync(string userId);
     }
 }

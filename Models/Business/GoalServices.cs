@@ -316,5 +316,23 @@ namespace TaskMonitoringApp.Models.Business
         {
             return await _goalRepository.GetChildGoalsAsync(userId, parentId);
         }
+
+        public async Task<IEnumerable<GoalDTO>> GetAllGoalsWithAutoStartAsync(string userId, Status status)
+        {
+            if (status == Status.Running || status == Status.All)
+            {
+                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+            }
+            return await _goalRepository.GetAllGoalsAsync<GoalDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetRootGoalsWithAutoStartAsync(string userId, Status status)
+        {
+            if (status == Status.Running || status == Status.All)
+            {
+                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+            }
+            return await _goalRepository.GetRootGoalsAsync(userId, status);
+        }
     }
 }

@@ -221,7 +221,7 @@ namespace TaskMonitoringApp.Controllers
 
             try
             {
-                var goals = await _goalService.GetRootGoals(userId, status);
+                var goals = await _goalService.GetRootGoalsWithAutoStartAsync(userId, status);
                 return Json(new { status = true, data = goals });
             }
             catch (Exception ex)
@@ -295,7 +295,7 @@ namespace TaskMonitoringApp.Controllers
                 int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
                 int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-                var data = await _goalService.GetAllGoals(userId, status);
+                var data = await _goalService.GetAllGoalsWithAutoStartAsync(userId, status);
                 int totalRecord = data.Count();
 
                 if (!string.IsNullOrEmpty(searchValue))

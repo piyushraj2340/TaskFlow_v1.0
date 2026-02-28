@@ -96,7 +96,7 @@ namespace TaskMonitoringApp.Controllers.API
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllGoals()
         {
             var userId = _userManager.GetUserId(User);
 
@@ -105,7 +105,7 @@ namespace TaskMonitoringApp.Controllers.API
                 return RedirectToAction("Login", "Account");
             }
 
-            var getGoals = await _service.GetAllGoals(userId, Status.All);
+            var getGoals = await _service.GetAllGoalsWithAutoStartAsync(userId, Status.All);
 
             if (getGoals == null)
             {

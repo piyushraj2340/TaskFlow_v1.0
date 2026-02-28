@@ -336,5 +336,33 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                     ParentName = g.Parent.Name
                 }).ToListAsync();
         }
+
+        public async Task UpdateAutoStartedGoalsAsync(string userId)
+        {
+            var currentDateTime = DateTime.Now;
+
+            var goalsToUpdate = await _context.Goals
+                .Where(g => g.UserId == userId 
+                         && g.IsScheduled 
+                         && !g.IsStarted 
+                         && g.StartDate < currentDateTime 
+                         && g.GoalStatus == Status.NotStarted 
+                         && !g.IsDeleted)
+                .ToListAsync();
+
+            if (goalsToUpdate.Any())
+            {
+                foreach (var goal in goalsToUpdate)
+                {
+                    goal.GoalStatus = Status.Running;
+                    goal.UpdatedOn = currentDateTime;
+                    goal.IsStarted = true;
+                    goal.StartedOn = currentDateTime;
+                }
+
+                _context.Goals.UpdateRange(goalsToUpdate);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

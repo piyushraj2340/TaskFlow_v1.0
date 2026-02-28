@@ -36,5 +36,8 @@ namespace TaskMonitoringApp.Models.Services
         // New Methods for Multi-level
         Task<IEnumerable<GoalDTO>> GetRootGoals(string userId, Status status);
         Task<IEnumerable<GoalDTO>> GetChildGoals(string userId, int parentId);
+
+        Task<IEnumerable<GoalDTO>> GetAllGoalsWithAutoStartAsync(string userId, Status status);
+        Task<IEnumerable<GoalDTO>> GetRootGoalsWithAutoStartAsync(string userId, Status status);
     }
 }
