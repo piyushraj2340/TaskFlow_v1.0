@@ -108,40 +108,58 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<T> GetTasksByIdAsync<T>(string userId, int id, ResponseDataMode mode) where T : class
         {
-            var userIdParam = new SqlParameter("@UserId", userId);
-            var taskIdParam = new SqlParameter("@TaskId", id);
-            var modeParam = new SqlParameter("@Mode", mode);
+            var baseQuery = _context.Tasks.Where(t => t.UserId == userId && t.Id == id && t.IsDeleted == false);
 
             switch (mode)
             {
                 case ResponseDataMode.Model:
-                    var ModelData = await _context.Tasks
-                        .FromSqlRaw("EXEC usp_GetTaskById @UserId, @TaskId, @Mode", userIdParam, taskIdParam, modeParam)
-                        .ToListAsync() as IEnumerable<T>;
+                    
+                    var ModelData = await baseQuery.FirstOrDefaultAsync();
 
-                    return ModelData?.FirstOrDefault()
+                    return ModelData as T
                         ?? throw new NotFoundException($"Task with ID {id} not found or does not belong to user {userId}.");
 
                 case ResponseDataMode.ModelDTO:
-                    var ModelDTOData = await _context.TaskDTOs
-                        .FromSqlRaw("EXEC usp_GetTaskById @UserId, @TaskId, @Mode", userIdParam, taskIdParam, modeParam)
-                        .ToListAsync() as IEnumerable<T>;
+                    
+                    var ModelDTOData = await baseQuery
+                        .Select(t => new TaskDTO
+                        {
+                            Id = t.Id,
+                            Name = t.Name,
+                            EndDate = t.EndDate,
+                            Priority = t.Priority,
+                            Repeat = t.Repeat,
+                            RepeatWeekList = t.RepeatWeekList,
+                            Description = t.Description,
+                            TaskStatus = t.TaskStatus,
+                            UserId = t.UserId,
+                            IsScheduled = t.IsScheduled,
+                            StartDate = t.StartDate,
+                            IsStarted = t.IsStarted,
+                            StartOptionType = t.StartOptionType,
+                            CompletedOn = t.CompletedOn,
+                            EndedOn = t.EndedOn
+                        }).FirstOrDefaultAsync();
 
-                    return ModelDTOData?.FirstOrDefault()
+                    return ModelDTOData as T
                         ?? throw new NotFoundException($"Task with ID {id} not found or does not belong to user {userId}.");
 
                 case ResponseDataMode.ModelNameDTO:
-                    var ModelDTONameData = await _context.TaskNameDTOs
-                        .FromSqlRaw("EXEC usp_GetTaskById @UserId, @TaskId, @Mode", userIdParam, taskIdParam, modeParam)
-                        .ToListAsync() as IEnumerable<T>;
+                    
+                    var ModelDTONameData = await baseQuery
+                        .Select(t => new TaskNameDTO
+                        {
+                            Id = t.Id,
+                            Name = t.Name,
+                            UserId = t.UserId
+                        }).FirstOrDefaultAsync();
 
-                    return ModelDTONameData?.FirstOrDefault()
+                    return ModelDTONameData as T
                         ?? throw new NotFoundException($"Task with ID {id} not found or does not belong to user {userId}.");
 
                 default:
                     throw new InvalidOperationException("Invalid Operations While Fetching Tasks Data.");
             }
-
         }
 
         public async Task<IEnumerable<T>> GetAllTasksWithStatusByGoalId<T>(string userId, int goalId, Status taskStatus, ResponseDataMode mode) where T : class

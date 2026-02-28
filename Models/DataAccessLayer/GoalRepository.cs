@@ -65,35 +65,53 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<T> GetGoalByIdAsync<T>(string userId, int id, ResponseDataMode mode) where T : class
         {
-             var userIdParam = new SqlParameter("@UserId", userId);
-            var goalIdParam = new SqlParameter("@GoalId", id);
-            var modeParam = new SqlParameter("@Mode", mode);
-
+            var baseQuery = _context.Goals.Where(g => g.UserId == userId && g.Id == id && g.IsDeleted == false);
 
             switch (mode)
             {
                 case ResponseDataMode.Model:
+                    
+                    var dataGoalModel = await baseQuery.FirstOrDefaultAsync();
 
-                    var dataGoalModel = await _context.Goals.FromSqlRaw("EXEC usp_GetGoalById @UserId, @GoalId, @Mode", userIdParam, goalIdParam, modeParam)
-                            .ToListAsync() as IEnumerable<T>;
-
-                    return dataGoalModel?.FirstOrDefault()
+                    return dataGoalModel as T
                             ?? throw new NotFoundException($"Goal with ID {id} not found or does not belong to user {userId}.");
 
                 case ResponseDataMode.ModelDTO:
 
-                    var dataGoalDTO = await _context.GoalDTOs.FromSqlRaw("EXEC usp_GetGoalById @UserId, @GoalId, @Mode", userIdParam, goalIdParam, modeParam)
-                                .ToListAsync() as IEnumerable<T>;
+                    var dataGoalDTO = await baseQuery
+                        .Select(g => new GoalDTO
+                        {
+                            Id = g.Id,
+                            Name = g.Name,
+                            Description = g.Description,
+                            Priority = g.Priority,
+                            GoalStatus = g.GoalStatus,
+                            StartDate = g.StartDate,
+                            EndDate = g.EndDate,
+                            IsScheduled = g.IsScheduled,
+                            IsStarted = g.IsStarted,
+                            StartOptionType = g.StartOptionType,
+                            UserId = g.UserId,
+                            ParentId = g.ParentId,
+                            ParentName = g.Parent != null ? g.Parent.Name : null,
+                            SubGoalsCount = _context.Goals.Count(sg => sg.ParentId == g.Id && sg.IsDeleted == false)
+                        }).FirstOrDefaultAsync();
 
-                    return dataGoalDTO?.FirstOrDefault()
+                    return dataGoalDTO as T
                             ?? throw new NotFoundException($"Goal with ID {id} not found or does not belong to user {userId}.");
 
                 case ResponseDataMode.ModelNameDTO:
 
-                    var dataGoalNameDTO = await _context.GoalNameDTOs.FromSqlRaw("EXEC usp_GetGoalById @UserId, @GoalId, @Mode", userIdParam, goalIdParam, modeParam)
-                                .ToListAsync() as IEnumerable<T>;
+                    var dataGoalNameDTO = await baseQuery
+                        .Select(g => new GoalNameDTO
+                        {
+                            Id = g.Id,
+                            Name = g.Name,
+                            UserId = g.UserId,
+                            GoalStatus = g.GoalStatus
+                        }).FirstOrDefaultAsync();
 
-                    return dataGoalNameDTO?.FirstOrDefault()
+                    return dataGoalNameDTO as T
                             ?? throw new NotFoundException($"Goal with ID {id} not found or does not belong to user {userId}.");
 
                 default: throw new InvalidOperationException("Invalid Operations While Fetching Goals Data.");
