@@ -39,5 +39,9 @@ namespace TaskMonitoringApp.Models.Services
 
         Task<IEnumerable<GoalDTO>> GetAllGoalsWithAutoStartAsync(string userId, Status status);
         Task<IEnumerable<GoalDTO>> GetRootGoalsWithAutoStartAsync(string userId, Status status);
+
+        // Dynamic State wrappers
+        Task<IEnumerable<GoalDTO>> GetAllGoalsWithDynamicStatusUpdatesAsync(string userId, Status status);
+        Task<IEnumerable<GoalDTO>> GetRootGoalsWithDynamicStatusUpdatesAsync(string userId, Status status);
     }
 }

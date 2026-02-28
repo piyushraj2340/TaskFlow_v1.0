@@ -105,7 +105,7 @@ namespace TaskMonitoringApp.Controllers.API
                 return RedirectToAction("Login", "Account");
             }
 
-            var getGoals = await _service.GetAllGoalsWithAutoStartAsync(userId, Status.All);
+            var getGoals = await _service.GetAllGoalsWithDynamicStatusUpdatesAsync(userId, Status.All);
 
             if (getGoals == null)
             {

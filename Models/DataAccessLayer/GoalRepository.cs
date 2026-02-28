@@ -364,5 +364,31 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task UpdateEndedGoalsAsync(string userId)
+        {
+            var currentDateTime = DateTime.Now;
+
+            var goalsToUpdate = await _context.Goals
+                .Where(g => g.UserId == userId 
+                         && g.EndDate < currentDateTime 
+                         && g.GoalStatus != Status.Completed 
+                         && g.GoalStatus != Status.Ended 
+                         && !g.IsDeleted)
+                .ToListAsync();
+
+            if (goalsToUpdate.Any())
+            {
+                foreach (var goal in goalsToUpdate)
+                {
+                    goal.GoalStatus = Status.Ended;
+                    goal.UpdatedOn = currentDateTime;
+                    goal.EndedOn = currentDateTime;
+                }
+
+                _context.Goals.UpdateRange(goalsToUpdate);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

@@ -159,7 +159,7 @@ namespace TaskMonitoringApp.Controllers
 
         // Updated Bind to include ParentId
         [HttpPut]
-        public async Task<IActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority,StartOptionType,StartDate,ParentId")] GoalViewModel goalData)
+        public async Task<ActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority,StartOptionType,StartDate,ParentId")] GoalViewModel goalData)
         {
             _logger.LogInformation("Entered Edit with Id={Id}, Name={Name}, EndDate={EndDate}, GoalStatus={GoalStatus}, Priority={Priority}, StartOptionType={StartOptionType}, StartDate={StartDate}, ParentId={ParentId}", goalData.Id, goalData.Name, goalData.EndDate, goalData.GoalStatus, goalData.Priority, goalData.StartOptionType, goalData.StartDate, goalData.ParentId);
 
@@ -221,7 +221,7 @@ namespace TaskMonitoringApp.Controllers
 
             try
             {
-                var goals = await _goalService.GetRootGoalsWithAutoStartAsync(userId, status);
+                var goals = await _goalService.GetRootGoalsWithDynamicStatusUpdatesAsync(userId, status);
                 return Json(new { status = true, data = goals });
             }
             catch (Exception ex)
@@ -295,7 +295,7 @@ namespace TaskMonitoringApp.Controllers
                 int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
                 int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-                var data = await _goalService.GetAllGoalsWithAutoStartAsync(userId, status);
+                var data = await _goalService.GetAllGoalsWithDynamicStatusUpdatesAsync(userId, status);
                 int totalRecord = data.Count();
 
                 if (!string.IsNullOrEmpty(searchValue))

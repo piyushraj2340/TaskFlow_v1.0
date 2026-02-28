@@ -195,6 +195,10 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<GoalProductivityDTO> GetGoalProductivity(string userId)
         {
+            // Keep stats accurate dynamically
+            await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+            await _goalRepository.UpdateEndedGoalsAsync(userId);
+            
             int runningGoal = await _goalRepository.GetGoalCountByGoalStatus(userId, Status.Running);
 
             // Overall productivity
@@ -331,6 +335,26 @@ namespace TaskMonitoringApp.Models.Business
             if (status == Status.Running || status == Status.All)
             {
                 await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+            }
+            return await _goalRepository.GetRootGoalsAsync(userId, status);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetAllGoalsWithDynamicStatusUpdatesAsync(string userId, Status status)
+        {
+            if (status != Status.Completed && status != Status.Deleted)
+            {
+                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+                await _goalRepository.UpdateEndedGoalsAsync(userId);
+            }
+            return await _goalRepository.GetAllGoalsAsync<GoalDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetRootGoalsWithDynamicStatusUpdatesAsync(string userId, Status status)
+        {
+            if (status != Status.Completed && status != Status.Deleted)
+            {
+                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+                await _goalRepository.UpdateEndedGoalsAsync(userId);
             }
             return await _goalRepository.GetRootGoalsAsync(userId, status);
         }
