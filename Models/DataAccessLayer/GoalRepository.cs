@@ -390,5 +390,45 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task UpdateGoalStateAsync(string userId)
+        {
+            var currentDateTime = DateTime.Now;
+
+            var goalsToUpdate = await _context.Goals
+                .Where(g => g.UserId == userId && !g.IsDeleted &&
+                           ((g.EndDate < currentDateTime && 
+                             g.GoalStatus != Status.Completed && 
+                             g.GoalStatus != Status.Ended) 
+                            || 
+                            (g.IsScheduled && 
+                             g.StartDate < currentDateTime && 
+                             g.GoalStatus != Status.Completed && 
+                             !g.IsStarted)))
+                .ToListAsync();
+
+            if (goalsToUpdate.Any())
+            {
+                foreach (var goal in goalsToUpdate)
+                {
+                    if (goal.EndDate < currentDateTime && goal.GoalStatus != Status.Completed && goal.GoalStatus != Status.Ended)
+                    {
+                        goal.GoalStatus = Status.Ended;
+                        goal.UpdatedOn = currentDateTime;
+                        goal.EndedOn = currentDateTime;
+                    }
+                    else if (goal.IsScheduled && goal.StartDate < currentDateTime && goal.GoalStatus != Status.Completed)
+                    {
+                        goal.GoalStatus = Status.Running;
+                        goal.UpdatedOn = currentDateTime;
+                        goal.IsStarted = true;
+                        goal.StartedOn = currentDateTime;
+                    }
+                }
+
+                _context.Goals.UpdateRange(goalsToUpdate);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

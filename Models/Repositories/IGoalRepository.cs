@@ -1,4 +1,4 @@
-﻿using TaskMonitoringApp.Models.DTOs;
+using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Enums;
 
@@ -32,5 +32,6 @@ namespace TaskMonitoringApp.Models.Repositories
 
         Task UpdateAutoStartedGoalsAsync(string userId);
         Task UpdateEndedGoalsAsync(string userId);
+        Task UpdateGoalStateAsync(string userId);
     }
 }

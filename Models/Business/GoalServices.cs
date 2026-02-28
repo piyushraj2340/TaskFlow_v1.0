@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TaskMonitoringApp.Models.DTOs;
@@ -196,8 +196,8 @@ namespace TaskMonitoringApp.Models.Business
         public async Task<GoalProductivityDTO> GetGoalProductivity(string userId)
         {
             // Keep stats accurate dynamically
-            await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
-            await _goalRepository.UpdateEndedGoalsAsync(userId);
+            
+            await _goalRepository.UpdateGoalStateAsync(userId);
             
             int runningGoal = await _goalRepository.GetGoalCountByGoalStatus(userId, Status.Running);
 
@@ -325,7 +325,7 @@ namespace TaskMonitoringApp.Models.Business
         {
             if (status == Status.Running || status == Status.All)
             {
-                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+                
             }
             return await _goalRepository.GetAllGoalsAsync<GoalDTO>(userId, status, ResponseDataMode.ModelDTO);
         }
@@ -334,7 +334,7 @@ namespace TaskMonitoringApp.Models.Business
         {
             if (status == Status.Running || status == Status.All)
             {
-                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
+                
             }
             return await _goalRepository.GetRootGoalsAsync(userId, status);
         }
@@ -343,8 +343,8 @@ namespace TaskMonitoringApp.Models.Business
         {
             if (status != Status.Completed && status != Status.Archived)
             {
-                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
-                await _goalRepository.UpdateEndedGoalsAsync(userId);
+                
+                await _goalRepository.UpdateGoalStateAsync(userId);
             }
             return await _goalRepository.GetAllGoalsAsync<GoalDTO>(userId, status, ResponseDataMode.ModelDTO);
         }
@@ -353,8 +353,8 @@ namespace TaskMonitoringApp.Models.Business
         {
             if (status != Status.Completed && status != Status.Archived)
             {
-                await _goalRepository.UpdateAutoStartedGoalsAsync(userId);
-                await _goalRepository.UpdateEndedGoalsAsync(userId);
+                
+                await _goalRepository.UpdateGoalStateAsync(userId);
             }
             return await _goalRepository.GetRootGoalsAsync(userId, status);
         }
