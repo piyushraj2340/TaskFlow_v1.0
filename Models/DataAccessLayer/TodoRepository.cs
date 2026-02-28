@@ -665,5 +665,66 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                 throw new InvalidOperationException("Invalid @Mode To Access Data From Data Base");
             }
         }
+
+        public async Task<TodoProgressAnalysisDTO> UpsertAndGetTodoProgressAnalysesWithoutSpAsync(string userId, DateTime forDate)
+        {
+            var date = forDate.Date;
+            var tomorrow = date.AddDays(1);
+
+            var todos = await _context.Todo
+                .Where(t => t.UserId == userId && t.CreatedOn >= date && t.CreatedOn < tomorrow && !t.IsDeleted)
+                .ToListAsync();
+
+            int totalTodos = todos.Count;
+            int completedTodos = todos.Count(t => t.Status == Status.Completed);
+
+            double productivityForTodays = 0d;
+            if (totalTodos > 0)
+            {
+                productivityForTodays = Math.Round(((double)completedTodos / totalTodos) * 100, 2);
+            }
+
+            var analysisRecord = await _context.TodoProgressAnalyses
+                .FirstOrDefaultAsync(tpa => tpa.UserId == userId && tpa.CalculateDateFor >= date && tpa.CalculateDateFor < tomorrow);
+
+            if (analysisRecord == null)
+            {
+                analysisRecord = new TodoMonitoringApp.Models.Entities.TodoProgressAnalysis
+                {
+                    UserId = userId,
+                    CalculateDateFor = date,
+                    TotalTodo = totalTodos,
+                    TotalCompletedTodo = completedTodos,
+                    TotalMissedTodo = totalTodos - completedTodos,
+                    ProductivityForDay = productivityForTodays,
+                    CreatedOn = DateTime.Now,
+                    UpdatedOn = DateTime.Now,
+                    IsDeleted = false
+                };
+                await _context.TodoProgressAnalyses.AddAsync(analysisRecord);
+            }
+            else
+            {
+                analysisRecord.TotalTodo = totalTodos;
+                analysisRecord.TotalCompletedTodo = completedTodos;
+                analysisRecord.TotalMissedTodo = totalTodos - completedTodos;
+                analysisRecord.ProductivityForDay = productivityForTodays;
+                analysisRecord.UpdatedOn = DateTime.Now;
+                _context.TodoProgressAnalyses.Update(analysisRecord);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return new TodoProgressAnalysisDTO
+            {
+                Id = analysisRecord.Id,
+                CalculateDateFor = analysisRecord.CalculateDateFor,
+                TotalTodo = analysisRecord.TotalTodo,
+                TotalCompletedTodo = analysisRecord.TotalCompletedTodo,
+                TotalMissedTodo = analysisRecord.TotalMissedTodo,
+                ProductivityForDay = analysisRecord.ProductivityForDay,
+                UserId = analysisRecord.UserId
+            };
+        }
     }
 }

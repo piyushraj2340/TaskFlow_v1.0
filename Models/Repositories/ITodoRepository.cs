@@ -44,5 +44,7 @@ namespace TaskMonitoringApp.Models.Repositories
         Task AddTodosBulkAsync(IEnumerable<Todo> todos);
 
         Task<IEnumerable<T>> GetAllTodosFromTaskWithoutSpAsync<T>(string userId, Status status, ResponseDataMode mode) where T : class;
+
+        Task<TodoProgressAnalysisDTO> UpsertAndGetTodoProgressAnalysesWithoutSpAsync(string userId, DateTime forDate);
     }
 }

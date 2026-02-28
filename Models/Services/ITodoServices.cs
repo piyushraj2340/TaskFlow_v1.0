@@ -33,6 +33,8 @@ namespace TaskMonitoringApp.Models.Services
         Task<TodoProgressAnalysisDTO> GetTodoProgressAnalyses(string userId, DateTime forDate);
         Task<TodoProgressAnalysisDTO> GetTodoProgressAnalyses(string userId, int taskId);
 
+        Task<TodoProgressAnalysisDTO> GetTodoProgressAnalysesWithoutSpAsync(string userId, DateTime forDate);
+
         Task UpdateTodoNotes(string userId, int todoId, string notes);
 
         Task AddBulkTodos(string userId, BulkTodoCreateDTO bulkDto);
