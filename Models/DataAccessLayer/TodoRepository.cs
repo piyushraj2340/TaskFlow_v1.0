@@ -1,4 +1,4 @@
-﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualBasic;
@@ -56,11 +56,9 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             return mode switch
             {
                 ResponseDataMode.Model => await _context.TodoWithTask
-                        .FromSqlRaw("EXEC usp_AddAndGetTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 ResponseDataMode.ModelDTO => await _context.TodoWithTaskDTO
-                        .FromSqlRaw("EXEC usp_AddAndGetTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
@@ -354,7 +352,6 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             {
                 case ResponseDataMode.Model:
                     var todayAnalysisModel = await _context.TodoProgressAnalyses
-                        .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Not Found!");
 
@@ -363,7 +360,6 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
                 case ResponseDataMode.ModelDTO:
                     var todayAnalysisDTO = await _context.TodoProgressAnalysesDTO
-                    .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
                     .ToListAsync() as IEnumerable<T>
                         ?? throw new NotFoundException("Todo Not Found!");
 

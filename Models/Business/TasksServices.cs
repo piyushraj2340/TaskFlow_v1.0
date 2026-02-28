@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.Identity.Client;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
@@ -187,7 +187,7 @@ namespace TaskMonitoringApp.Models.Business
                 oldTask.TaskStatus = Status.Running;
             }
 
-            await _taskRepository.UpdateTasksAsync(userId, oldTask, String.Empty);
+            var taskDtoToUpdateBlank = _mapper.Map<TaskDTO>(oldTask); await _taskRepository.AddUpdateTaskWithGoalsAsync(userId, taskDtoToUpdateBlank, new List<int>(), 2);
         }
 
         public async Task UpdateTaskStatus(string userId, int taskId, Status statusToChange)
