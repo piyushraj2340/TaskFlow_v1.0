@@ -17,22 +17,46 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<IEnumerable<T>> GetAllGoalsAsync<T>(string UserId, Status status, ResponseDataMode mode) where T : class
         {
-             var userIdParam = new SqlParameter("@UserId", UserId);
-            var statusParam = new SqlParameter("@Status", status);
-            var modeParam = new SqlParameter("@Mode", mode);
+            var baseQuery = _context.Goals.Where(g => g.UserId == UserId && g.IsDeleted == false);
+
+            if (status != Status.All)
+            {
+                baseQuery = baseQuery.Where(g => g.GoalStatus == status);
+            }
 
             return mode switch
             {
-                ResponseDataMode.Model => await _context.Goals
-                                            .FromSqlRaw("EXEC usp_GetAllGoalsWithStatus @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                ResponseDataMode.Model => await baseQuery
                                             .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Goals Data Not Found!"),
 
-                ResponseDataMode.ModelDTO => await _context.GoalDTOs
-                                                .FromSqlRaw("EXEC usp_GetAllGoalsWithStatus @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                ResponseDataMode.ModelDTO => await baseQuery
+                                                .Where(g => g.ParentId == null)
+                                                .Select(g => new GoalDTO
+                                                {
+                                                    Id = g.Id,
+                                                    Name = g.Name,
+                                                    EndDate = g.EndDate,
+                                                    Priority = g.Priority,
+                                                    Description = g.Description,
+                                                    GoalStatus = g.GoalStatus,
+                                                    UserId = g.UserId,
+                                                    IsScheduled = g.IsScheduled,
+                                                    StartDate = g.StartDate,
+                                                    IsStarted = g.IsStarted,
+                                                    StartOptionType = g.StartOptionType,
+                                                    ParentId = g.ParentId,
+                                                    ParentName = "",
+                                                    SubGoalsCount = _context.Goals.Count(sg => sg.ParentId == g.Id && sg.IsDeleted == false)
+                                                })
                                                 .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Goals Data Not Found!"),
 
-                ResponseDataMode.ModelNameDTO => await _context.GoalNameDTOs
-                                                    .FromSqlRaw("EXEC usp_GetAllGoalsWithStatus @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
+                ResponseDataMode.ModelNameDTO => await baseQuery
+                                                    .Select(g => new GoalNameDTO
+                                                    {
+                                                        Id = g.Id,
+                                                        Name = g.Name,
+                                                        UserId = g.UserId
+                                                    })
                                                     .ToListAsync() as IEnumerable<T> ?? throw new NotFoundException("Goals Data Not Found!"),
 
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Goals Data.")
