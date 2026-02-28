@@ -443,12 +443,81 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         // todo need to implement this metods....
         public async Task UpdateTodoStatusAsync(string userId, int todoId, Status statusToChange)
         {
-            var userIdParam = new SqlParameter("@UserId", userId);
-            var todoIdParam = new SqlParameter("@TodoId", todoId);
-            var statusToChangeParam = new SqlParameter("@StatusToUpdate", statusToChange);
+            var currentDateTime = DateTime.Now;
+            var yesterdayDate = currentDateTime.AddDays(-1).Date;
 
-            await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeTodoStatus @UserId, @TodoId, @StatusToUpdate", userIdParam, todoIdParam, statusToChangeParam)
-                .ToListAsync();
+            // Fetch Todo with Task included
+            var todo = await _context.Todo
+                .Include(td => td.Task)
+                .FirstOrDefaultAsync(td => td.Id == todoId 
+                                        && td.UserId == userId 
+                                        && !td.IsDeleted 
+                                        && td.EndDate > yesterdayDate);
+
+            if (todo == null)
+            {
+                throw new InvalidOperationException("Todo must be in an active state!");
+            }
+
+            var task = todo.Task;
+            if (task == null || task.UserId != userId)
+            {
+                throw new InvalidOperationException("Associated task constraint failed.");
+            }
+
+            // Check if status update is allowed
+            bool isAllowedToChange = todo.IsManualAdded || (!todo.IsManualAdded && task.TaskStatus == Status.Running);
+            if (!isAllowedToChange)
+            {
+                throw new InvalidOperationException("Todo must be in an active state!");
+            }
+
+            bool isTaskActive = task.TaskStatus == Status.Running && !task.IsDeleted && task.EndDate > currentDateTime;
+
+            if (statusToChange == Status.Completed)
+            {
+                // Task is run once -> cascade completion onto the task
+                if (task.Repeat == RepeatType.RunOnce)
+                {
+                    task.TaskStatus = Status.Completed;
+                    task.UpdatedOn = currentDateTime;
+                    task.CompletedOn = currentDateTime;
+                    _context.Tasks.Update(task);
+                }
+
+                if (todo.IsManualAdded)
+                {
+                    todo.UpdatedOn = currentDateTime;
+                    todo.CompletedOn = currentDateTime;
+                    todo.Status = Status.Completed;
+                }
+                else
+                {
+                    todo.UpdatedOn = currentDateTime;
+                    todo.CompletedOn = isTaskActive ? currentDateTime : todo.CompletedOn;
+                    todo.EndedOn = !isTaskActive ? currentDateTime : todo.EndedOn;
+                    todo.Status = isTaskActive ? Status.Completed : Status.Ended;
+                }
+            }
+            else if (statusToChange == Status.Running)
+            {
+                if (isTaskActive)
+                {
+                    todo.UpdatedOn = currentDateTime;
+                    todo.Status = Status.Running;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Not allowed to change the status!");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Todo Change Status must be valid!");
+            }
+
+            _context.Todo.Update(todo);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateTodoNotesAsync(string userId, int todoId, string notes)
