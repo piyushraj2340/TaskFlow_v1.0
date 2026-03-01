@@ -706,5 +706,139 @@ namespace TaskMonitoringApp.Controllers
             // Return the result as JSON
             return Json(returnObj);
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteTask(int Id)
+        {
+            _logger.LogInformation("Entered DeleteTask with Id={Id}", Id);
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in DeleteTask.");
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                await _taskService.DeleteTask(userId, Id);
+                _logger.LogInformation("Task deleted for Id={Id}, userId={UserId}", Id, userId);
+                return Json(new { status = true, message = $"Task with Id: {Id} deleted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in DeleteTask for Id={Id}, userId={UserId}", Id, userId);
+                return Json(new { status = false, message = "Error occurred while deleting task." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeTaskStatus(int Id, [Bind("Id,TaskStatus")] TaskStatusDTO taskUpdate)
+        {
+            _logger.LogInformation("Entered ChangeTaskStatus with Id={Id}, TaskStatus={TaskStatus}", Id, taskUpdate.TaskStatus);
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in ChangeTaskStatus.");
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (Id != taskUpdate.Id)
+            {
+                _logger.LogWarning("Invalid Parameter Id in ChangeTaskStatus. Expected: {ExpectedId}, Received: {ActualId}", taskUpdate.Id, Id);
+                return Json(new { status = false, message = "Invalid Parameter Id!" });
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _taskService.UpdateTaskStatus(userId, taskUpdate.Id, taskUpdate.TaskStatus);
+                    _logger.LogInformation("Task status updated for Id={Id}, userId={UserId}, newStatus={TaskStatus}", Id, userId, taskUpdate.TaskStatus);
+                    return Json(new { status = true, message = $"Task with Id {Id} Status changed to {taskUpdate.TaskStatus}!" });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception in ChangeTaskStatus for Id={Id}, userId={UserId}", Id, userId);
+                    return Json(new { status = false, message = "Error occurred while changing task status." });
+                }
+            }
+
+            _logger.LogWarning("ModelState invalid in ChangeTaskStatus for Id={Id}.", Id);
+            return Json(new { status = false, message = "ModelState is not valid!" });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchTasks(string query)
+        {
+            _logger.LogInformation("Entered SearchTasks with query={Query}", query);
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in SearchTasks.");
+                return Unauthorized();
+            }
+
+            try
+            {
+                var tasks = await _taskService.SearchTasks(userId, query);
+                return Json(new { status = true, data = tasks });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in SearchTasks for query={Query}, userId={UserId}", query, userId);
+                return Json(new { status = false, message = "Error occurred while searching tasks." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchTasksWithGoals(string query, Status status = Status.Running)
+        {
+            _logger.LogInformation("Entered SearchTasksWithGoals with query={Query}, status={Status}", query, status);
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in SearchTasksWithGoals.");
+                return Unauthorized();
+            }
+
+            try
+            {
+                var tasks = await _taskService.SearchTasksWithGoals(userId, query, status);
+                return Json(new { status = true, data = tasks });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in SearchTasksWithGoals for query={Query}, userId={UserId}", query, userId);
+                return Json(new { status = false, message = "Error occurred while searching tasks." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNotesByTask(int taskId, int pageNumber = 1, int pageSize = 5)
+        {
+            _logger.LogInformation("Entered GetNotesByTask with taskId={TaskId}, pageNumber={PageNumber}, pageSize={PageSize}", taskId, pageNumber, pageSize);
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                _logger.LogWarning("User not authenticated in GetNotesByTask.");
+                return Unauthorized();
+            }
+
+            try
+            {
+                var notes = await _notesService.GetAllNotesByTaskId(userId, taskId, Status.All, pageNumber, pageSize);
+                return Json(new { status = true, message = "Task notes loaded", data = notes });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GetNotesByTask for taskId={TaskId}, userId={UserId}", taskId, userId);
+                return Json(new { status = false, message = "Error loading notes" });
+            }
+        }
     }
 }

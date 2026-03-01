@@ -378,6 +378,7 @@
     try {
         const timelineWrapper = document.querySelector('section.timeline-center .space-y-8, .relative.border-l-4.pl-6'); // Selector for container
         const sentinel = document.getElementById('infinite-scroll-sentinel');
+        
         if (!timelineWrapper) return;
         
         // Expose state to window so Index.cshtml can reset it
@@ -398,11 +399,21 @@
         // detect page type and params
         const goalId = sentinel.dataset.goalId ? parseInt(sentinel.dataset.goalId, 10) : null;
         const taskId = sentinel.dataset.taskId ? parseInt(sentinel.dataset.taskId, 10) : null;
-        const isJournal = !goalId && !taskId;
+        const notesObjType = Object.freeze({
+            notes: "notes",
+            tasks: "tasks",
+            goals: "goals"
+        })
+        const notesType = notesObjType[sentinel.dataset.filterPage];
+
+        const isJournal = !goalId && !taskId && notesType === notesObjType.notes;
+
+        debugger;
+
+        if (!isJournal) return;
 
         let lastDate = null;
 
-        // MODIFIED: Combine date header logic into rendering
         function renderDateHeader(globalIndex, dateStr) {
             const headerText = dateHeaderText(dateStr);
             const headerHtml = `<div class="mb-2 flex items-center justify-center relative top-[-4px]">
@@ -413,7 +424,6 @@
             timelineWrapper.insertAdjacentHTML('beforeend', headerHtml);
         }
 
-        // MODIFIED: Include date grouping in renderer
         function renderNoteWithDateGroup(note, globalIndex) {
             const dt = note.timeStamp ? new Date(note.timeStamp) : null;
             const dtStr = dt ? dt.toDateString() : null;
@@ -435,7 +445,6 @@
             globalIndex++;
         }
 
-        // --- MODIFIED: Adjust fetchNextPage to use global filter state ---
         async function fetchNextPage() {
             if (loading || window.infiniteScrollFinished) return;
             loading = true;

@@ -215,7 +215,7 @@
                                 @await Html.PartialAsync("NotesLayout", noteList)
                             </div>
                         }
-                        <div id="infinite-scroll-sentinel" data-task-id="@Model.Id" aria-hidden="true" class="h-4"></div>
+                        <div id="infinite-scroll-sentinel" data-task-id="@Model.Id" data-filter-page="tasks" aria-hidden="true" class="h-4"></div>
                     </div>
                 </div>
             </div>
