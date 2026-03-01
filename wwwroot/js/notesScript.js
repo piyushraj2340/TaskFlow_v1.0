@@ -376,10 +376,10 @@
 // -----------------------------
 (function initInfiniteScroll() {
     try {
-        const timelineWrapper = document.querySelector('section.timeline-center .space-y-8, .relative.border-l-4.pl-6'); // Selector for container
+        const timelineWrapper = document.getElementById('journalItemsContainer') || document.querySelector('section.timeline-center .space-y-8, .relative.border-l-4.pl-6'); // Selector for container
         const sentinel = document.getElementById('infinite-scroll-sentinel');
         
-        if (!timelineWrapper) return;
+        if (!timelineWrapper || !sentinel) return;
         
         // Expose state to window so Index.cshtml can reset it
         window.infiniteScrollPage = 2;
@@ -390,8 +390,8 @@
         
         // MODIFIED: Access global filter state object if it exists
         function getFilterParams() {
-             if (typeof currentFilters !== 'undefined') {
-                 return currentFilters;
+             if (typeof window.currentFilters !== 'undefined') {
+                 return window.currentFilters;
              }
              return { search: null, goalId: null, taskId: null };
         }
@@ -409,8 +409,6 @@
         const isJournal = !goalId && !taskId && notesType === notesObjType.notes;
 
         debugger;
-
-        if (!isJournal) return;
 
         let lastDate = null;
 
@@ -458,8 +456,8 @@
             });
             
             if(filters.search) urlParams.set('searchQuery', filters.search);
-            if(filters.goalId) urlParams.set('filterGoalId', filters.goalId);
-            if(filters.taskId) urlParams.set('filterTaskId', filters.taskId);
+            if(filters.goalId !== null && filters.goalId !== undefined && filters.goalId !== '') urlParams.set('filterGoalId', filters.goalId);
+            if(filters.taskId !== null && filters.taskId !== undefined && filters.taskId !== '') urlParams.set('filterTaskId', filters.taskId);
             
             // compute lastDate to avoid duplicate headers: get last displayed article time datetime (if any)
             let lastDateParam = null;
@@ -486,6 +484,10 @@
                 
                 if (!html || !html.trim()) {
                      window.infiniteScrollFinished = true;
+                     const s = document.getElementById('infinite-scroll-sentinel');
+                     if (s) {
+                         s.innerHTML = '<div class="text-slate-400 text-sm py-4 font-medium">No more history to scan.</div>';
+                     }
                 } else {
                      // Append logic
                      // Note: We need to append strictly to the internal container now
@@ -495,6 +497,14 @@
                      
                      // highlight if necessary
                      if (window.Prism) window.Prism.highlightAll();
+
+                     // Ensure small pages fetch until screen is full or data ends
+                     setTimeout(() => {
+                         const s = document.getElementById('infinite-scroll-sentinel');
+                         if (s && s.getBoundingClientRect().top < window.innerHeight + 400 && !window.infiniteScrollFinished && !loading) {
+                             fetchNextPage();
+                         }
+                     }, 100);
                 }
             } catch (err) {
                 console.error(err);
@@ -503,6 +513,8 @@
                 loading = false;
             }
         }
+        
+        window.triggerInfiniteScroll = fetchNextPage;
         
         // --- Observer setup remains similar ---
         if(sentinel) {
