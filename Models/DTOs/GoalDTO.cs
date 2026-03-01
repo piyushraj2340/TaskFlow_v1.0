@@ -78,6 +78,8 @@ namespace TaskMonitoringApp.Models.DTOs
 
         public Status? GoalStatus { get; set; }
 
+        public int? GoalParentId { get; set; }
+
     }
 
     public class GoalDTOWithNoteListDTO : GoalDTO

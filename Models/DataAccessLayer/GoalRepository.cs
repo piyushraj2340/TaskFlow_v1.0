@@ -293,7 +293,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                     g.EndDate > DateTime.Now &&
                     (g.GoalStatus == Status.Running || g.GoalStatus == Status.NotStarted) &&
                     EF.Functions.Like(g.Name, $"%{searchQuery}%"))
-                .Select(g => new GoalNameDTO() { Id = g.Id, Name = g.Name })
+                .Select(g => new GoalNameDTO() { Id = g.Id, Name = g.Name, GoalParentId = g.ParentId })
                 .ToListAsync();
         }
 

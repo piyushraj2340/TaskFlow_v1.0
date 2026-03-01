@@ -26,18 +26,16 @@
     let initialFormState = ""; // Stores the stringified version of the form
     let checkDirtyEnabled = false; // Prevents tracking before the form is ready
 
-    // Captures all current form values into a single string for comparison
     const getFormSnapshot = () => {
-        // Get standard form fields (serialized)
-        let state = $goalForm.serialize();
-
-        // Get TinyMCE content if it exists
-        if (typeof tinymce !== "undefined" && tinymce.get("goalDescription")) {
-            state += tinymce.get("goalDescription").getContent();
+        // Sync TinyMCE back to the hidden textarea before serializing
+        if (typeof tinymce !== "undefined") {
+            tinymce.triggerSave();
         }
 
-        // 3. Get Select2 specific values
+        let state = $goalForm.serialize();
         state += $('#parentGoalId').val() || "";
+        // Include the subGoalMode if visible
+        state += $('input[name="subGoalMode"]:checked').val() || "";
 
         return state;
     };
@@ -92,11 +90,11 @@
                 delay: 250,
                 data: (params) => ({ searchQuery: params.term }),
                 processResults: (response) => ({
-                    results: response.data.map(item => ({ id: item.id, text: item.name }))
+                    results: response.data.map(item => ({ id: item.id, text: item.name, goalParentId: item.goalParentId }))
                 }),
                 cache: true
             },
-            minimumInputLength: 1
+            minimumInputLength: 3
         });
     }
 
@@ -112,13 +110,29 @@
                 delay: 250,
                 data: (params) => ({ searchQuery: params.term }),
                 processResults: (response) => ({
-                    results: response.data.map(item => ({ id: item.id, text: item.name }))
+                    results: response.data.map(item => ({ id: item.id, text: item.name, goalParentId: item.goalParentId }))
                 }),
                 cache: true
             },
-            minimumInputLength: 1
+            minimumInputLength: 3,
+            processResults: (response) => ({
+                results: response.data.map(item => ({
+                    id: item.id,
+                    text: item.name,
+                    alreadyHasParent: item.parentId != null // Use your new key
+                }))
+            }),
+            templateResult: function (data) {
+                if (!data.id) return data.text;
+                // Visual feedback if already linked
+                if (data.alreadyHasParent) {
+                    return $(`<span class="text-gray-400 italic">${data.text} (Already Linked)</span>`);
+                }
+                return data.text;
+            }
         });
     }
+
 
     /* --- Closure Prevention --- */
 
@@ -175,11 +189,34 @@
 
     /* ----------------------- Modal Trigger Logic ----------------------- */
 
+    // Function to adjust field widths based on visibility
+    function adjustModalLayouts() {
+        // 1. Logic for Priority vs Status (50/50 or 100)
+        const statusVisible = !$('#goalStatusContainer').hasClass('hidden');
+        if (statusVisible) {
+            $('#priorityWrapper').removeClass('sm:col-span-2').addClass('sm:col-span-1');
+        } else {
+            $('#priorityWrapper').removeClass('sm:col-span-1').addClass('sm:col-span-2');
+        }
+
+        // 2. Logic for Start Date vs Due Date (50/50 or 100)
+        const isScheduled = $('input[name="goalStart"]:checked').val() === "1";
+        if (isScheduled) {
+            $('#startDateContainer').removeClass('hidden');
+            $('#endDateWrapper').removeClass('sm:col-span-2').addClass('sm:col-span-1');
+        } else {
+            $('#startDateContainer').addClass('hidden');
+            $('#endDateWrapper').removeClass('sm:col-span-1').addClass('sm:col-span-2');
+        }
+    }
+
     // Standard "Add New Goal" (Dashboard)
     $(document).on("click", "#openModalButton", function () {
         resetModalState();
         $goalForm.data('action-goal-form', 'create');
         $("#form-label").html('Add New Goal');
+        $("#goalStatusContainer").addClass('hidden');
+        adjustModalLayouts(); // Force 100% width
         $subGoalModeContainer.addClass('hidden');
         $existingSearchContainer.addClass('hidden');
         $parentGoalSelect.prop('disabled', false).val(null).trigger('change');
@@ -195,7 +232,9 @@
         resetModalState();
         $goalForm.data('action-goal-form', 'edit').data('goalid', id);
         $("#form-label").html('Edit Goal');
+        $("#goalStatusContainer").removeClass('hidden');
         $("#goalIdContainer").removeClass('hidden');
+        adjustModalLayouts(); // Force 100% width
         $subGoalModeContainer.addClass('hidden');
         $parentGoalSelect.prop('disabled', false);
 
@@ -217,6 +256,8 @@
         const parentName = $(this).data('parent-name');
 
         resetModalState();
+        $("#goalStatusContainer").addClass('hidden');
+        adjustModalLayouts(); // Force 100% width
         $goalForm.data('action-goal-form', 'create');
         $("#form-label").html('Add Sub-goal to: ' + parentName);
         $subGoalModeContainer.removeClass('hidden');
@@ -236,32 +277,51 @@
 
     $(document).on('change', 'input[name="subGoalMode"]', function () {
         const mode = $(this).val();
-        if (mode === 'existing') {
-            $existingSearchContainer.removeClass('hidden');
-            $goalForm.data('action-goal-form', 'edit');
-            $('#goalName').prop('readonly', true).addClass('bg-gray-100');
-        } else {
-            $existingSearchContainer.addClass('hidden');
-            $goalForm.data('action-goal-form', 'create');
-            $('#goalName').prop('readonly', false).removeClass('bg-gray-100');
+        const currentParentId = $('#parentGoalId').val(); // Grab the parent ID
+        const currentParentName = $('#parentGoalId option:selected').text();
 
-            // Keep Parent Locked
-            const pId = $parentGoalSelect.val();
-            const pText = $parentGoalSelect.find("option:selected").text();
-            $goalForm[0].reset();
-            $('input[name="subGoalMode"][value="new"]').prop('checked', true);
-            if (pId) {
-                var newOption = new Option(pText, pId, true, true);
-                $parentGoalSelect.empty().append(newOption).trigger('change');
+        if (mode === 'existing') {
+            $('#existingGoalSearchContainer').removeClass('hidden');
+            $('#goalName').prop('readonly', true).addClass('bg-gray-100');
+            $goalForm.data('action-goal-form', 'edit'); // Linking is an Edit action
+        } else {
+            $('#existingGoalSearchContainer').addClass('hidden');
+            $('#goalName').prop('readonly', false).removeClass('bg-gray-100');
+            $goalForm.data('action-goal-form', 'create');
+
+            resetModalState(); // Clear name/desc for new sub-goal
+
+            // RE-BIND the ParentId after reset so it isn't lost
+            if (currentParentId) {
+                var newOption = new Option(currentParentName, currentParentId, true, true);
+                $('#parentGoalId').empty().append(newOption).trigger('change');
+                $('#parentGoalId').prop('disabled', true); // Keep it locked
             }
         }
+        adjustModalLayouts(); // Refresh grid
     });
 
     $existingGoalSearch.on('select2:select', function (e) {
-        const goalId = e.params.data.id;
+        const data = e.params.data;
+
+        // Check the new key 'goalParentId' from your API response
+        if (data.goalParentId && data.goalParentId > 0) {
+            // 1. Show Error Message
+            showErrorNotification("This goal is already a sub-goal of another parent and cannot be re-linked.");
+
+            // 2. Discard/Clear the selection
+            $(this).val(null).trigger('change');
+            return;
+        }
+
+        // If valid, proceed to populate the form
+        const goalId = data.id;
         $goalForm.data('goalid', goalId);
         $.get(`/Goals/GetById/${goalId}`, function (response) {
-            if (response?.status) populateGoalForm(response.data);
+            if (response?.status) {
+                populateGoalForm(response.data);
+                adjustModalLayouts(); // Ensure grid aligns after population
+            }
         });
     });
 
@@ -412,13 +472,32 @@
     /* ----------------------- Form Helpers & Submission ----------------------- */
 
     function resetModalState() {
+
+        // Store current parent details before resetting
+        const isSubGoalMode = !$subGoalModeContainer.hasClass('hidden');
+        const pId = $parentGoalSelect.val();
+        const pText = $parentGoalSelect.find("option:selected").text();
+
         $goalForm[0].reset();
         $goalForm.removeData('goalid');
         $("#goalId").val("");
-        $("#goalIdContainer").addClass('hidden');
-        $('#goalName').prop('readonly', false).removeClass('bg-gray-100');
+
+        // Restore parent if in sub-goal mode
+        if (isSubGoalMode && pId) {
+            var newOption = new Option(pText, pId, true, true);
+            $parentGoalSelect.empty().append(newOption).trigger('change');
+            $parentGoalSelect.prop('disabled', true);
+        } else {
+            $parentGoalSelect.val(null).trigger('change').prop('disabled', false);
+        }
+
+
         if (typeof tinymce !== "undefined") tinymce.get("goalDescription")?.setContent("");
     }
+
+    $(document).on('change', 'input[name="goalStart"]', function () {
+        adjustModalLayouts($(this).val());
+    });
 
     function populateGoalForm(data) {
         $("#goalId").val(data.id || "");
@@ -429,8 +508,9 @@
         $("#goalStatus").val(data.goalStatus ?? goalStatusEnum.notStarted);
         $("#goalDescription").val(data.description || "");
 
-        // --- FIX: Handle Parent Goal for Select2 ---
-        if ($parentGoalSelect.length) {
+        const isSubGoalMode = !$subGoalModeContainer.hasClass('hidden');
+
+        if (!isSubGoalMode && $parentGoalSelect.length) {
             if (data.parentId && data.parentName) {
                 // Create a new option and select it
                 var newOption = new Option(data.parentName, data.parentId, true, true);
@@ -442,6 +522,7 @@
         }
         // -------------------------------------------
 
+
         const startOpt = data.startOptionType ?? startOptionValues.manual;
         $goalModal.find(`input[name="goalStart"][value="${startOpt}"]`).prop('checked', true);
         $("#startDateContainer").toggleClass('hidden', +startOpt !== startOptionValues.scheduled);
@@ -451,6 +532,8 @@
                 tinymce.get("goalDescription")?.setContent(data.description || "");
             }, 200);
         }
+
+        adjustModalLayouts();
     }
 
     $goalForm.on('submit', function (e) {
@@ -466,6 +549,8 @@
         $parentGoalSelect.prop('disabled', false);
 
         const action = $(this).data('action-goal-form') || 'create';
+        const pId = $('#parentGoalId').val();
+
         const data = {
             Id: $("#goalId").val() || $(this).data('goalid'),
             Name: $("#goalName").val(),
@@ -475,7 +560,7 @@
             StartDate: $("#startDate").val(),
             EndDate: $("#endDate").val(),
             GoalStatus: $("#goalStatus").val(),
-            ParentId: $parentGoalSelect.val()
+            ParentId: pId ? parseInt(pId) : null // Ensure ParentId is sent
         };
 
         const url = action.toLowerCase() === 'create' ? "/Goals/Create" : "/Goals/Edit";
@@ -676,30 +761,49 @@
         });
     });
 
-    // 2. Handle Status Changes (Mark as Complete / Move to Running)
-    // 1. Handle Move to Running (Start Goal)
-    $(document).on("click", ".moveToRunning", function () {
-        const goalId = $(this).data("id");
+    // Replace the moveToRunning and markAsComplete listeners with this unified logic
+    $(document).on("click", ".moveToRunning, .markAsComplete", function () {
+        const $btn = $(this);
+        const goalId = $btn.data("id");
+        const isCompleting = $btn.hasClass("markAsComplete");
 
-        // Check for child goals before proceeding
+        const targetStatus = isCompleting ? goalStatusEnum.completed : goalStatusEnum.running;
+        const statusName = isCompleting ? "Completed" : "Running";
+
         $.get(`/Goals/GetChildGoals?parentId=${goalId}`, function (response) {
             const subGoals = (response && response.status) ? response.data : [];
-
             if (subGoals.length > 0) {
-                handleMultiLevelStatusChange(goalId, subGoals, goalStatusEnum.running, "Running");
+                handleMultiLevelTransition(goalId, subGoals, targetStatus, statusName);
             } else {
-                // Standard single goal update
-                updateSingleGoalStatus(goalId, goalStatusEnum.running, "Goal started successfully!");
+                updateSingleGoalStatus(goalId, targetStatus, `Goal marked as ${statusName}!`);
             }
         });
     });
 
-    // 2. Main Logic Handler for Multi-level Status Transitions
-    async function handleMultiLevelStatusChange(parentId, subGoals, targetStatus, statusName) {
+    // Replace the moveToRunning and markAsComplete listeners with this unified logic
+    $(document).on("click", ".moveToRunning, .markAsComplete", function () {
+        const $btn = $(this);
+        const goalId = $btn.data("id");
+        const isCompleting = $btn.hasClass("markAsComplete");
+
+        const targetStatus = isCompleting ? goalStatusEnum.completed : goalStatusEnum.running;
+        const statusName = isCompleting ? "Completed" : "Running";
+
+        $.get(`/Goals/GetChildGoals?parentId=${goalId}`, function (response) {
+            const subGoals = (response && response.status) ? response.data : [];
+            if (subGoals.length > 0) {
+                handleMultiLevelTransition(goalId, subGoals, targetStatus, statusName);
+            } else {
+                updateSingleGoalStatus(goalId, targetStatus, `Goal marked as ${statusName}!`);
+            }
+        });
+    });
+
+    async function handleMultiLevelTransition(parentId, subGoals, targetStatus, statusName) {
         const isRunning = targetStatus === goalStatusEnum.running;
         const actionVerb = isRunning ? "start" : "complete";
 
-        // QUESTION 1: Update all sub-goals?
+        // Step 1: Update All?
         const result1 = await Swal.fire({
             title: `Multi-level Goal: ${statusName}`,
             text: `Do you want to ${actionVerb} all sub-goals as well?`,
@@ -707,158 +811,50 @@
             showCancelButton: true,
             confirmButtonText: `Yes, ${actionVerb} all`,
             cancelButtonText: 'No',
-            confirmButtonColor: isRunning ? '#2563eb' : '#10b981', // Blue for Running, Green for Complete
+            confirmButtonColor: isRunning ? '#2563eb' : '#10b981',
             cancelButtonColor: '#6b7280'
         });
 
         if (result1.isConfirmed) {
-            // ACTION: Update all via Promise.all
             Swal.showLoading();
             const promises = subGoals.map(sg =>
-                $.ajax({
-                    url: `/Goals/ChangeGoalStatus/${sg.id}`,
-                    method: "POST",
-                    data: { Id: sg.id, GoalStatus: targetStatus }
-                })
+                $.ajax({ url: `/Goals/ChangeGoalStatus/${sg.id}`, method: "POST", data: { Id: sg.id, GoalStatus: targetStatus } })
             );
-            promises.push($.ajax({
-                url: `/Goals/ChangeGoalStatus/${parentId}`,
-                method: "POST",
-                data: { Id: parentId, GoalStatus: targetStatus }
-            }));
+            promises.push($.ajax({ url: `/Goals/ChangeGoalStatus/${parentId}`, method: "POST", data: { Id: parentId, GoalStatus: targetStatus } }));
 
             await Promise.all(promises);
-            showSuccessNotification(`Parent and all sub-goals are now ${statusName}.`);
+            showSuccessNotification(`Parent and all sub-goals updated to ${statusName}.`);
             setTimeout(() => location.reload(), 500);
 
         } else if (result1.dismiss === Swal.DismissReason.cancel) {
-
-            // QUESTION 2: De-attach sub-goals?
+            // Step 2: De-attach?
             const result2 = await Swal.fire({
                 title: 'Sub-goal Relationship',
-                text: "Do you want to de-attach these sub-goals (make them root goals) and only update this parent?",
+                text: "De-attach these sub-goals as root goals and only update the parent?",
                 icon: 'info',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, de-attach and update',
-                cancelButtonText: `No, just update parent`,
-                confirmButtonColor: '#4f46e5',
-                cancelButtonColor: '#6b7280'
+                confirmButtonText: 'Yes, de-attach',
+                cancelButtonText: `No, just update parent`
             });
 
             if (result2.isConfirmed) {
-                // ACTION: Bulk De-attach using the new API
                 Swal.showLoading();
-
-                const goalIdsToDeattach = subGoals.map(sg => sg.id);
-
+                const goalIds = subGoals.map(sg => sg.id);
                 $.ajax({
                     url: `/Goals/DeattachSubGoals`,
                     method: "POST",
                     contentType: "application/json",
-                    data: JSON.stringify(goalIdsToDeattach),
-                    success: async function (response) {
+                    data: JSON.stringify(goalIds),
+                    success: function (response) {
                         if (response.status) {
-                            // After de-attaching, complete the parent
                             updateSingleGoalStatus(parentId, targetStatus, `Sub-goals de-attached. Parent is now ${statusName}.`);
                         } else {
-                            showErrorNotification("Failed to de-attach sub-goals.");
+                            showErrorNotification(response.message);
                         }
                     }
                 });
             } else if (result2.dismiss === Swal.DismissReason.cancel) {
-                // ACTION: Just update parent status, leave sub-goals attached
                 updateSingleGoalStatus(parentId, targetStatus, `Parent goal moved to ${statusName}.`);
-            }
-        }
-    }
-
-
-    $(document).on("click", ".markAsComplete", function () {
-        const goalId = $(this).data("id");
-
-        // 1. First, fetch child goals to see if this is a multi-level goal
-        $.get(`/Goals/GetChildGoals?parentId=${goalId}`, function (response) {
-            const subGoals = (response && response.status) ? response.data : [];
-
-            if (subGoals.length > 0) {
-                handleMultiLevelCompletion(goalId, subGoals, "Goal completed successfully!");
-            } else {
-                // Standard single goal completion
-                updateSingleGoalStatus(goalId, goalStatusEnum.completed);
-            }
-        });
-    });
-
-    async function handleMultiLevelCompletion(parentId, subGoals) {
-        // QUESTION 1: Mark all as complete?
-        const result1 = await Swal.fire({
-            title: 'Multi-level Goal Detected',
-            text: "Do you want to mark all sub-goals as complete as well?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, complete all',
-            cancelButtonText: 'No',
-            confirmButtonColor: '#10b981', // Green
-            cancelButtonColor: '#6b7280'
-        });
-
-        if (result1.isConfirmed) {
-            // ACTION: Mark all complete (Loop + Promise.all)
-            const promises = subGoals.map(sg =>
-                $.ajax({
-                    url: `/Goals/ChangeGoalStatus/${sg.id}`,
-                    method: "POST",
-                    data: { Id: sg.id, GoalStatus: goalStatusEnum.completed }
-                })
-            );
-            // Add the parent to the list
-            promises.push($.ajax({
-                url: `/Goals/ChangeGoalStatus/${parentId}`,
-                method: "POST",
-                data: { Id: parentId, GoalStatus: goalStatusEnum.completed }
-            }));
-
-            await Promise.all(promises);
-            showSuccessNotification("Parent and all sub-goals completed!");
-            setTimeout(() => location.reload(), 500);
-
-        } else if (result1.dismiss === Swal.DismissReason.cancel) {
-
-            // QUESTION 2: De-attach sub-goals?
-            const result2 = await Swal.fire({
-                title: 'Sub-goal Handling',
-                text: "Do you want to de-attach these sub-goals (make them root goals) before completing the parent?",
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, de-attach and complete',
-                cancelButtonText: 'No, just complete parent',
-                confirmButtonColor: '#4f46e5', // Indigo
-                cancelButtonColor: '#6b7280'
-            });
-
-            if (result2.isConfirmed) {
-                // ACTION: Bulk De-attach using the new API
-                Swal.showLoading();
-
-                const goalIdsToDeattach = subGoals.map(sg => sg.id);
-
-                $.ajax({
-                    url: `/Goals/DeattachSubGoals`,
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(goalIdsToDeattach),
-                    success: async function (response) {
-                        if (response.status) {
-                            // After de-attaching, complete the parent
-                            updateSingleGoalStatus(parentId, targetStatus, `Sub-goals de-attached. Parent is now ${statusName}.`);
-                        } else {
-                            showErrorNotification("Failed to de-attach sub-goals.");
-                        }
-                    }
-                });
-            } else if (result2.dismiss === Swal.DismissReason.cancel) {
-                // ACTION: Just update parent status
-                updateSingleGoalStatus(parentId, goalStatusEnum.completed);
             }
         }
     }
