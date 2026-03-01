@@ -73,14 +73,22 @@ namespace TaskMonitoringApp.Controllers
                 var task = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
 
                 if (task == null)
-                {
+                {   
                     _logger.LogWarning("Task not found for Id={Id}, userId={UserId}", Id, userId);
                     return NotFound();
                 }
 
                 ViewBag.tabName = tabName;
+                
+                int pageSize = 20; // Set page size for notes pagination
+                ViewBag.PageSize = pageSize;
 
-                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All, pageNumber: 1, pageSize: 20);
+                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All, pageNumber: 1, pageSize: pageSize);
+                
+                // NEW: Get Pinned Notes for this Task
+                var pinnedNotes = await _notesService.GetPinnedNotes(userId, filterTaskIds: new[] { Id });
+                ViewBag.PinnedNotes = pinnedNotes;
+
                 var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
 
                 var productivity = await _todoService.GetTodoProgressAnalyses(userId, Id);

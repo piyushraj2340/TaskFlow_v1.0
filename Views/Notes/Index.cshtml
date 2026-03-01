@@ -100,10 +100,25 @@
                 pointer-events: auto; /* Re-enable clicks when open */
                 border-bottom: 1px solid #e2e8f0;
             }
+
+        /* Ensure Select2 dropdown is above everything else */
+        .select2-container--open {
+            z-index: 99999 !important; /* One higher than your header */
+        }
+
+        /* Fix for Select2 inside the fixed/sticky header */
+        .select2-container {
+            display: block; /* Ensures it takes full width of the grid column */
+        }
+
+        /* Adjust the sticky date pills so they don't overlap the open filter panel */
+        .timeline-date-pill {
+            z-index: 40 !important; /* Lower than header, but high enough for timeline */
+        }
     </style>
 }
 
-<header class="sticky top-[-35px] z-[100] glass-header border-b border-slate-200">
+<header class="sticky top-[-35px] z-[9999] glass-header border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-16 md:h-20">
             <div>
@@ -151,11 +166,15 @@
                 <div class="flex items-end">
                     <div id="filterGoalSelectWrapper" class="hidden w-full">
                         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Select Goal</label>
-                        <select id="filterGoalSelect" class="w-full"></select>
+                        <select id="filterGoalSelect" class="w-full" multiple></select>
+                        <div class="mt-2 flex items-center">
+                            <input type="checkbox" id="includeGoalRelatedTasks" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="includeGoalRelatedTasks" class="ml-2 block text-xs text-gray-700">Include related tasks</label>
+                        </div>
                     </div>
                     <div id="filterTaskSelectWrapper" class="hidden w-full">
                         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Select Task</label>
-                        <select id="filterTaskSelect" class="w-full"></select>
+                        <select id="filterTaskSelect" class="w-full" multiple></select>
                     </div>
                 </div>
             </div>
@@ -208,8 +227,8 @@
             {
                 @if (tempDateTime == null || tempDateTime?.Date != item.TimeStamp?.Date)
                 {
-                    <div class="flex items-center justify-start md:justify-center sticky top-48 timeline-date-pill pointer-events-none">
-                        <div class="bg-slate-900 text-white px-4 py-1.5 rounded-full text-[11px] font-bold shadow-lg uppercase tracking-widest">
+                    <div class="flex items-center justify-start md:justify-center sticky top-[110px] timeline-date-pill pointer-events-none">
+                        <div class="bg-slate-900 text-white px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest">
                             @if (DateTime.Now.Date == item.TimeStamp?.Date)
                             {
                                 <span>Today</span>
@@ -259,7 +278,7 @@
 
         <button id="openModalButton" class="flex items-center group/item" title="Add Goal">
             <span class="mr-3 px-3 py-2 bg-white text-gray-700 text-sm font-semibold rounded-md shadow-md
-                         transform scale-0 group-hover/item:scale-100 transition-transform origin-right">
+                         transform scale-0 group-hover:item:scale-100 transition-transform origin-right">
                 Add Goal
             </span>
             <span class="w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-lg text-indigo-600 hover:bg-gray-50">
@@ -412,7 +431,7 @@
     </script>
 
     <script>
-        window.currentFilters = { search: null, goalId: null, taskId: null };
+        window.currentFilters = { search: null, goalIds: [], taskIds: [], includeGoalRelatedTasks: false };
         window.infiniteScrollPage = 2; // Update: Start with page 2 for infinite scroll
 
         $(document).ready(function() {
@@ -445,20 +464,29 @@
             $('#applyFilters').on('click', function() {
                 const search = $('#searchInput').val();
                 const type = $('#filterType').val();
-                let goalId = null;
-                let taskId = null;
+                let goalIds = [];
+                let taskIds = [];
+                let includeRelated = false;
 
                 if(type === 'goal') {
-                    goalId = $('#filterGoalSelect').val() || null;
+                    // Start with selected values
+                    const selected = $('#filterGoalSelect').val();
+                    if(selected && selected.length > 0) {
+                        goalIds = selected.map(id => parseInt(id));
+                    }
+                    includeRelated = $('#includeGoalRelatedTasks').is(':checked');
                 } else if(type === 'task') {
-                    taskId = $('#filterTaskSelect').val() || null;
+                    const selected = $('#filterTaskSelect').val();
+                    if(selected && selected.length > 0) {
+                        taskIds = selected.map(id => parseInt(id));
+                    }
                 } else if(type === 'journal') {
                     // CRITICAL: Send -1 to signal "Independent" notes
-                    goalId = -1; 
+                    goalIds = [-1]; 
                 }
 
                 $('#filterMenu').addClass('hidden');
-                reloadTimeline(search, goalId, taskId); // goalId -1 triggers "Journal Only"
+                reloadTimeline(search, goalIds, taskIds, includeRelated); 
                 
                 // ... badge logic ...
             });
@@ -477,11 +505,11 @@
                         
                         // 1. Goals with Counts
                         const goals = data.goals.map(g => `<option value="${g.id}">${g.name} (${g.count})</option>`);
-                        $('#filterGoalSelect').html('<option value="">Any Goal</option>' + goals.join(''));
+                        $('#filterGoalSelect').html(goals.join(''));
                         
                         // 2. Tasks with Counts
                         const tasks = data.tasks.map(t => `<option value="${t.id}">${t.name} (${t.count})</option>`);
-                        $('#filterTaskSelect').html('<option value="">Any Task</option>' + tasks.join(''));
+                        $('#filterTaskSelect').html(tasks.join(''));
                         
                         // 3. Update "Journal" option text if needed
                         // Typically handled in static HTML or dynamic injection
@@ -489,6 +517,19 @@
                         // We could add/update an option in the main filterType dropdown
                         const journalOptionText = `Journal / Independent (${journalCount})`;
                         $("#filterType option[value='journal']").text(journalOptionText);
+
+                        // Initialize Select2 after population
+                        $('#filterGoalSelect').select2({
+                            width: '100%',
+                            placeholder: 'Search or Select Goals',
+                            closeOnSelect: false
+                        });
+
+                        $('#filterTaskSelect').select2({
+                            width: '100%',
+                            placeholder: 'Search or Select Tasks',
+                            closeOnSelect: false
+                        });
                     }
                 });
             }
@@ -496,9 +537,12 @@
             $('#resetFilters').on('click', function() { 
                 $('#searchInput').val('');
                 $('#filterType').val('all').trigger('change');
+                $('#filterGoalSelect').val(null).trigger('change');
+                $('#filterTaskSelect').val(null).trigger('change');
+                $('#includeGoalRelatedTasks').prop('checked', false);
                 $('#activeFilterBadge').addClass('hidden');
                 $('#filterPanel').removeClass('is-open');
-                reloadTimeline(null, null, null);
+                reloadTimeline(null, [], [], false);
             });
 
             // --- 2. Pinned Carousel Logic ---
@@ -565,10 +609,20 @@
                     pageSize: 20
                 });
                 
-                // Add current filters to query
+                // Add current filters to query (UPDATED for arrays)
                 if(window.currentFilters.search) params.append('searchQuery', window.currentFilters.search);
-                if(window.currentFilters.goalId !== null) params.append('filterGoalId', window.currentFilters.goalId);
-                if(window.currentFilters.taskId !== null) params.append('filterTaskId', window.currentFilters.taskId);
+                
+                if(window.currentFilters.goalIds && window.currentFilters.goalIds.length > 0) {
+                     window.currentFilters.goalIds.forEach(id => params.append('filterGoalIds', id));
+                }
+                
+                if(window.currentFilters.taskIds && window.currentFilters.taskIds.length > 0) {
+                     window.currentFilters.taskIds.forEach(id => params.append('filterTaskIds', id));
+                }
+                
+                if(window.currentFilters.includeGoalRelatedTasks) {
+                    params.append('includeGoalRelatedTasks', 'true');
+                }
 
                 // Call the endpoint
                 const response = await fetch(`/Notes/GetPageForNote?${params.toString()}`);
@@ -669,8 +723,8 @@
             }, 3000);
         }
 
-        function reloadTimeline(search, goalId, taskId) {
-            window.currentFilters = { search, goalId, taskId };
+        function reloadTimeline(search, goalIds, taskIds, includeRelated) {
+            window.currentFilters = { search: search, goalIds: goalIds, taskIds: taskIds, includeGoalRelatedTasks: includeRelated };
             window.infiniteScrollFinished = false;
             window.infiniteScrollPage = 1;
 
@@ -683,58 +737,61 @@
             const container = $('#journalItemsContainer');
             container.html('<div class="flex justify-center p-20"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>');
 
-            $.get('/Notes/GetJournalNotesPartial', {
-                pageNumber: 1, pageSize: 20, searchQuery: search, filterGoalId: goalId, filterTaskId: taskId
-            }, function(html) {
-                if(!html.trim()) {
-                    container.html('<div class="text-center py-20 text-slate-400">No matching history found.</div>');
-                    if (sentinel) sentinel.style.display = 'none';
-                    window.infiniteScrollFinished = true;
-                } else {
-                    container.html(html);
-                    window.infiniteScrollPage = 2;
-                    
-                    // Trigger scroll check to see if we need more items immediately
-                    setTimeout(() => {
-                        if (sentinel && sentinel.getBoundingClientRect().top < window.innerHeight + 400) {
-                            if (typeof window.triggerInfiniteScroll === 'function') {
-                                window.triggerInfiniteScroll();
+            // Construct query parameters properly for arrays
+            // jQuery .get handles arrays with [] suffix by default (traditional: false)
+            // or we manually build object
+            
+            const verifyParams = {
+                pageNumber: 1, 
+                pageSize: 20, 
+                searchQuery: search, 
+                filterGoalIds: goalIds, 
+                filterTaskIds: taskIds,
+                includeGoalRelatedTasks: includeRelated
+            };
+
+            $.ajax({
+                url: '/Notes/GetJournalNotesPartial',
+                type: 'GET',
+                traditional: true, // IMPORTANT: Prevents [] suffix for ASP.NET array binding
+                data: verifyParams,
+                success: function(html) {
+                    if(!html.trim()) {
+                        container.html('<div class="text-center py-20 text-slate-400">No matching history found.</div>');
+                        if (sentinel) sentinel.style.display = 'none';
+                        window.infiniteScrollFinished = true;
+                    } else {
+                        container.html(html);
+                        window.infiniteScrollPage = 2;
+                        
+                        // Trigger scroll check to see if we need more items immediately
+                        setTimeout(() => {
+                            if (sentinel && sentinel.getBoundingClientRect().top < window.innerHeight + 400) {
+                                if (typeof window.triggerInfiniteScroll === 'function') {
+                                    window.triggerInfiniteScroll();
+                                }
                             }
-                        }
-                    }, 500);
+                        }, 500);
+                    }
                 }
             });
 
             // Sync Pinned Bar
-            $.get('/Notes/GetPinnedNotesPartial', { searchQuery: search, filterGoalId: goalId, filterTaskId: taskId }, function(html) {
-                $('#pinnedNotesList').html(html);
-                initPinnedCarousel();
-            });
-        }
-
-        // --- Filter Menu Options Load ---
-        function loadFilterOptions() {
-            $.get('/Notes/GetFilterMenuOptions', function(resp) {
-                if(resp.status && resp.data) {
-                    const data = resp.data;
-                    
-                    // 1. Goals with Counts
-                    const goals = data.goals.map(g => `<option value="${g.id}">${g.name} (${g.count})</option>`);
-                    $('#filterGoalSelect').html('<option value="">Any Goal</option>' + goals.join(''));
-                    
-                    // 2. Tasks with Counts
-                    const tasks = data.tasks.map(t => `<option value="${t.id}">${t.name} (${t.count})</option>`);
-                    $('#filterTaskSelect').html('<option value="">Any Task</option>' + tasks.join(''));
-                    
-                    // 3. Update "Journal" option text if needed
-                    // Typically handled in static HTML or dynamic injection
-                    const journalCount = data.journalCount;
-                    // We could add/update an option in the main filterType dropdown
-                    const journalOptionText = `Journal / Independent (${journalCount})`;
-                    $("#filterType option[value='journal']").text(journalOptionText);
+            $.ajax({
+                url: '/Notes/GetPinnedNotesPartial',
+                type: 'GET',
+                traditional: true,
+                data: { 
+                    searchQuery: search, 
+                    filterGoalIds: goalIds, 
+                    filterTaskIds: taskIds,
+                    includeGoalRelatedTasks: includeRelated
+                },
+                success: function(html) {
+                    $('#pinnedNotesList').html(html);
+                    initPinnedCarousel();
                 }
             });
         }
-
     </script>
 }

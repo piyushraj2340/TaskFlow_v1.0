@@ -14,8 +14,8 @@
     // Date Header Logic (simplified for partial - might duplicate headers if not careful, but acceptable for now)
     @if (tempDateTime == null || tempDateTime?.Date != item.TimeStamp?.Date)
     {
-        <div class="flex items-center justify-start md:justify-center sticky top-48 timeline-date-pill pointer-events-none">
-            <div class="bg-slate-900 text-white px-4 py-1.5 rounded-full text-[11px] font-bold shadow-lg uppercase tracking-widest">
+        <div class="flex items-center justify-start md:justify-center sticky top-[110px] timeline-date-pill pointer-events-none">
+            <div class="bg-slate-900 text-white px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest">
                 @if (DateTime.Now.Date == item.TimeStamp?.Date)
                 {
                     <span>Today</span>

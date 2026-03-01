@@ -475,7 +475,7 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         }
 
         // MODIFIED: Update this method to support search string and specific filtering
-        public async Task<IEnumerable<T>> GetAllNotesWithGoalAndTaskAsync<T>(string userId, Status status, int pageNumber, int pageSize, ResponseDataMode mode, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null, bool? onlyPinned = null) where T : class
+        public async Task<IEnumerable<T>> GetAllNotesWithGoalAndTaskAsync<T>(string userId, Status status, int pageNumber, int pageSize, ResponseDataMode mode, IEnumerable<int>? filterGoalIds = null, IEnumerable<int>? filterTaskIds = null, string? searchQuery = null, bool? onlyPinned = null, bool includeGoalRelatedTasks = false) where T : class
         {
             var applyPaging = pageNumber > 0 && pageSize > 0;
 
@@ -490,32 +490,96 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                             .AsSingleQuery()
                             .AsQueryable();
 
-                        // APPLY FILTERS
-                        if (filterGoalId.HasValue)
-                        {
-                            if (filterGoalId.Value == -1) // NEW: Journal/Independent mode
-                            {
-                                // Filter for notes that have NO parent associations
-                                query = query.Where(n => n.GoalId == null && n.TaskId == null && n.TodoId == null);
-                            }
-                            else
-                            {
-                                // Standard Goal filter
-                                query = query.Where(n => n.GoalId == filterGoalId.Value);
-                            }
-                        }
-                        else if (filterTaskId.HasValue)
-                        {
-                            query = query.Where(n => n.TaskId == filterTaskId.Value);
-                        }
+                        // APPLY FILTERS (Combined Logic)
+                        // Using a predicate builder approach or just combining expressions
                         
-                        // NEW: "Journal Only" Logic
-                        // We can use a special flag, e.g., filterGoalId = 0 OR filterGoalId = -1 to mean "No Goal/Task"
-                        // Or passed as a separate bool/enum parameter.
-                        // Let's assume passed via specific logic: if 'filterGoalId == -1' (Journal mode)
-                        else if (filterGoalId == -1) 
+                        // We want to filter notes that match (Goal Filters) OR (Task Filters) OR (Search)
+                        // Typically UI filters are AND between sections (must match Goal criteria AND Task critera).
+                        // However, since a Note usually belongs to ONE parent, selecting Goal A and Task B (unrelated) 
+                        // in an AND filter would result in 0 notes.
+                        // So for this specific domain, OR logic between Goal/Task selections makes more sense for "Show me stuff about Goal A and Task B".
+                        // BUT, if I select multiple Goals, that is OR (Goal A or Goal B).
+                        
+                        // Let's implement OR logic between the Goal block and Task block if both are present.
+                        // (Match Goal Condition) OR (Match Task Condition)
+                        
+                        var hasGoalFilter = filterGoalIds != null && filterGoalIds.Any();
+                        var hasTaskFilter = filterTaskIds != null && filterTaskIds.Any();
+                        
+                        if (hasGoalFilter || hasTaskFilter)
                         {
-                             query = query.Where(n => n.GoalId == null && n.TaskId == null && n.TodoId == null);
+                            // We need to build a dynamic OR predicate or just use a big Where clause
+                            // Since EF Core translates this well:
+                            
+                            List<int> validGoalIds = new List<int>();
+                            List<int> relatedTaskIds = new List<int>();
+                            bool includeJournal = false;
+                            
+                            if (hasGoalFilter)
+                            {
+                                includeJournal = filterGoalIds.Contains(-1);
+                                var initialGoalIds = filterGoalIds.Where(id => id != -1).ToList();
+
+                                // NEW: Expand to include all descendant goal IDs
+                                if (initialGoalIds.Any())
+                                {
+                                    // Helper function logic inline or separate
+                                    // Fetch all goals to build hierarchy relation
+                                    var allGoals = await _context.Goals
+                                        .Where(g => g.UserId == userId && !g.IsDeleted)
+                                        .Select(g => new { g.Id, g.ParentId })
+                                        .ToListAsync();
+
+                                    var parentMap = allGoals
+                                        .Where(g => g.ParentId.HasValue)
+                                        .GroupBy(g => g.ParentId.Value)
+                                        .ToDictionary(g => g.Key, g => g.Select(x => x.Id).ToList());
+
+                                    var distinctGoals = new HashSet<int>(initialGoalIds);
+                                    var queue = new Queue<int>(initialGoalIds);
+
+                                    while (queue.Count > 0)
+                                    {
+                                        var current = queue.Dequeue();
+                                        if (parentMap.TryGetValue(current, out var children))
+                                        {
+                                            foreach (var child in children)
+                                            {
+                                                if (distinctGoals.Add(child))
+                                                {
+                                                    queue.Enqueue(child);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    validGoalIds = distinctGoals.ToList();
+                                }
+                                
+                                if (includeGoalRelatedTasks && validGoalIds.Any())
+                                {
+                                     var rIds = await _context.Set<GoalTask>()
+                                        .Where(gt => validGoalIds.Contains(gt.GoalId))
+                                        .Select(gt => gt.TaskId)
+                                        .ToListAsync();
+                                     relatedTaskIds.AddRange(rIds);
+                                }
+                            }
+                            
+                            // We need to construct the Where clause carefully. 
+                            // Note: We cannot use `await` inside the Where expression obviously. 
+                            // I moved the relatedTaskIds fetch outside.
+                            
+                            query = query.Where(n => 
+                                // Goal Condition
+                                (hasGoalFilter && (
+                                    (n.GoalId.HasValue && validGoalIds.Contains(n.GoalId.Value)) || 
+                                    (includeJournal && n.GoalId == null && n.TaskId == null && n.TodoId == null) ||
+                                    (includeGoalRelatedTasks && validGoalIds.Any() && n.TaskId.HasValue && relatedTaskIds.Contains(n.TaskId.Value))
+                                ))
+                                ||
+                                // Task Condition
+                                (hasTaskFilter && n.TaskId.HasValue && filterTaskIds.Contains(n.TaskId.Value))
+                            );
                         }
 
                         if (!string.IsNullOrEmpty(searchQuery))
@@ -557,15 +621,34 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
                                 {
                                     Id = n.Task.Id,
                                     Name = n.Task.Name,
-                                    // ... map only necessary fields for performance if possible
-                                    Description = n.Task.Description
+                                    Description = n.Task.Description,
+                                    Repeat = n.Task.Repeat,
+                                    RepeatWeekList = n.Task.RepeatWeekList,
+                                    Priority = n.Task.Priority,
+                                    EndDate = n.Task.EndDate,
+                                    StartDate = n.Task.StartDate,
+                                    EndedOn = n.Task.EndedOn,
+                                    CompletedOn = n.Task.CompletedOn,
+                                    IsScheduled = n.Task.IsScheduled,
+                                    StartOptionType = n.Task.StartOptionType,
+                                    IsStarted = n.Task.IsStarted,
+                                    UserId = n.Task.UserId,
+                                    TaskStatus = n.Task.TaskStatus
                                 },
                                 GoalId = n.GoalId ?? 0,
                                 Goal = n.Goal == null ? null : new GoalDTO()
                                 {
                                     Id = n.Goal.Id,
                                     Name = n.Goal.Name,
-                                    Description = n.Goal.Description
+                                    Description = n.Goal.Description,
+                                    Priority = n.Goal.Priority,
+                                    EndDate = n.Goal.EndDate,
+                                    StartDate = n.Goal.StartDate,
+                                    IsScheduled = n.Goal.IsScheduled,
+                                    StartOptionType = n.Goal.StartOptionType,
+                                    IsStarted = n.Goal.IsStarted,
+                                    UserId = n.Goal.UserId,
+                                    GoalStatus = n.Goal.GoalStatus
                                 },
                             })
                             .ToListAsync() as IEnumerable<T>;
@@ -626,15 +709,85 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             }
         }
 
-        public async Task<int> GetNotePositionAsync(string userId, int noteId, Status status, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null)
+        public async Task<int> GetNotePositionAsync(string userId, int noteId, Status status, IEnumerable<int>? filterGoalIds = null, IEnumerable<int>? filterTaskIds = null, string? searchQuery = null, bool includeGoalRelatedTasks = false)
         {
             // Base query (must match the main list query logic exactly)
             var query = _context.Notes
                 .Where(n => n.UserId == userId && (status == Status.All || n.Status == status) && !n.IsDeleted);
 
-            // Apply same filters
-            if (filterGoalId.HasValue) query = query.Where(n => n.GoalId == filterGoalId.Value);
-            else if (filterTaskId.HasValue) query = query.Where(n => n.TaskId == filterTaskId.Value);
+            // APPLY FILTERS (Combined Logic OR)
+            
+            // Check if ANY filter is active
+            var hasGoalFilter = filterGoalIds != null && filterGoalIds.Any();
+            var hasTaskFilter = filterTaskIds != null && filterTaskIds.Any();
+
+            if (hasGoalFilter || hasTaskFilter)
+            {
+                List<int> validGoalIds = new List<int>();
+                List<int> relatedTaskIds = new List<int>();
+                bool includeJournal = false;
+
+                if (hasGoalFilter)
+                {
+                    includeJournal = filterGoalIds.Contains(-1);
+                    var initialGoalIds = filterGoalIds.Where(id => id != -1).ToList();
+
+                    // NEW: Expand to include all descendant goal IDs
+                    if (initialGoalIds.Any())
+                    {
+                        var allGoals = await _context.Goals
+                            .Where(g => g.UserId == userId && !g.IsDeleted)
+                            .Select(g => new { g.Id, g.ParentId })
+                            .ToListAsync();
+
+                        var parentMap = allGoals
+                            .Where(g => g.ParentId.HasValue)
+                            .GroupBy(g => g.ParentId.Value)
+                            .ToDictionary(g => g.Key, g => g.Select(x => x.Id).ToList());
+
+                        var distinctGoals = new HashSet<int>(initialGoalIds);
+                        var queue = new Queue<int>(initialGoalIds);
+
+                        while (queue.Count > 0)
+                        {
+                            var current = queue.Dequeue();
+                            if (parentMap.TryGetValue(current, out var children))
+                            {
+                                foreach (var child in children)
+                                {
+                                    if (distinctGoals.Add(child))
+                                    {
+                                        queue.Enqueue(child);
+                                    }
+                                }
+                            }
+                        }
+                        validGoalIds = distinctGoals.ToList();
+                    }
+                    
+                    if (includeGoalRelatedTasks && validGoalIds.Any())
+                    {
+                         // Fetch related tasks for goal filtering
+                         var rIds = await _context.Set<GoalTask>()
+                            .Where(gt => validGoalIds.Contains(gt.GoalId))
+                            .Select(gt => gt.TaskId)
+                            .ToListAsync();
+                         relatedTaskIds.AddRange(rIds);
+                    }
+                }
+
+                 query = query.Where(n =>
+                    // Goal Condition 
+                    (hasGoalFilter && (
+                        (n.GoalId.HasValue && validGoalIds.Contains(n.GoalId.Value)) ||
+                        (includeJournal && n.GoalId == null && n.TaskId == null && n.TodoId == null) ||
+                        (includeGoalRelatedTasks && validGoalIds.Any() && n.TaskId.HasValue && relatedTaskIds.Contains(n.TaskId.Value))
+                    ))
+                    ||
+                    // Task Condition
+                    (hasTaskFilter && n.TaskId.HasValue && filterTaskIds.Contains(n.TaskId.Value))
+                 );
+            }
 
              if (!string.IsNullOrEmpty(searchQuery))
             {
@@ -666,41 +819,102 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
         public async Task<FilterMenuDataDTO> GetFilterOptionsWithCountsAsync(string userId)
         {
-            // 1. Goal Counts
-            // Simple approach: Group notes by GoalId and count
-            var goalCounts = await _context.Notes
-                .Where(n => n.UserId == userId && !n.IsDeleted && n.GoalId.HasValue)
-                .GroupBy(n => n.GoalId)
-                .Select(g => new { GoalId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(g => g.GoalId.Value, g => g.Count);
-
-            // Fetch actual goals to get names (and include those with 0 notes if desired, though usually filters show only what has data or all active goals)
-            var goals = await _context.Goals
+            // 1. Fetch Goals with hierarchy info
+            var goalsRaw = await _context.Goals
                 .Where(g => g.UserId == userId && !g.IsDeleted)
-                .Select(g => new FilterOptionDTO 
-                { 
-                    Id = g.Id, 
-                    Name = g.Name, 
-                    // ParentId = g.ParentGoalId // If you have parent goal logic
-                })
+                .Select(g => new { g.Id, g.Name, g.ParentId })
                 .ToListAsync();
 
-            // Map counts
-            foreach (var g in goals)
+            // 2. Direct Note Counts (Group by GoalId)
+            var noteCountsByGoal = await _context.Notes
+                .Where(n => n.UserId == userId && !n.IsDeleted && n.GoalId.HasValue)
+                .GroupBy(n => n.GoalId)
+                .Select(g => new { GoalId = g.Key.Value, Count = g.Count() })
+                .ToDictionaryAsync(k => k.GoalId, v => v.Count);
+
+            // 3. Task Note Counts (Group by TaskId)
+            // We need this to calculate how many notes are attached to tasks related to a goal
+            var noteCountsByTask = await _context.Notes
+                .Where(n => n.UserId == userId && !n.IsDeleted && n.TaskId.HasValue)
+                .GroupBy(n => n.TaskId)
+                .Select(t => new { TaskId = t.Key.Value, Count = t.Count() })
+                .ToDictionaryAsync(t => t.TaskId, t => t.Count);
+
+            // 4. Map Goal -> Related Tasks (via GoalTask table)
+            // We need to know which tasks belong to which goal to add their note counts
+            var goalTasksMap = await _context.Set<GoalTask>()
+                .GroupBy(gt => gt.GoalId)
+                .Select(g => new { GoalId = g.Key, TaskIds = g.Select(x => x.TaskId).ToList() })
+                .ToDictionaryAsync(k => k.GoalId, v => v.TaskIds);
+
+            // 5. Build Tree Structure to Aggregate Counts
+            // Map: GoalId -> (DirectCount, TaskNoteCount, Children)
+            var countMap = goalsRaw.ToDictionary(g => g.Id, g =>
             {
-                if (goalCounts.TryGetValue(g.Id, out int count))
+                // Count from direct notes on goal
+                int directGoalNotes = noteCountsByGoal.ContainsKey(g.Id) ? noteCountsByGoal[g.Id] : 0;
+
+                // Count from notes on tasks related to this goal
+                int directTaskNotes = 0;
+                if (goalTasksMap.TryGetValue(g.Id, out var taskIds))
                 {
-                    g.Count = count;
+                    foreach (var tid in taskIds)
+                    {
+                        if (noteCountsByTask.TryGetValue(tid, out int c))
+                        {
+                            directTaskNotes += c;
+                        }
+                    }
+                }
+
+                return new
+                {
+                    g.ParentId,
+                    DirectVal = directGoalNotes + directTaskNotes, // Sum of Goal Notes + Task Notes
+                    Children = new List<int>()
+                };
+            });
+
+            // Populate Children
+            foreach (var g in goalsRaw)
+            {
+                if (g.ParentId.HasValue && countMap.ContainsKey(g.ParentId.Value))
+                {
+                    countMap[g.ParentId.Value].Children.Add(g.Id);
                 }
             }
 
-            // 2. Task Counts
-            var taskCounts = await _context.Notes
-                .Where(n => n.UserId == userId && !n.IsDeleted && n.TaskId.HasValue)
-                .GroupBy(n => n.TaskId)
-                .Select(t => new { TaskId = t.Key, Count = t.Count() })
-                .ToDictionaryAsync(t => t.TaskId.Value, t => t.Count);
+            // Recursive function to calculate total count (Memoized)
+            var memo = new Dictionary<int, int>();
 
+            int GetTotalCount(int goalId)
+            {
+                if (memo.ContainsKey(goalId)) return memo[goalId];
+
+                var node = countMap[goalId];
+                int total = node.DirectVal; // Own notes + Own tasks' notes
+
+                foreach (var childId in node.Children)
+                {
+                    total += GetTotalCount(childId); // Add children's total (which includes their tasks)
+                }
+
+                memo[goalId] = total;
+                return total;
+            }
+
+            // 6. Transform to DTO
+            var goals = goalsRaw.Select(g => new FilterOptionDTO
+            {
+                Id = g.Id,
+                Name = g.Name,
+                Count = GetTotalCount(g.Id)
+            })
+            .OrderByDescending(g => g.Count)
+            .ThenBy(g => g.Name)
+            .ToList();
+
+            // 7. Task List for Filter (Standard logic)
             var tasks = await _context.Tasks
                 .Where(t => t.UserId == userId && !t.IsDeleted)
                 .Select(t => new FilterOptionDTO 
@@ -712,20 +926,20 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
             foreach (var t in tasks)
             {
-                if (taskCounts.TryGetValue(t.Id, out int count))
+                if (noteCountsByTask.TryGetValue(t.Id, out int count))
                 {
                     t.Count = count;
                 }
             }
-
-            // 3. Journal (Standalone) Count
+             
+            // 8. Journal Count
             var journalCount = await _context.Notes
                 .Where(n => n.UserId == userId && !n.IsDeleted && n.GoalId == null && n.TaskId == null && n.TodoId == null)
                 .CountAsync();
 
             return new FilterMenuDataDTO
             {
-                Goals = goals.OrderByDescending(g => g.Count).ThenBy(g => g.Name),
+                Goals = goals,
                 Tasks = tasks.OrderByDescending(t => t.Count).ThenBy(t => t.Name),
                 JournalCount = journalCount
             };

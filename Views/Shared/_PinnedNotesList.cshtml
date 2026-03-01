@@ -1,0 +1,47 @@
+@model IEnumerable<TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO>
+
+<div id="pinned-metadata" data-total="@(Model?.Count() ?? 0)"></div>
+
+@if (Model != null && Model.Any())
+{
+    int i = 1;
+    foreach (var note in Model)
+    {
+        <div class="pinned-item hidden transition-all duration-300 ease-in-out flex items-center justify-between w-full h-full cursor-pointer hover:bg-white/50 rounded-lg px-2 group" 
+             data-index="@i" 
+             onclick="scrollToNote(@note.Id)">
+            
+            <div class="flex items-center gap-3 overflow-hidden">
+                <div class="flex-shrink-0 w-1 h-6 bg-amber-400 rounded-full"></div>
+                <div class="flex flex-col overflow-hidden">
+                    <span class="text-xs font-bold text-slate-700 truncate group-hover:text-indigo-700 transition-colors">@note.Title</span>
+                    <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                        <span>@note.TimeStamp?.ToString("MMM dd")</span>
+                        
+                        @if (note.GoalId > 0)
+                        {
+                            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <i class="fas fa-bullseye text-[8px]"></i>
+                            <span class="truncate max-w-[80px]">@note.Goal?.Name</span>
+                        }
+                        else if (note.TaskId > 0)
+                        {
+                            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <i class="fas fa-tasks text-[8px]"></i>
+                            <span class="truncate max-w-[80px]">@note.Task?.Name</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <i class="fas fa-external-link-alt text-[10px] text-slate-300 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all"></i>
+        </div>
+        i++;
+    }
+}
+else
+{
+    <div class="flex items-center justify-center h-full text-[11px] text-slate-400 italic">
+        No pinned notes in this view.
+    </div>
+}

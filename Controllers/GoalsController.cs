@@ -123,6 +123,9 @@ namespace TaskMonitoringApp.Controllers
 
             ViewBag.tabName = tabName;
 
+            var pinnedNotes = await _noteService.GetPinnedNotes(userId, filterGoalIds: new[] { Id }, includeGoalRelatedTasks: true);
+            ViewBag.PinnedNotes = pinnedNotes;
+
             var notesList = await _noteService.GetAllNotesByGoalId(userId, Id, Status.All, pageNumber: 1, pageSize: 20);
             var subGoal = await _goalService.GetChildGoals(userId, Id);
             var goalWithNoteList = _mapper.Map<GoalWithNotesAndTaskNameListViewModel>(goal);

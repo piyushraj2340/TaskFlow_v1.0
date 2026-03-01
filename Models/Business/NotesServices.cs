@@ -214,9 +214,10 @@ namespace TaskMonitoringApp.Models.Business
             Status status, 
             int pageNumber, 
             int pageSize,
-            int? filterGoalId = null, 
-            int? filterTaskId = null, 
-            string? searchQuery = null)
+            IEnumerable<int>? filterGoalIds = null, 
+            IEnumerable<int>? filterTaskIds = null, 
+            string? searchQuery = null,
+            bool includeGoalRelatedTasks = false)
         {
             // Note: We are now passing filters to repository directly
             var roots = await _repository.GetAllNotesWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(
@@ -225,10 +226,11 @@ namespace TaskMonitoringApp.Models.Business
                 pageNumber, 
                 pageSize, 
                 ResponseDataMode.ModelDTO, 
-                filterGoalId, 
-                filterTaskId, 
+                filterGoalIds, 
+                filterTaskIds, 
                 searchQuery,
-                onlyPinned: false // Don't filter only pinned here, we want timeline
+                onlyPinned: false, // Don't filter only pinned here, we want timeline
+                includeGoalRelatedTasks: includeGoalRelatedTasks
             );
 
             return roots;
@@ -237,21 +239,23 @@ namespace TaskMonitoringApp.Models.Business
         // NEW
         public async Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetPinnedNotes(
              string userId, 
-             int? filterGoalId = null, 
-             int? filterTaskId = null, 
-             string? searchQuery = null)
+             IEnumerable<int>? filterGoalIds = null, 
+             IEnumerable<int>? filterTaskIds = null, 
+             string? searchQuery = null,
+             bool includeGoalRelatedTasks = false)
         {
             // Fetch only pinned notes
             return await _repository.GetAllNotesWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(
                 userId, 
                 Status.All, 
                 pageNumber: 1, 
-                pageSize: 100, // Reasonable limit for pinned items
+                pageSize: 1000, // Reasonable limit for pinned items
                 ResponseDataMode.ModelDTO, 
-                filterGoalId, 
-                filterTaskId, 
+                filterGoalIds, 
+                filterTaskIds, 
                 searchQuery,
-                onlyPinned: true
+                onlyPinned: true,
+                includeGoalRelatedTasks: includeGoalRelatedTasks
             );
         }
 
@@ -267,12 +271,12 @@ namespace TaskMonitoringApp.Models.Business
             return await _repository.GetNoteByIdWithGoalAndTaskAsync<NoteDTOWithGoalAndTaskDTO>(userId, noteId, ResponseDataMode.ModelDTO);
         }
 
-        public async Task<(int PageNumber, NoteDTOWithGoalAndTaskDTO Note)> GetNotePageAndContext(string userId, int noteId, int pageSize, Status status, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null)
+        public async Task<(int PageNumber, NoteDTOWithGoalAndTaskDTO Note)> GetNotePageAndContext(string userId, int noteId, int pageSize, Status status, IEnumerable<int>? filterGoalIds = null, IEnumerable<int>? filterTaskIds = null, string? searchQuery = null, bool includeGoalRelatedTasks = false)
         {
             if (pageSize <= 0) pageSize = 20;
 
             // 1. Get Position
-            int position = await _repository.GetNotePositionAsync(userId, noteId, status, filterGoalId, filterTaskId, searchQuery);
+            int position = await _repository.GetNotePositionAsync(userId, noteId, status, filterGoalIds, filterTaskIds, searchQuery, includeGoalRelatedTasks);
             
             if (position == -1) return (0, null);
 
