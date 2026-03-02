@@ -9,6 +9,8 @@ using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
 using TaskMonitoringApp.Models.Services;
 using TaskMonitoringApp.Models.ViewModel;
+using TaskMonitoringApp.Models.Enums; 
+
 
 namespace TaskMonitoringApp.Controllers
 {
@@ -121,6 +123,9 @@ namespace TaskMonitoringApp.Controllers
 
             ViewBag.tabName = tabName;
 
+            var pinnedNotes = await _noteService.GetPinnedNotes(userId, filterGoalIds: new[] { Id }, includeGoalRelatedTasks: true);
+            ViewBag.PinnedNotes = pinnedNotes;
+
             var notesList = await _noteService.GetAllNotesByGoalId(userId, Id, Status.All, pageNumber: 1, pageSize: 20);
             var subGoal = await _goalService.GetChildGoals(userId, Id);
             var goalWithNoteList = _mapper.Map<GoalWithNotesAndTaskNameListViewModel>(goal);
@@ -157,7 +162,7 @@ namespace TaskMonitoringApp.Controllers
 
         // Updated Bind to include ParentId
         [HttpPut]
-        public async Task<IActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority,StartOptionType,StartDate,ParentId")] GoalViewModel goalData)
+        public async Task<ActionResult> Edit([Bind("Id,Name,EndDate,GoalStatus,Description,Priority,StartOptionType,StartDate,ParentId")] GoalViewModel goalData)
         {
             _logger.LogInformation("Entered Edit with Id={Id}, Name={Name}, EndDate={EndDate}, GoalStatus={GoalStatus}, Priority={Priority}, StartOptionType={StartOptionType}, StartDate={StartDate}, ParentId={ParentId}", goalData.Id, goalData.Name, goalData.EndDate, goalData.GoalStatus, goalData.Priority, goalData.StartOptionType, goalData.StartDate, goalData.ParentId);
 
@@ -219,7 +224,7 @@ namespace TaskMonitoringApp.Controllers
 
             try
             {
-                var goals = await _goalService.GetRootGoals(userId, status);
+                var goals = await _goalService.GetRootGoalsWithDynamicStatusUpdatesAsync(userId, status);
                 return Json(new { status = true, data = goals });
             }
             catch (Exception ex)
@@ -293,7 +298,7 @@ namespace TaskMonitoringApp.Controllers
                 int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
                 int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
-                var data = await _goalService.GetAllGoals(userId, status);
+                var data = await _goalService.GetAllGoalsWithDynamicStatusUpdatesAsync(userId, status);
                 int totalRecord = data.Count();
 
                 if (!string.IsNullOrEmpty(searchValue))
@@ -384,7 +389,7 @@ namespace TaskMonitoringApp.Controllers
             return Json(new { status = false, message = "ModelState is not valid!" });
         }
 
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> SearchGoalNameByName(string searchQuery)
         {
             _logger.LogInformation("Entered SearchGoalNameByName with searchQuery={SearchQuery}", searchQuery);
@@ -430,6 +435,30 @@ namespace TaskMonitoringApp.Controllers
             {
                 _logger.LogError(ex, "Exception in GetNotesByGoal for goalId={GoalId}, userId={UserId}", goalId, userId);
                 return Json(new { status = false, message = "Error loading notes" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeattachSubGoals([FromBody] List<int> goalIds)
+        {
+            _logger.LogInformation("Attempting to de-attach goals: {GoalIds}", string.Join(",", goalIds));
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Unauthorized();
+
+            try
+            {
+                var result = await _goalService.DeattachSubGoals(userId, goalIds);
+                if (result)
+                {
+                    return Json(new { status = true, message = "Sub-goals successfully de-attached into root goals." });
+                }
+                return Json(new { status = false, message = "No valid goal IDs provided." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error de-attaching goals for user {UserId}", userId);
+                return Json(new { status = false, message = "An error occurred during de-attachment." });
             }
         }
     }

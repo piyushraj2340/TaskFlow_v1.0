@@ -1,5 +1,6 @@
 ﻿using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.Services
 {
@@ -49,17 +50,19 @@ namespace TaskMonitoringApp.Models.Services
             Status status, 
             int pageNumber, 
             int pageSize, 
-            int? filterGoalId = null, 
-            int? filterTaskId = null, 
-            string? searchQuery = null
+            IEnumerable<int>? filterGoalIds = null, 
+            IEnumerable<int>? filterTaskIds = null, 
+            string? searchQuery = null,
+            bool includeGoalRelatedTasks = false
         );
 
         // NEW: Get Pinned Notes specifically
         Task<IEnumerable<NoteDTOWithGoalAndTaskDTO>> GetPinnedNotes(
              string userId, 
-             int? filterGoalId = null, 
-             int? filterTaskId = null, 
-             string? searchQuery = null
+             IEnumerable<int>? filterGoalIds = null, 
+             IEnumerable<int>? filterTaskIds = null, 
+             string? searchQuery = null,
+             bool includeGoalRelatedTasks = false
         );
         
         // NEW: Get Filter Menu Options (Goals and Tasks names)
@@ -69,6 +72,6 @@ namespace TaskMonitoringApp.Models.Services
         Task<NoteDTOWithGoalAndTaskDTO> GetNoteByIdWithGoalAndTask(string userId, int noteId);
 
         // Returns (PageNumber, NoteDTO)
-        Task<(int PageNumber, NoteDTOWithGoalAndTaskDTO Note)> GetNotePageAndContext(string userId, int noteId, int pageSize, Status status, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null);
+        Task<(int PageNumber, NoteDTOWithGoalAndTaskDTO Note)> GetNotePageAndContext(string userId, int noteId, int pageSize, Status status, IEnumerable<int>? filterGoalIds = null, IEnumerable<int>? filterTaskIds = null, string? searchQuery = null, bool includeGoalRelatedTasks = false);
     }
 }

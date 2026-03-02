@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Services;
 
 namespace TaskMonitoringApp.Controllers
@@ -215,22 +216,52 @@ namespace TaskMonitoringApp.Controllers
             int pageNumber = 1, 
             int pageSize = 20, 
             string? lastDate = null,
-            int? filterGoalId = null,
-            int? filterTaskId = null,
-            string? searchQuery = null)
+            [FromQuery] int[]? filterGoalIds = null,
+            [FromQuery] int[]? filterTaskIds = null,
+            string? searchQuery = null,
+            bool includeGoalRelatedTasks = false)
         {
             var userId = _userManager.GetUserId(User);
             if (userId == null) return Unauthorized();
 
             try
             {
-                var notes = await _service.GetAllNotesWithGoalAndTask(userId, Status.All, pageNumber, pageSize, filterGoalId, filterTaskId, searchQuery);
+                var notes = await _service.GetAllNotesWithGoalAndTask(userId, Status.All, pageNumber, pageSize, filterGoalIds, filterTaskIds, searchQuery, includeGoalRelatedTasks);
                 ViewBag.LastDate = lastDate;
                 return PartialView("~/Views/Notes/_JournalNotesItems.cshtml", notes);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in partial");
+                return StatusCode(500);
+            }
+        }
+
+        // NEW: Specific endpoint for Goal/Task details pages to return the correct layout
+        [HttpGet]
+        public async Task<IActionResult> GetGoalTaskNotesPartial(
+            int pageNumber = 1, 
+            int pageSize = 20, 
+            string? lastDate = null,
+            [FromQuery] int[]? filterGoalIds = null,
+            [FromQuery] int[]? filterTaskIds = null,
+            string? searchQuery = null,
+            bool includeGoalRelatedTasks = false)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Unauthorized();
+
+            try
+            {
+                // Reusing the same service method as it handles filtering by Goal/Task IDs correctly
+                var notes = await _service.GetAllNotesWithGoalAndTask(userId, Status.All, pageNumber, pageSize, filterGoalIds, filterTaskIds, searchQuery, includeGoalRelatedTasks);
+                ViewBag.LastDate = lastDate;
+                // Return the new partial that uses NotesLayout
+                return PartialView("~/Views/Shared/_GoalTaskNotesItems.cshtml", notes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetGoalTaskNotesPartial");
                 return StatusCode(500);
             }
         }
@@ -251,14 +282,15 @@ namespace TaskMonitoringApp.Controllers
         // NEW: Endpoint to refresh pinned notes based on filters
         [HttpGet]
         public async Task<IActionResult> GetPinnedNotesPartial(
-            int? filterGoalId = null,
-            int? filterTaskId = null,
-            string? searchQuery = null)
+            [FromQuery] int[]? filterGoalIds = null,
+            [FromQuery] int[]? filterTaskIds = null,
+            string? searchQuery = null,
+            bool includeGoalRelatedTasks = false)
         {
              var userId = _userManager.GetUserId(User);
              if (userId == null) return Unauthorized();
 
-             var pinned = await _service.GetPinnedNotes(userId, filterGoalId, filterTaskId, searchQuery);
+             var pinned = await _service.GetPinnedNotes(userId, filterGoalIds, filterTaskIds, searchQuery, includeGoalRelatedTasks);
              return PartialView("~/Views/Notes/_PinnedNotesList.cshtml", pinned);
         }
 
@@ -290,22 +322,30 @@ namespace TaskMonitoringApp.Controllers
 
         // UPDATED: Return JSON with HTML string and metadata
         [HttpGet]
-        public async Task<IActionResult> GetPageForNote(int noteId, int pageSize = 20, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null)
+        public async Task<IActionResult> GetPageForNote(int noteId, int pageSize = 20, [FromQuery] int[]? filterGoalIds = null, [FromQuery] int[]? filterTaskIds = null, string? searchQuery = null, bool includeGoalRelatedTasks = false)
         {
             var userId = _userManager.GetUserId(User);
             if (userId == null) return Unauthorized();
 
             // 1. Calculate page
-            var result = await _service.GetNotePageAndContext(userId, noteId, pageSize, Status.All, filterGoalId, filterTaskId, searchQuery);
+            var result = await _service.GetNotePageAndContext(userId, noteId, pageSize, Status.All, filterGoalIds, filterTaskIds, searchQuery, includeGoalRelatedTasks);
             
             if (result.Note == null) return NotFound(new { message = "Note not found in filter" });
 
             // 2. Fetch page data
-            var notesOnPage = await _service.GetAllNotesWithGoalAndTask(userId, Status.All, result.PageNumber, pageSize, filterGoalId, filterTaskId, searchQuery);
+            var notesOnPage = await _service.GetAllNotesWithGoalAndTask(userId, Status.All, result.PageNumber, pageSize, filterGoalIds, filterTaskIds, searchQuery, includeGoalRelatedTasks);
 
             // 3. Render Partial to String
-            // This helper is already in your controller file from previous steps
-            var html = await RenderViewToStringAsync("~/Views/Notes/_JournalNotesItems.cshtml", notesOnPage);
+            // Determine which partial to use based on context (if filters are present, we assume specific view)
+            string partialViewName = "~/Views/Notes/_JournalNotesItems.cshtml";
+
+            // If we are filtering by specific goals or tasks (Detail Pages context usually), use the GoalTask layout
+            if ((filterGoalIds != null && filterGoalIds.Length > 0) || (filterTaskIds != null && filterTaskIds.Length > 0))
+            {
+                partialViewName = "~/Views/Shared/_GoalTaskNotesItems.cshtml";
+            }
+
+            var html = await RenderViewToStringAsync(partialViewName, notesOnPage);
 
             // 4. Return JSON
             return Json(new { 

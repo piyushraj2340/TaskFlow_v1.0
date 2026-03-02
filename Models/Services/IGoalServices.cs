@@ -1,5 +1,6 @@
 ﻿using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.ViewModel;
 
 namespace TaskMonitoringApp.Models.Services
@@ -35,5 +36,13 @@ namespace TaskMonitoringApp.Models.Services
         // New Methods for Multi-level
         Task<IEnumerable<GoalDTO>> GetRootGoals(string userId, Status status);
         Task<IEnumerable<GoalDTO>> GetChildGoals(string userId, int parentId);
+
+        Task<IEnumerable<GoalDTO>> GetAllGoalsWithAutoStartAsync(string userId, Status status);
+        Task<IEnumerable<GoalDTO>> GetRootGoalsWithAutoStartAsync(string userId, Status status);
+
+        // Dynamic State wrappers
+        Task<IEnumerable<GoalDTO>> GetAllGoalsWithDynamicStatusUpdatesAsync(string userId, Status status);
+        Task<IEnumerable<GoalDTO>> GetRootGoalsWithDynamicStatusUpdatesAsync(string userId, Status status);
+        Task<bool> DeattachSubGoals(string userId, List<int> goalIds);
     }
 }

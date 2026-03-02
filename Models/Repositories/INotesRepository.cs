@@ -1,5 +1,6 @@
 ﻿using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.Repositories
 {
@@ -31,10 +32,11 @@ namespace TaskMonitoringApp.Models.Repositories
             int pageNumber,
             int pageSize,
             ResponseDataMode mode,
-            int? filterGoalId = null,
-            int? filterTaskId = null,
+            IEnumerable<int>? filterGoalIds = null,
+            IEnumerable<int>? filterTaskIds = null,
             string? searchQuery = null,
-            bool? onlyPinned = null
+            bool? onlyPinned = null,
+            bool includeGoalRelatedTasks = false
         ) where T : class;
 
         Task<T> GetNotesByIdAsync<T>(string userId, int id, ResponseDataMode mode) where T : class;
@@ -50,7 +52,7 @@ namespace TaskMonitoringApp.Models.Repositories
         Task AddNotes(Notes notes);
 
         // NEW: Get the 1-based index/row number of a specific note to determine its page
-        Task<int> GetNotePositionAsync(string userId, int noteId, Status status, int? filterGoalId = null, int? filterTaskId = null, string? searchQuery = null);
+        Task<int> GetNotePositionAsync(string userId, int noteId, Status status, IEnumerable<int>? filterGoalIds = null, IEnumerable<int>? filterTaskIds = null, string? searchQuery = null, bool includeGoalRelatedTasks = false);
 
         // NEW: Get filter menu data with counts
         Task<FilterMenuDataDTO> GetFilterOptionsWithCountsAsync(string userId);

@@ -1,36 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TaskMonitoringApp.Models.Enums; // Added using
 
 namespace TaskMonitoringApp.Models.Entities
 {
-
-    public enum RepeatType
-    {
-        RunOnce = 0,
-        Daily,
-        Weekly,
-        NoRepeat
-    }
-
-    public enum Priority
-    {
-        Low = 0, 
-        Medium,
-        High,
-        Highest
-    }
-
-    public enum Weekly
-    {
-        Monday = 0,
-        Tuesday,
-        Wednesday,
-        Thursday,
-        Friday,
-        Saturday,
-        Sunday
-    }
-
 
     public class Tasks
     {

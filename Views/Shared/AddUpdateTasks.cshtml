@@ -1,5 +1,6 @@
 ﻿@model TaskMonitoringApp.Models.ViewModel.TaskViewModel
 @using TaskMonitoringApp.Models.Entities
+@using TaskMonitoringApp.Models.Enums
 
 @{
     var errorMessages = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();

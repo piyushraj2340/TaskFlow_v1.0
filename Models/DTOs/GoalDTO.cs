@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.DTOs
 {
@@ -76,6 +77,8 @@ namespace TaskMonitoringApp.Models.DTOs
         public string? UserId { get; set; }
 
         public Status? GoalStatus { get; set; }
+
+        public int? GoalParentId { get; set; }
 
     }
 

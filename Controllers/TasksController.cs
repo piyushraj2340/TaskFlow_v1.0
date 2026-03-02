@@ -10,6 +10,7 @@ using TaskMonitoringApp.Models.Business;
 using TaskMonitoringApp.Models.DataAccessLayer;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Services;
 using TaskMonitoringApp.Models.ViewModel;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -72,14 +73,22 @@ namespace TaskMonitoringApp.Controllers
                 var task = await _taskService.GetAllGoalNamesWithStatusAndTask(userId, Id, Status.All);
 
                 if (task == null)
-                {
+                {   
                     _logger.LogWarning("Task not found for Id={Id}, userId={UserId}", Id, userId);
                     return NotFound();
                 }
 
                 ViewBag.tabName = tabName;
+                
+                int pageSize = 20; // Set page size for notes pagination
+                ViewBag.PageSize = pageSize;
 
-                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All, pageNumber: 1, pageSize: 20);
+                var notesList = await _notesService.GetAllNotesByTaskId(userId, Id, Status.All, pageNumber: 1, pageSize: pageSize);
+                
+                // NEW: Get Pinned Notes for this Task
+                var pinnedNotes = await _notesService.GetPinnedNotes(userId, filterTaskIds: new[] { Id });
+                ViewBag.PinnedNotes = pinnedNotes;
+
                 var taskWithNoteList = _mapper.Map<TaskViewModel>(task);
 
                 var productivity = await _todoService.GetTodoProgressAnalyses(userId, Id);
@@ -357,17 +366,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.Running);
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Running);
             
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Running);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.Running);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.Running);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Running);
             }
 
             // Get total count of records
@@ -450,16 +459,16 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.Completed);
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Completed);
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Completed);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.Completed);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.Completed);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Completed);
             }
 
             // Get total count of records
@@ -542,17 +551,17 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.NotStarted);
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.NotStarted);
 
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.NotStarted);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.NotStarted);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.NotStarted);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.NotStarted);
             }
 
             // Get total count of records
@@ -617,7 +626,6 @@ namespace TaskMonitoringApp.Controllers
         [HttpPost]
         public async Task<IActionResult> GetAllEndedTaskList(int? goalId)
         {
-
             var userId = _userManager.GetUserId(User);
 
             if (userId == null)
@@ -636,17 +644,16 @@ namespace TaskMonitoringApp.Controllers
             int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 
             // Get all tasks from the service
-            //var data = await _taskService.GetAllTasks(userId, Status.Ended);
-
+            //var data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Ended);
             IEnumerable<TaskDTO> data = new List<TaskDTO>();
 
             if (goalId != null && goalId.HasValue && goalId.Value > 0)
             {
-                data = await _taskService.GetAllTasksWithStatusByGoalId(userId, goalId.Value, Status.Ended);
+                data = await _taskService.GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(userId, goalId.Value, Status.Ended);
             }
             else
             {
-                data = await _taskService.GetAllTasks(userId, Status.Ended);
+                data = await _taskService.GetAllTasksWithDynamicStatusUpdatesAsync(userId, Status.Ended);
             }
 
             // Get total count of records
@@ -707,82 +714,6 @@ namespace TaskMonitoringApp.Controllers
             // Return the result as JSON
             return Json(returnObj);
         }
-
-        //[HttpPost]
-        //public async Task<IActionResult> GetAllDeletedTaskList()
-        //{
-        //    var userId = _userManager.GetUserId(User);
-
-        //    if (userId == null)
-        //    {
-        //        return RedirectToAction("Login", "Account");
-        //    }
-
-        //    int totalRecord = 0;
-        //    int filterRecord = 0;
-        //    var draw = Request.Form["draw"].FirstOrDefault();
-        //    var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
-        //    var sortColumn = Request.Form["columns[" + sortColumnIndex + "][name]"].FirstOrDefault();
-        //    var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-        //    var searchValue = Request.Form["search[value]"].FirstOrDefault();
-        //    int pageSize = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "0");
-        //    int skip = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
-
-        //    // Get all tasks from the service
-        //    var data = await _taskService.GetAllTasks(userId, Status.Deleted);
-
-        //    // Get total count of records
-        //    totalRecord = data.Count();
-
-        //    // Apply search filter if there's a search value
-        //    if (!string.IsNullOrEmpty(searchValue))
-        //    {
-        //        // Perform case-insensitive search on multiple fields (Name and Id)
-        //        data = data.Where(x => x.Name?.ToLower() == searchValue.ToLower() || x.Id.ToString().Contains(searchValue));
-        //    }
-
-        //    // Get filtered record count after search
-        //    filterRecord = data.Count();
-
-        //    // Apply sorting if there is a valid column and direction
-        //    if (!string.IsNullOrEmpty(sortColumn) && !string.IsNullOrEmpty(sortColumnDirection))
-        //    {
-        //        switch (sortColumn)
-        //        {
-        //            case "Name":
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Name) : data.OrderByDescending(x => x.Name);
-        //                break;
-        //            case "EndDate":
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.EndDate) : data.OrderByDescending(x => x.EndDate);
-        //                break;
-        //            case "TaskStatus":
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.TaskStatus) : data.OrderByDescending(x => x.TaskStatus);
-        //                break;
-        //            case "Id":
-        //                // Sorting by Id (numerical)
-        //                data = sortColumnDirection == "asc" ? data.OrderBy(x => x.Id) : data.OrderByDescending(x => x.Id);
-        //                break;
-        //            default:
-        //                data = data.OrderBy(x => x.Id); // Default sort by Id if no valid column is provided
-        //                break;
-        //        }
-        //    }
-
-        //    // Paginate the data (skip and take)
-        //    var empList = data.Skip(skip).Take(pageSize).ToList();
-
-        //    // Map the data to TaskDTO using AutoMapper
-        //    var returnObj = new
-        //    {
-        //        draw = draw,
-        //        recordsTotal = totalRecord,
-        //        recordsFiltered = filterRecord,
-        //        data = _mapper.Map<List<TaskDTO>>(empList)
-        //    };
-
-        //    // Return the result as JSON
-        //    return Json(returnObj);
-        //}
 
         [HttpDelete]
         public async Task<IActionResult> DeleteTask(int Id)

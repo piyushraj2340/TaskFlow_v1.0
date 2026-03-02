@@ -1,4 +1,4 @@
-﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualBasic;
@@ -17,6 +17,7 @@ using TaskMonitoringApp.Models.DTOs;
 using AutoMapper;
 using TaskMonitoringApp.Exceptions;
 using System.Collections;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.DataAccessLayer
 {
@@ -55,11 +56,9 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             return mode switch
             {
                 ResponseDataMode.Model => await _context.TodoWithTask
-                        .FromSqlRaw("EXEC usp_AddAndGetTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 ResponseDataMode.ModelDTO => await _context.TodoWithTaskDTO
-                        .FromSqlRaw("EXEC usp_AddAndGetTodoFromTask @UserId, @Status, @Mode", userIdParam, statusParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Data Not Found!"),
                 _ => throw new InvalidOperationException("Invalid Operations While Fetching Todo Data.")
@@ -353,7 +352,6 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
             {
                 case ResponseDataMode.Model:
                     var todayAnalysisModel = await _context.TodoProgressAnalyses
-                        .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
                         .ToListAsync() as IEnumerable<T>
                             ?? throw new NotFoundException("Todo Not Found!");
 
@@ -362,7 +360,6 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
                 case ResponseDataMode.ModelDTO:
                     var todayAnalysisDTO = await _context.TodoProgressAnalysesDTO
-                    .FromSqlRaw("EXEC usp_TodoProgressAnalyses @UserId, @Mode", userIdParam, modeParam)
                     .ToListAsync() as IEnumerable<T>
                         ?? throw new NotFoundException("Todo Not Found!");
 
@@ -442,12 +439,81 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
         // todo need to implement this metods....
         public async Task UpdateTodoStatusAsync(string userId, int todoId, Status statusToChange)
         {
-            var userIdParam = new SqlParameter("@UserId", userId);
-            var todoIdParam = new SqlParameter("@TodoId", todoId);
-            var statusToChangeParam = new SqlParameter("@StatusToUpdate", statusToChange);
+            var currentDateTime = DateTime.Now;
+            var yesterdayDate = currentDateTime.AddDays(-1).Date;
 
-            await _context.InsertUpdateSpWithIdDTO.FromSqlRaw("EXEC usp_ChangeTodoStatus @UserId, @TodoId, @StatusToUpdate", userIdParam, todoIdParam, statusToChangeParam)
-                .ToListAsync();
+            // Fetch Todo with Task included
+            var todo = await _context.Todo
+                .Include(td => td.Task)
+                .FirstOrDefaultAsync(td => td.Id == todoId 
+                                        && td.UserId == userId 
+                                        && !td.IsDeleted 
+                                        && td.EndDate > yesterdayDate);
+
+            if (todo == null)
+            {
+                throw new InvalidOperationException("Todo must be in an active state!");
+            }
+
+            var task = todo.Task;
+            if (task == null || task.UserId != userId)
+            {
+                throw new InvalidOperationException("Associated task constraint failed.");
+            }
+
+            // Check if status update is allowed
+            bool isAllowedToChange = todo.IsManualAdded || (!todo.IsManualAdded && task.TaskStatus == Status.Running);
+            if (!isAllowedToChange)
+            {
+                throw new InvalidOperationException("Todo must be in an active state!");
+            }
+
+            bool isTaskActive = task.TaskStatus == Status.Running && !task.IsDeleted && task.EndDate > currentDateTime;
+
+            if (statusToChange == Status.Completed)
+            {
+                // Task is run once -> cascade completion onto the task
+                if (task.Repeat == RepeatType.RunOnce)
+                {
+                    task.TaskStatus = Status.Completed;
+                    task.UpdatedOn = currentDateTime;
+                    task.CompletedOn = currentDateTime;
+                    _context.Tasks.Update(task);
+                }
+
+                if (todo.IsManualAdded)
+                {
+                    todo.UpdatedOn = currentDateTime;
+                    todo.CompletedOn = currentDateTime;
+                    todo.Status = Status.Completed;
+                }
+                else
+                {
+                    todo.UpdatedOn = currentDateTime;
+                    todo.CompletedOn = isTaskActive ? currentDateTime : todo.CompletedOn;
+                    todo.EndedOn = !isTaskActive ? currentDateTime : todo.EndedOn;
+                    todo.Status = isTaskActive ? Status.Completed : Status.Ended;
+                }
+            }
+            else if (statusToChange == Status.Running)
+            {
+                if (isTaskActive)
+                {
+                    todo.UpdatedOn = currentDateTime;
+                    todo.Status = Status.Running;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Not allowed to change the status!");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Todo Change Status must be valid!");
+            }
+
+            _context.Todo.Update(todo);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateTodoNotesAsync(string userId, int todoId, string notes)
@@ -480,6 +546,181 @@ namespace TaskMonitoringApp.Models.DataAccessLayer
 
             await _context.Todo.AddRangeAsync(todos);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Tasks>> GetCandidateTasksForTodoAsync(string userId)
+        {
+            return await _context.Tasks
+                .Where(t => t.UserId == userId && t.TaskStatus == Status.Running && !t.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<int>> GetExistingTodoTaskIdsAsync(string userId, DateTime today, DateTime tomorrow)
+        {
+            return await _context.Todo
+                .Where(td => td.UserId == userId && !td.IsDeleted && td.CreatedOn >= today && td.CreatedOn < tomorrow)
+                .Select(td => td.TaskId)
+                .ToListAsync();
+        }
+
+        public async Task AddTodosBulkAsync(IEnumerable<Todo> todos)
+        {
+            if (todos == null || !todos.Any()) return;
+
+            await _context.Todo.AddRangeAsync(todos);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<T>> GetAllTodosFromTaskWithoutSpAsync<T>(string userId, Status status, ResponseDataMode mode) where T : class
+        {
+            var today = DateTime.Today; // Start of today
+            var tomorrow = today.AddDays(1);  // Start of tomorrow
+
+            if (mode == ResponseDataMode.Model)
+            {
+                var query = _context.Todo
+                    .Include(td => td.Task)
+                    .Where(td => td.UserId == userId && td.CreatedOn >= today && td.CreatedOn < tomorrow);
+
+                if (status != Status.All)
+                {
+                    query = query.Where(td => td.Status == status);
+                }
+
+                var result = await query.Select(td => new TodoWithTask
+                {
+                    Id = td.Id,
+                    EndDate = td.EndDate,
+                    Status = td.Status,
+                    CreatedOn = td.CreatedOn,
+                    UpdatedOn = td.UpdatedOn,
+                    DeletedOn = td.DeletedOn,
+                    TaskId = td.TaskId,
+                    UserId = td.UserId,
+                    // Notes = td.Notes, // Not mapped in the original TodoWithTask model class structure
+                    // IsManualAdded = td.IsManualAdded, // Not mapped in the original TodoWithTask model class structure
+                    TaskName = td.Task.Name,
+                    TaskEndDate = td.Task.EndDate,
+                    TaskCreatedOn = td.Task.CreatedOn,
+                    TaskUpdatedOn = td.Task.UpdatedOn,
+                    TaskDeletedOn = td.Task.DeletedOn,
+                    TaskStatus = td.Task.TaskStatus,
+                    TaskDescription = td.Task.Description,
+                    TaskPriority = td.Task.Priority,
+                    TaskRepeat = td.Task.Repeat,
+                    TaskRepeatWeekList = td.Task.RepeatWeekList
+                }).ToListAsync();
+
+                if (result == null || !result.Any())
+                {
+                    throw new NotFoundException("Todo Data Not Found!");
+                }
+
+                return result as IEnumerable<T>;
+            }
+            else if (mode == ResponseDataMode.ModelDTO)
+            {
+                var query = _context.Todo
+                    .Include(td => td.Task)
+                    .Where(td => td.UserId == userId && td.CreatedOn >= today && td.CreatedOn < tomorrow);
+
+                if (status != Status.All)
+                {
+                    query = query.Where(td => td.Status == status);
+                }
+
+                var result = await query.Select(td => new TodoDTOWithTaskDTO
+                {
+                    Id = td.Id,
+                    EndDate = td.EndDate,
+                    Status = td.Status,
+                    TaskId = td.TaskId,
+                    UserId = td.UserId,
+                    Notes = td.Notes,
+                    IsManualAdded = td.IsManualAdded,
+                    TaskName = td.Task.Name,
+                    TaskEndDate = td.Task.EndDate,
+                    TaskStatus = td.Task.TaskStatus,
+                    TaskDescription = td.Task.Description,
+                    TaskPriority = td.Task.Priority,
+                    TaskRepeat = td.Task.Repeat,
+                    TaskRepeatWeekList = td.Task.RepeatWeekList,
+                    TaskCompletedOn = td.Task.CompletedOn,
+                    TaskEndedOn = td.Task.EndedOn
+                }).ToListAsync();
+
+                if (result == null || !result.Any())
+                {
+                    throw new NotFoundException("Todo Data Not Found!");
+                }
+
+                return result as IEnumerable<T>;
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid @Mode To Access Data From Data Base");
+            }
+        }
+
+        public async Task<TodoProgressAnalysisDTO> UpsertAndGetTodoProgressAnalysesWithoutSpAsync(string userId, DateTime forDate)
+        {
+            var date = forDate.Date;
+            var tomorrow = date.AddDays(1);
+
+            var todos = await _context.Todo
+                .Where(t => t.UserId == userId && t.CreatedOn >= date && t.CreatedOn < tomorrow && !t.IsDeleted)
+                .ToListAsync();
+
+            int totalTodos = todos.Count;
+            int completedTodos = todos.Count(t => t.Status == Status.Completed);
+
+            double productivityForTodays = 0d;
+            if (totalTodos > 0)
+            {
+                productivityForTodays = Math.Round(((double)completedTodos / totalTodos) * 100, 2);
+            }
+
+            var analysisRecord = await _context.TodoProgressAnalyses
+                .FirstOrDefaultAsync(tpa => tpa.UserId == userId && tpa.CalculateDateFor >= date && tpa.CalculateDateFor < tomorrow);
+
+            if (analysisRecord == null)
+            {
+                analysisRecord = new TodoMonitoringApp.Models.Entities.TodoProgressAnalysis
+                {
+                    UserId = userId,
+                    CalculateDateFor = date,
+                    TotalTodo = totalTodos,
+                    TotalCompletedTodo = completedTodos,
+                    TotalMissedTodo = totalTodos - completedTodos,
+                    ProductivityForDay = productivityForTodays,
+                    CreatedOn = DateTime.Now,
+                    UpdatedOn = DateTime.Now,
+                    IsDeleted = false
+                };
+                await _context.TodoProgressAnalyses.AddAsync(analysisRecord);
+            }
+            else
+            {
+                analysisRecord.TotalTodo = totalTodos;
+                analysisRecord.TotalCompletedTodo = completedTodos;
+                analysisRecord.TotalMissedTodo = totalTodos - completedTodos;
+                analysisRecord.ProductivityForDay = productivityForTodays;
+                analysisRecord.UpdatedOn = DateTime.Now;
+                _context.TodoProgressAnalyses.Update(analysisRecord);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return new TodoProgressAnalysisDTO
+            {
+                Id = analysisRecord.Id,
+                CalculateDateFor = analysisRecord.CalculateDateFor,
+                TotalTodo = analysisRecord.TotalTodo,
+                TotalCompletedTodo = analysisRecord.TotalCompletedTodo,
+                TotalMissedTodo = analysisRecord.TotalMissedTodo,
+                ProductivityForDay = analysisRecord.ProductivityForDay,
+                UserId = analysisRecord.UserId
+            };
         }
     }
 }

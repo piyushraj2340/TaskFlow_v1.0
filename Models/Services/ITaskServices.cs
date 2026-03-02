@@ -1,5 +1,6 @@
 ﻿using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.Services
 {
@@ -35,5 +36,11 @@ namespace TaskMonitoringApp.Models.Services
         Task<int> GetTaskCountByTaskStatusAndDateTimeRange(string userId, Status status, DateTime from, DateTime end);
         Task<IEnumerable<TaskNameDTO>> SearchTasks(string userId, string query);
         Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoals(string userId, string query, Status status);
+
+        Task<IEnumerable<TaskDTO>> GetAllTasksWithAutoStartAsync(string userId, Status status);
+        Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithAutoStartAsync(string userId, int goalId, Status taskStatus);
+
+        Task<IEnumerable<TaskDTO>> GetAllTasksWithDynamicStatusUpdatesAsync(string userId, Status status);
+        Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(string userId, int goalId, Status taskStatus);
     }
 }

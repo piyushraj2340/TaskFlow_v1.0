@@ -1,4 +1,5 @@
 ﻿using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums; // Add this using directive
 
 namespace TaskMonitoringApp.Models.DTOs
 {

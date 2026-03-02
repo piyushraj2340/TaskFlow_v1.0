@@ -1,161 +1,260 @@
-﻿<div id="addEditGoalModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-800 bg-opacity-50 backdrop-blur-sm">
-    <div class="custom-scrollbar relative max-h-[90vh] w-full max-w-xl overflow-auto rounded-lg bg-white shadow-xl sm:w-4/5 lg:w-1/2 xl:w-1/3">
+﻿<div id="addEditGoalModal" class="fixed inset-0 z-[999999999] hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 overflow-hidden">
+    <div class="relative flex flex-col w-full max-w-2xl max-h-[92vh] rounded-2xl bg-white shadow-2xl overflow-hidden">
 
-        <div class="flex items-center justify-between bg-indigo-600 px-6 py-4 text-white">
-            <h2 id="form-label" class="text-xl font-semibold tracking-wide">
-                <i class="fa-solid fa-clipboard-list"></i> Create Your Progress Record in Goal
-            </h2>
-            <button id="closeModalButton" type="button" class="closeModalButton text-2xl text-white hover:text-gray-200 transition-colors">
-                <i class="fa-solid fa-xmark"></i>
+        <div class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-700 px-8 py-5 text-white shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                    <i class="fa-solid fa-rocket text-lg"></i>
+                </div>
+                <div>
+                    <h2 id="form-label" class="text-lg font-bold tracking-tight">Add New Goal</h2>
+                    <p class="text-[11px] text-indigo-100 opacity-80 uppercase tracking-widest">Goal Management System</p>
+                </div>
+            </div>
+            <button id="closeModalButton" type="button" class="group flex h-9 w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all">
+                <i class="fa-solid fa-xmark text-xl"></i>
             </button>
         </div>
 
-        <div id="subGoalModeContainer" class="hidden mb-2 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-            <label class="block text-sm font-semibold text-indigo-900 mb-3">Sub-goal Creation Mode</label>
-            <div class="flex gap-6">
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="subGoalMode" value="new" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
-                    <span class="text-sm font-medium text-indigo-700">Add New Sub-goal</span>
-                </label>
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="subGoalMode" value="existing" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
-                    <span class="text-sm font-medium text-indigo-700">Link Existing Goal</span>
-                </label>
+        <div class="custom-scrollbar overflow-y-auto flex-1 px-8 py-6">
+
+            <div id="subGoalModeContainer" class="hidden mb-6 p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-center justify-between gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-indigo-900">Sub-goal Mode</label>
+                    <p class="text-xs text-indigo-600">Add new or link existing</p>
+                </div>
+                <div class="flex bg-white p-1 rounded-lg shadow-sm border border-indigo-100 shrink-0">
+                    <label class="flex items-center px-3 py-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-indigo-600 has-[:checked]:text-white">
+                        <input type="radio" name="subGoalMode" value="new" checked class="hidden">
+                        <span class="text-xs font-semibold">New</span>
+                    </label>
+                    <label class="flex items-center px-3 py-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-indigo-600 has-[:checked]:text-white">
+                        <input type="radio" name="subGoalMode" value="existing" class="hidden">
+                        <span class="text-xs font-semibold">Link Existing</span>
+                    </label>
+                </div>
             </div>
-        </div>
 
-        <div id="existingGoalSearchContainer" class="mb-2 hidden px-6">
-            <label for="existingGoalSearch" class="block text-sm font-medium text-gray-600">Search Existing Goal</label>
-            <div class="mt-1">
-                <select id="existingGoalSearch" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" style="width: 100%;">
-                    <option value="">Search by name...</option>
-                </select>
+            <div id="existingGoalSearchContainer" class="hidden mb-6">
+                <label for="existingGoalSearch" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Search Existing Goal</label>
+                <select id="existingGoalSearch" class="select2-modern w-full"></select>
+                <p class="mt-2 text-[10px] text-indigo-500"><i class="fas fa-info-circle mr-1"></i>Details will auto-fill upon selection.</p>
             </div>
-            <p class="mt-1 text-[10px] text-indigo-500"><i class="fas fa-info-circle mr-1"></i>Selecting a goal will automatically fill the details below.</p>
-        </div>
 
-        <div class="px-6 py-4">
-            <form id="goalForm" class="space-y-4">
-
-                <div id="goalIdContainer" class="hidden">
-                    <label for="goalId" class="block text-sm font-medium text-gray-600">Goal Id</label>
-                    <input type="text" id="goalId" name="goalId" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 bg-gray-50" readonly>
+            <form id="goalForm" class="space-y-6">
+                <div class="w-full">
+                    <label for="goalName" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Goal Identity <span class="text-rose-500">*</span></label>
+                    <input type="text" id="goalName" name="goalName" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-700 focus:border-indigo-500 focus:bg-white outline-none transition-all" required placeholder="e.g. Master System Design" />
                 </div>
 
-                <div>
-                    <label for="goalName" class="block text-sm font-medium text-gray-600">Goal Name <span class="text-red-500">*</span></label>
-                    <input type="text" id="goalName" name="goalName" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none transition-all" required minlength="3" maxlength="50" placeholder="Enter your goal name" />
-                    <span class="hidden text-xs text-red-500" id="goalNameError">Goal name must be between 3 and 50 characters.</span>
+                <div class="w-full">
+                    <label for="parentGoalId" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Hierarchy Connection</label>
+                    <select id="parentGoalId" name="parentGoalId" class="select2-modern w-full"></select>
                 </div>
 
-                <div>
-                    <label for="parentGoalId" class="block text-sm font-medium text-gray-600">Parent Goal <span class="text-gray-400 font-normal">(Optional)</span></label>
-                    <div class="mt-1">
-                        <select id="parentGoalId" name="parentGoalId" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" style="width: 100%;">
-                            <option value="">Select a parent goal...</option>
-                        </select>
+                <div class="w-full">
+                    <label for="goalDescription" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Detailed Roadmap</label>
+                    <div class="rounded-xl border border-slate-200 overflow-hidden min-h-[150px]">
+                        <textarea id="goalDescription" name="goalDescriptions"></textarea>
                     </div>
-                    <p class="mt-1 text-[10px] text-gray-500"><i class="fas fa-info-circle mr-1"></i>Organize your tasks by nesting this under another goal.</p>
                 </div>
 
-                <div>
-                    <label for="goalDescription" class="block text-sm font-medium text-gray-600">Goal Descriptions</label>
-                    <textarea id="goalDescription" name="goalDescriptions" rows="4" class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <label for="goalPriority" class="block text-sm font-medium text-gray-600">Goal Priority</label>
-                        <select id="goalPriority" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <option value="0">Low</option>
-                            <option value="1">Medium</option>
-                            <option value="2">High</option>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full" id="statusPriorityGrid">
+                    <div id="priorityWrapper" class="col-span-2 sm:col-span-2">
+                        <label for="goalPriority" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Impact Level</label>
+                        <select id="goalPriority" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-indigo-500 transition-all">
+                            <option value="0">🟢 Low Priority</option>
+                            <option value="1">🟡 Medium Priority</option>
+                            <option value="2">🔴 High Priority</option>
                         </select>
                     </div>
 
-                    <div>
-                        <label for="goalStatus" class="block text-sm font-medium text-gray-600">Goal Status</label>
-                        <select id="goalStatus" name="goalStatus" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <option value="0">Not Started</option>
-                            <option value="1">Running</option>
-                            <option value="2">Completed</option>
-                            <option value="3">Ended</option>
+                    <div id="goalStatusContainer" class="hidden col-span-1">
+                        <label for="goalStatus" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Progress State</label>
+                        <select id="goalStatus" name="goalStatus" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-indigo-500 transition-all">
+                            <option value="0">⚪ Not Started</option>
+                            <option value="1">🔵 Running</option>
+                            <option value="2">✅ Completed</option>
+                            <option value="3">⏹️ Ended</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <label class="block text-sm font-medium text-gray-600 mb-2">Goal Start Option</label>
-                    <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="goalStart" value="0" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" checked>
-                            <span class="text-sm text-gray-700">Manual</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="goalStart" value="1" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-sm text-gray-700">Scheduled</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" name="goalStart" value="2" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-sm text-gray-700">Start Immediately</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div id="startDateContainer" class="hidden">
-                        <label for="startDate" class="block text-sm font-medium text-gray-600">Start Date</label>
-                        <input type="text" id="startDate" name="startDate" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 bg-white" placeholder="Pick Date">
-                        <span class="hidden text-xs text-red-500" id="startDateError">Start date is required for scheduling.</span>
+                <div class="rounded-2xl border border-slate-100 bg-slate-50/50 p-6 space-y-6 w-full">
+                    <div class="w-full">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 text-center">Timing Strategy</label>
+                        <div class="flex flex-wrap justify-center gap-3">
+                            <label class="relative flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold transition-all hover:bg-slate-50 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700 shadow-sm">
+                                <input type="radio" name="goalStart" value="0" class="absolute opacity-0" checked>
+                                <span>Manual</span>
+                            </label>
+                            <label class="relative flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold transition-all hover:bg-slate-50 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700 shadow-sm">
+                                <input type="radio" name="goalStart" value="1" class="absolute opacity-0">
+                                <span>Scheduled</span>
+                            </label>
+                            <label class="relative flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold transition-all hover:bg-slate-50 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700 shadow-sm">
+                                <input type="radio" name="goalStart" value="2" class="absolute opacity-0">
+                                <span>Immediate</span>
+                            </label>
+                        </div>
                     </div>
 
-                    <div>
-                        <label for="endDate" class="block text-sm font-medium text-gray-600">Due Date <span class="text-red-500">*</span></label>
-                        <input type="text" id="endDate" name="endDate" class="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 bg-white" placeholder="Select Due Date." required />
-                        <span class="hidden text-xs text-red-500" id="goalDueDateError">End date must be in the future.</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full" id="dateGrid">
+                        <div id="startDateContainer" class="hidden col-span-1">
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Start Date</label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="startDate" name="startDate" class="w-full rounded-xl border border-slate-200 pl-11 pr-4 py-3 text-sm outline-none shadow-sm focus:border-indigo-500 transition-all">
+                            </div>
+                        </div>
+                        <div id="endDateWrapper" class="col-span-2 sm:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Due Date</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-flag-checkered absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="endDate" name="endDate" class="w-full rounded-xl border border-slate-200 pl-11 pr-4 py-3 text-sm outline-none shadow-sm focus:border-indigo-500 transition-all" required>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="flex justify-end pt-4 border-t border-gray-100">
-                    <button type="button" id="cancelModalButton" class="cancelModalButton mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-all">Cancel</button>
-                    <button id="submit-btn" type="submit" class="rounded-md bg-blue-500 px-6 py-2 text-sm font-bold text-white shadow-md hover:bg-blue-600 transition-all">
-                        <i class="fa-solid fa-save mr-2"></i> Save Goal
-                    </button>
                 </div>
             </form>
         </div>
+
+        <div class="flex items-center justify-end gap-3 px-8 py-5 border-t border-slate-100 bg-slate-50/30 shrink-0">
+            <button type="button" id="cancelModalButton" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-all">Discard</button>
+            <button id="submit-btn" type="submit" form="goalForm" class="rounded-xl bg-indigo-600 px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all">
+                <i class="fa-solid fa-circle-check mr-2"></i> Save Goal
+            </button>
+        </div>
     </div>
 </div>
-
 <style>
-    /* Custom Scrollbar for Modal Body */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
+    /* --- 1. Base Modal & Layout Fixes --- */
+    #addEditGoalModal {
+        overflow: hidden; /* Prevent background/outer scrolling */
     }
 
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f3f4f6;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 10px;
-    }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
+        /* Smooth pop-in animation */
+        #addEditGoalModal:not(.hidden) {
+            animation: modalFadeIn 0.2s ease-out;
         }
 
-    /* Flatpickr Material Customization */
-    .flatpickr-calendar {
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        border: none;
+    @@keyframes modalFadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: scale(0.98);
     }
 
-    .flatpickr-day.selected {
-        background: #4f46e5 !important;
-        border-color: #4f46e5 !important;
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    }
+
+    /* Prevent outer body scrolling when modal is open */
+    body.modal-open {
+        overflow: hidden;
+    }
+
+    /* --- 2. Consolidate Custom Scrollbar --- */
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+        scrollbar-gutter: stable; /* Prevents layout shift when scrollbar appears */
+    }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #9ca3af;
+            }
+
+    /* --- 3. Component Styling: Select2 SaaS Look --- */
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 0.75rem !important;
+        height: 50px !important; /* Standardized Height */
+        background-color: #f8fafc !important;
+        display: flex !important;
+        align-items: center !important;
+        transition: all 0.2s ease;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #475569 !important;
+            padding-left: 1rem !important;
+            font-size: 0.875rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 48px !important;
+            right: 8px !important;
+        }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    /* --- 4. Standard Inputs & Dropdowns --- */
+    /* Match standard selects (Priority/Status) to Select2 and Text inputs */
+    #goalPriority,
+    #goalStatus {
+        height: 50px;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.75rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    /* --- 5. Flatpickr Modern Customization --- */
+    .flatpickr-calendar {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+        background: #6366f1 !important; /* Indigo-500 */
+        color: #fff !important;
+        border-radius: 8px !important; /* Modern square-round look */
+        border: none !important;
+    }
+
+    .flatpickr-day.today {
+        border: 2px solid #6366f1 !important;
+        color: #6366f1 !important;
+    }
+
+    .flatpickr-day.disabled {
+        color: #cbd5e1 !important;
+        background: #f8fafc !important;
+    }
+
+    /* --- 6. TinyMCE Internal Fix --- */
+    .tox-tinymce {
+        border: none !important;
+        width: 100% !important;
+        border-radius: 0.75rem !important;
     }
 </style>
 
@@ -165,28 +264,6 @@
 <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-<style>
-    /* Enhance Flatpickr UI: highlight selected, pagination-like colors */
-    .flatpickr-calendar {
-        font-family: 'Segoe UI', Arial, sans-serif;
-    }
-
-    .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
-        background: #6366f1 !important; /* Indigo */
-        color: #fff !important;
-        border-radius: 50% !important;
-    }
-
-    .flatpickr-day.today {
-        border: 2px solid #6366f1 !important;
-    }
-
-    .flatpickr-day.disabled {
-        color: #bbb !important;
-        background: #f3f4f6 !important;
-    }
-</style>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {

@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Repositories;
 using TaskMonitoringApp.Models.Services;
 using TaskMonitoringApp.Models.ViewModel;
@@ -143,7 +144,7 @@ namespace TaskMonitoringApp.Models.Business
                     throw new ArgumentException("A goal cannot be its own parent. Please select a different parent goal.", nameof(goals.ParentId));
                 }
                 // Check for circular reference
-                var parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.ParentId.Value, ResponseDataMode.Model);
+                var parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, goals.ParentId.Value, ResponseDataMode.Model, RequestDataMode.AsNoTracking);
                 while (parentGoal != null)
                 {
                     if (parentGoal.ParentId == goals.Id)
@@ -152,7 +153,7 @@ namespace TaskMonitoringApp.Models.Business
                     }
                     if (parentGoal.ParentId.HasValue)
                     {
-                        parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, parentGoal.ParentId.Value, ResponseDataMode.Model);
+                        parentGoal = await _goalRepository.GetGoalByIdAsync<Goals>(UserId, parentGoal.ParentId.Value, ResponseDataMode.Model, RequestDataMode.AsNoTracking);
                     }
                     else
                     {
@@ -194,6 +195,10 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<GoalProductivityDTO> GetGoalProductivity(string userId)
         {
+            // Keep stats accurate dynamically
+            
+            await _goalRepository.UpdateGoalStateAsync(userId);
+            
             int runningGoal = await _goalRepository.GetGoalCountByGoalStatus(userId, Status.Running);
 
             // Overall productivity
@@ -314,6 +319,52 @@ namespace TaskMonitoringApp.Models.Business
         public async Task<IEnumerable<GoalDTO>> GetChildGoals(string userId, int parentId)
         {
             return await _goalRepository.GetChildGoalsAsync(userId, parentId);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetAllGoalsWithAutoStartAsync(string userId, Status status)
+        {
+            if (status == Status.Running || status == Status.All)
+            {
+                
+            }
+            return await _goalRepository.GetAllGoalsAsync<GoalDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetRootGoalsWithAutoStartAsync(string userId, Status status)
+        {
+            if (status == Status.Running || status == Status.All)
+            {
+                
+            }
+            return await _goalRepository.GetRootGoalsAsync(userId, status);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetAllGoalsWithDynamicStatusUpdatesAsync(string userId, Status status)
+        {
+            if (status != Status.Completed && status != Status.Archived)
+            {
+                
+                await _goalRepository.UpdateGoalStateAsync(userId);
+            }
+            return await _goalRepository.GetAllGoalsAsync<GoalDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<GoalDTO>> GetRootGoalsWithDynamicStatusUpdatesAsync(string userId, Status status)
+        {
+            if (status != Status.Completed && status != Status.Archived)
+            {
+                
+                await _goalRepository.UpdateGoalStateAsync(userId);
+            }
+            return await _goalRepository.GetRootGoalsAsync(userId, status);
+        }
+
+        public async Task<bool> DeattachSubGoals(string userId, List<int> goalIds)
+        {
+            if (goalIds == null || !goalIds.Any()) return false;
+
+            await _goalRepository.DeattachSubGoalsAsync(userId, goalIds);
+            return true;
         }
     }
 }
