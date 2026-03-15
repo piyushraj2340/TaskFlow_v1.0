@@ -35,6 +35,34 @@
     top: 56px !important;
 }
 
+/* Global layering rules to keep overlays/popups visible above app UI. */
+:root {
+    --tma-z-overlay: 999999999;
+    --tma-z-popup: 9999999998;
+    --tma-z-alert: 9999999999;
+}
+
+.swal2-container,
+.swal2-toast,
+.swal2-popup,
+.tma-swal-zindex {
+    z-index: var(--tma-z-alert) !important;
+}
+
+.flatpickr-calendar,
+.select2-container--open,
+.select2-dropdown,
+.awesomplete > ul,
+.ui-datepicker,
+.tox .tox-dialog-wrap,
+.tox-tinymce-aux {
+    z-index: var(--tma-z-popup) !important;
+}
+
+#globalSearchResults {
+    z-index: var(--tma-z-popup) !important;
+}
+
 /*
                                     Increased specificity by prefixing all rules with '.dataTables_wrapper'
                                     to override DataTables default styles.
@@ -99,7 +127,7 @@
 }
 
 /* Fix mobile alignment for DataTable controls */
-@@media (max-width: 640px) { /* Targeting sm breakpoint and below */
+@media (max-width: 640px) { /* Targeting sm breakpoint and below */
     .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info {
         text-align: left; /* Align all text left */
         display: block; /* Stack controls */
