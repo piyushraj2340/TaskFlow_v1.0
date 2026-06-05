@@ -283,7 +283,7 @@
             try {
                 let resp;
                 if (type === notesActionType.Goal) {
-                    resp = await $.post('/Goals/SearchGoalNameByName', { searchQuery: q });
+                    resp = await $.get('/Goals/SearchGoalNameByName', { searchQuery: q });
                 } else if (type === notesActionType.Task) {
                     resp = await $.get('/Tasks/SearchTasks', { query: q });
                 } else {

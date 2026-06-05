@@ -143,7 +143,7 @@
                 try {
                     const res = await $.ajax({
                         url: `/Goals/SearchGoalNameByName?searchQuery=${query}`,
-                        method: "POST",
+                        method: "GET",
                         contentType: "application/json",
                     });
 
