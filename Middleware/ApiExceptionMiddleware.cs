@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskMonitoringApp.Exceptions;
 
 namespace TaskMonitoringApp.Middleware
@@ -19,15 +19,42 @@ namespace TaskMonitoringApp.Middleware
             try
             {
                 await _next(context);
+
+                if (context.Response.StatusCode >= 400 && !context.Response.HasStarted)
+                {
+                    if (string.IsNullOrWhiteSpace(context.Response.ContentType) || !context.Response.ContentType.StartsWith("application/json"))
+                    {
+                        context.Response.ContentType = "application/json";
+                        var response = new
+                        {
+                            StatusCodes = context.Response.StatusCode,
+                            message = GetDefaultMessageForStatusCode(context.Response.StatusCode),
+                            Details = (string)null
+                        };
+                        await context.Response.WriteAsJsonAsync(response);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                await HandelExceptionAsync(context, ex);
+                await HandleExceptionAsync(context, ex);
             }
         }
 
-        private static Task HandelExceptionAsync(HttpContext context, Exception exception)
+        private static string GetDefaultMessageForStatusCode(int statusCode)
+        {
+            return statusCode switch
+            {
+                400 => "Bad Request",
+                401 => "Unauthorized access",
+                403 => "Forbidden access",
+                404 => "Resource not found",
+                _ => "An error occurred"
+            };
+        }
+
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             var statusCode = exception switch
             {

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskMonitoringApp.Exceptions;
 
 namespace TaskMonitoringApp.Middleware
@@ -43,6 +43,23 @@ namespace TaskMonitoringApp.Middleware
             };
 
             context.Response.StatusCode = statusCode;
+
+            // Check if the request expects JSON or is an AJAX call
+            var isApiOrAjax = context.Request.Path.StartsWithSegments("/api") ||
+                              context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                              context.Request.Headers["Accept"].ToString().Contains("application/json");
+
+            if (isApiOrAjax)
+            {
+                context.Response.ContentType = "application/json";
+                var response = new
+                {
+                    StatusCodes = statusCode,
+                    message = string.IsNullOrWhiteSpace(exception.Message) ? "Something Went Wrong!" : exception.Message,
+                    Details = exception.InnerException?.Message
+                };
+                return context.Response.WriteAsJsonAsync(response);
+            }
 
             if (_env.IsDevelopment())
             {
