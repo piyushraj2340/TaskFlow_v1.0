@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -55,6 +55,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddSingleton<IEmailService, LoggingEmailService>();
+builder.Services.AddScoped<IGuestSeederService, GuestSeederService>();
+builder.Services.AddHostedService<GuestCleanupService>();
 
 // register search services
 builder.Services.AddScoped<ISearchRepository, TaskMonitoringApp.Models.DataAccessLayer.SearchRepository>();
@@ -81,7 +83,7 @@ builder.Services.AddMemoryCache(); // Enable In-Memory Caching
 // In Development, this pulls from appsettings.Development.json ((localdb)).
 // In Production, this pulls from appsettings.json (Azure DB).
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApp_AzureDB")));
 
 
 builder.Services.AddIdentity<Users, IdentityRole>(options =>
@@ -113,6 +115,38 @@ builder.Services.ConfigureApplicationCookie(options =>
     // Cookie settings
     options.Cookie.HttpOnly = true;
     //options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
+
+    options.Events.OnRedirectToLogin = context =>
+    {
+        var isApiOrAjax = context.Request.Path.StartsWithSegments("/api") ||
+                          context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                          context.Request.Headers["Accept"].ToString().Contains("application/json");
+
+        if (isApiOrAjax)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new { StatusCodes = 401, message = "Unauthorized access." });
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        var isApiOrAjax = context.Request.Path.StartsWithSegments("/api") ||
+                          context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                          context.Request.Headers["Accept"].ToString().Contains("application/json");
+
+        if (isApiOrAjax)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new { StatusCodes = 403, message = "Access denied (Forbidden)." });
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
@@ -171,6 +205,49 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseStatusCodePages(async statusCodeContext =>
+{
+    var request = statusCodeContext.HttpContext.Request;
+    var response = statusCodeContext.HttpContext.Response;
+
+    var isApiOrAjax = request.Path.StartsWithSegments("/api") ||
+                      request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                      request.Headers["Accept"].ToString().Contains("application/json");
+
+    if (isApiOrAjax)
+    {
+        if (response.StatusCode >= 400 && !response.HasStarted)
+        {
+            response.ContentType = "application/json";
+            var result = new
+            {
+                StatusCodes = response.StatusCode,
+                message = response.StatusCode switch
+                {
+                    401 => "Unauthorized access",
+                    403 => "Forbidden access",
+                    404 => "Resource not found",
+                    400 => "Bad request",
+                    _ => "An error occurred"
+                },
+                Details = (string)null
+            };
+            await response.WriteAsJsonAsync(result);
+        }
+    }
+    else
+    {
+        var message = response.StatusCode switch
+        {
+            404 => "Page or resource not found.",
+            401 => "Unauthorized access.",
+            403 => "You do not have permission to access this resource.",
+            _ => "An unexpected error occurred."
+        };
+        response.Redirect($"/Error?statusCode={response.StatusCode}&message={System.Net.WebUtility.UrlEncode(message)}");
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
