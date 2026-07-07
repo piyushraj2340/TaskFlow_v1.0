@@ -1,5 +1,6 @@
 ﻿using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.Repositories
 {
@@ -35,5 +36,15 @@ namespace TaskMonitoringApp.Models.Repositories
         Task UpdateTodoNotesAsync(string userId, int todoId, string notes);
 
         Task AddBulkTodosAsync(BulkTodoCreateDTO bulkDto);
+
+        Task<IEnumerable<Tasks>> GetCandidateTasksForTodoAsync(string userId);
+
+        Task<IEnumerable<int>> GetExistingTodoTaskIdsAsync(string userId, DateTime today, DateTime tomorrow);
+
+        Task AddTodosBulkAsync(IEnumerable<Todo> todos);
+
+        Task<IEnumerable<T>> GetAllTodosFromTaskWithoutSpAsync<T>(string userId, Status status, ResponseDataMode mode) where T : class;
+
+        Task<TodoProgressAnalysisDTO> UpsertAndGetTodoProgressAnalysesWithoutSpAsync(string userId, DateTime forDate);
     }
 }

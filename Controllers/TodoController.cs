@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Services;
 
 namespace TaskMonitoringApp.Controllers
@@ -36,7 +37,7 @@ namespace TaskMonitoringApp.Controllers
             }
 
             _logger.LogInformation("Fetching todo progress for user {UserId}.", userId);
-            TodoProgressAnalysisDTO productivity = await _service.GetTodoProgressAnalyses(userId, DateTime.Now.Date);
+            TodoProgressAnalysisDTO productivity = await _service.GetTodoProgressAnalysesWithoutSpAsync(userId, DateTime.Now.Date);
             _logger.LogInformation("Fetched productivity for user {UserId}: {@Productivity}", userId, productivity);
             return View(productivity);
         }
@@ -64,7 +65,7 @@ namespace TaskMonitoringApp.Controllers
                 else
                 {
                     _logger.LogInformation("Fetching productivity for user {UserId} and date {ForDate}.", userId, forDate);
-                    var productivity = await _service.GetTodoProgressAnalyses(userId, forDate);
+                    var productivity = await _service.GetTodoProgressAnalysesWithoutSpAsync(userId, forDate);
                     return Json(new { status = true, message = "Todo Task Progress", data = productivity });
                 }
             }
@@ -122,7 +123,7 @@ namespace TaskMonitoringApp.Controllers
                     }
                     else
                     {
-                        todoDataWithTask = await _service.GetAllTodo(userId, Status.Running);
+                        todoDataWithTask = await _service.AddAndGetTodosFromTaskAsync(userId, Status.Running);
                     }
                 }
 

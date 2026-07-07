@@ -142,7 +142,7 @@
     });
 
     // --- MODIFIED: Open Modal Handler ---
-    $("#openAddNotesModal").on('click', function () {
+    $(document).on('click', "#openAddNotesModal", function () {
         // Get context from button (if available)
         const actionTypeStr = $(this).data('action-note-form-type')?.toString().toLowerCase() || 'all';
         const actionTypeId = $(this).data('action-note-form-type-id') || 0;
@@ -195,7 +195,7 @@
     });
 
     // --- MODIFIED: Edit Modal Handler (Title fix) ---
-    $(".edit-notes").on('click', function (e) {
+    $(document).on('click', ".edit-notes", function (e) {
         // Title update for Edit mode
         $("#noteModal").removeClass("hidden").fadeIn();
         $("#note-title").html('<i class="fa-solid fa-edit"></i> Edit Your Progress Record'); // Changed 'in Goal' to more generic 'Record'
@@ -283,7 +283,7 @@
             try {
                 let resp;
                 if (type === notesActionType.Goal) {
-                    resp = await $.post('/Goals/SearchGoalNameByName', { searchQuery: q });
+                    resp = await $.get('/Goals/SearchGoalNameByName', { searchQuery: q });
                 } else if (type === notesActionType.Task) {
                     resp = await $.get('/Tasks/SearchTasks', { query: q });
                 } else {
@@ -335,7 +335,7 @@
     });
 
     // Delete Notes (KEEPING AS IS)
-    $(".delete-notes").on("click", async function () {
+    $(document).on("click", ".delete-notes", async function () {
         const id = $(this).data("noteeditid");
 
         if (!id) {
@@ -376,316 +376,432 @@
 // -----------------------------
 (function initInfiniteScroll() {
     try {
-        const timelineWrapper = document.querySelector('section.timeline-center .space-y-8, .relative.border-l-4.pl-6');
+        const timelineWrapper = document.getElementById('journalItemsContainer') || document.getElementById('notes-container'); // Selector for container
         const sentinel = document.getElementById('infinite-scroll-sentinel');
+        
         if (!timelineWrapper || !sentinel) return;
-
-        const pageSize = 20; // server default
-        let pageNumber = 2; // assume page 1 was server-rendered
+        
+        // Expose state to window so Index.cshtml can reset it
+        window.infiniteScrollPage = 2;
+        window.infiniteScrollFinished = false;
+        
+        // Check if pageSize is defined in sentinel data attributes, otherwise default to 20
+        const pageSize = sentinel.dataset.pageSize ? parseInt(sentinel.dataset.pageSize, 10) : 20; 
         let loading = false;
-        let finished = false;
-        let globalIndex = timelineWrapper.querySelectorAll('article, .relative.mb-6').length || 0;
-        let lastDate = null;
+        
+        // MODIFIED: Access global filter state object if it exists
+        function getFilterParams() {
+             if (typeof window.currentFilters !== 'undefined') {
+                 return window.currentFilters;
+             }
+             // Fallback default
+             return { search: null, goalIds: [], taskIds: [], includeGoalRelatedTasks: false };
+        }
 
         // detect page type and params
-        const goalId = sentinel.dataset.goalId ? parseInt(sentinel.dataset.goalId, 10) : null;
-        const taskId = sentinel.dataset.taskId ? parseInt(sentinel.dataset.taskId, 10) : null;
-        const isJournal = !goalId && !taskId;
+        const goalId = sentinel.dataset.goalId ? parseInt(sentinel.dataset.goalId, 10) : 0;
+        const taskId = sentinel.dataset.taskId ? parseInt(sentinel.dataset.taskId, 10) : 0;
+        const filterPage = sentinel.dataset.filterPage || 'notes';
+        
+        const notesObjType = Object.freeze({
+            notes: "notes",
+            tasks: "tasks",
+            goals: "goals"
+        });
+        
+        const notesType = notesObjType[filterPage] || notesObjType.notes;
 
-        if (globalIndex === 0) pageNumber = 1;
-        else if (globalIndex < pageSize) finished = true;
+        const isJournal = !goalId && !taskId && notesType === notesObjType.notes;
 
-        function setLoadingIndicator(show) {
-            sentinel.innerHTML = show ? '<div class="py-6 flex justify-center"><svg class="animate-spin h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></div>' : '';
-        }
+        let lastDate = null;
 
-        function dateHeaderText(dt) {
-            if (!dt) return '';
-            const d = new Date(dt);
-            const today = new Date();
-            if (d.toDateString() === today.toDateString()) return 'Today';
-            const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
-            if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-            const weekAgo = new Date(); weekAgo.setDate(today.getDate() - 7);
-            if (d >= weekAgo) {
-                return d.toLocaleDateString(undefined, { weekday: 'long' });
-            }
-            return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-        }
-
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        function formatTimestamp(ts) {
-            if (!ts) return '';
-            const d = new Date(ts);
-            return d.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-        }
-
-        function renderNoteHtml(note, idx) {
-            const isLeft = (idx % 2) === 0;
-            const sideClass = isLeft ? 'md:w-1/2 md:text-right md:order-1' : 'md:w-1/2 md:order-3';
-            const articleParts = [];
-
-            articleParts.push(`<article class="relative md:flex md:items-start md:justify-between md:gap-6">`);
-
-            // left block (goal/task preview) - placed on proper side
-            if (isLeft) {
-                articleParts.push(`<div class="${sideClass}"><div class="inline-block md:ml-auto md:max-w-md">`);
-                if (note.goal) {
-                    articleParts.push(`<h3 class="text-lg font-semibold text-slate-900">Goal: #${note.goal.id} - ${escapeHtml(note.goal.name || '')}</h3>`);
-                    articleParts.push(`<div class="relative group inline-block w-full">`);
-                    articleParts.push(`<div class="tooltip-preview richtext line-clamp-2 overflow-hidden cursor-help text-left">${note.goal.description ? note.goal.description : ''}</div>`);
-                    articleParts.push(`<div class="tooltip-panel hidden z-[9999]"><div class="tooltip-content bg-white p-3 rounded-lg shadow-xl border border-slate-300 text-sm max-h-[400px] overflow-auto text-left">${note.goal.description ? note.goal.description : ''}</div></div>`);
-                    articleParts.push(`</div>`);
-                }
-                if (note.task) {
-                    articleParts.push(`<h3 class="text-lg font-semibold text-slate-900 mt-4">Task: #${note.task.id} - ${escapeHtml(note.task.name || '')}</h3>`);
-                    articleParts.push(`<div class="relative group inline-block w-full">`);
-                    articleParts.push(`<div class="tooltip-preview richtext line-clamp-2 overflow-hidden cursor-help text-left">${note.task.description ? note.task.description : ''}</div>`);
-                    articleParts.push(`<div class="tooltip-panel hidden z-[9999]"><div class="tooltip-content bg-white p-3 rounded-lg shadow-xl border border-slate-300 text-sm max-h-[400px] overflow-auto text-left">${note.task.description ? note.task.description : ''}</div></div>`);
-                    articleParts.push(`</div>`);
-                }
-                articleParts.push(`<div class="mt-3 text-xs text-slate-400 flex gap-3 justify-end"><time datetime="${note.timeStamp}">Created: ${formatTimestamp(note.timeStamp)}</time>`);
-                if (note.modifiedOn) {
-                    articleParts.push(`<span>•</span><time datetime="${note.modifiedOn}">Last modified: ${formatTimestamp(note.modifiedOn)}</time>`);
-                }
-                articleParts.push(`</div></div></div>`);
-            }
-
-            // center marker
-            articleParts.push(`<div class="absolute md:static left-0 md:left-auto md:mx-0 md:order-2 md:flex md:items-center md:justify-center md:w-0">`);
-            articleParts.push(`<div class="flex items-center md:flex-col md:justify-center md:gap-2">`);
-            articleParts.push(`<div class="timeline-dot ${isLeft ? 'bg-indigo-400' : 'bg-slate-400'} border-2 border-white shadow-md" aria-hidden></div>`);
-            articleParts.push(`<div class="hidden md:block w-px bg-slate-200 h-12"></div>`);
-            articleParts.push(`</div></div>`);
-
-            // right block (content and metadata)
-            if (!isLeft) {
-                articleParts.push(`<div class="${sideClass}"><div class="inline-block md:ml-auto">`);
-                if (note.goal) {
-                    articleParts.push(`<h3 class="text-lg font-semibold text-slate-900">Goal: #${note.goal.id} - ${escapeHtml(note.goal.name || '')}</h3>`);
-                    articleParts.push(`<div class="relative group inline-block w-full">`);
-                    articleParts.push(`<div class="tooltip-preview richtext line-clamp-2 overflow-hidden cursor-help text-left">${note.goal.description ? note.goal.description : ''}</div>`);
-                    articleParts.push(`<div class="tooltip-panel hidden z-[9999]"><div class="tooltip-content bg-white p-3 rounded-lg shadow-xl border border-slate-300 text-sm max-h-[400px] overflow-auto text-left">${note.goal.description ? note.goal.description : ''}</div></div>`);
-                    articleParts.push(`</div>`);
-                }
-                if (note.task) {
-                    articleParts.push(`<h3 class="text-lg font-semibold text-slate-900 mt-4">Task: #${note.task.id} - ${escapeHtml(note.task.name || '')}</h3>`);
-                    articleParts.push(`<div class="relative group inline-block w-full">`);
-                    articleParts.push(`<div class="tooltip-preview richtext line-clamp-2 overflow-hidden cursor-help text-left">${note.task.description ? note.task.description : ''}</div>`);
-                    articleParts.push(`<div class="tooltip-panel hidden z-[9999]"><div class="tooltip-content bg-white p-3 rounded-lg shadow-xl border border-slate-300 text-sm max-h-[400px] overflow-auto text-left">${note.task.description ? note.task.description : ''}</div></div>`);
-                    articleParts.push(`</div>`);
-                }
-                articleParts.push(`<div class="mt-3 text-xs text-slate-400 flex gap-3 justify-end"><time datetime="${note.timeStamp}">Created: ${formatTimestamp(note.timeStamp)}</time>`);
-                if (note.modifiedOn) {
-                    articleParts.push(`<span>•</span><time datetime="${note.modifiedOn}">Last modified: ${formatTimestamp(note.modifiedOn)}</time>`);
-                }
-                articleParts.push(`</div></div></div>`);
-            } else {
-                // for left side, we still render right content area (using existing layout pattern)
-                articleParts.push(`<div class="md:w-1/2 md:order-3">`);
-                // reuse a minimal content area placeholder to keep layout parity
-                articleParts.push(`<div class="rounded-lg bg-white p-3 shadow-sm">`);
-                articleParts.push(`<h3 class="text-md font-semibold text-gray-700">${escapeHtml(note.title || '')}</h3>`);
-                articleParts.push(`<div class="richtext line-clamp-3 mt-2 text-gray-700">${note.content ? note.content : ''}</div>`);
-                articleParts.push(`</div></div>`);
-            }
-
-            // for right side we already included both blocks; for left we added simplified content.
-            articleParts.push(`</article>`);
-
-            return articleParts.join('');
-        }
-
-        // renderer for journal (uses article left/right layout)
-        function renderJournalNoteHtml(note, idx) {
-            // reuse existing renderNoteHtml implementation (kept minimal here)
-            // Use the same function body you had earlier (omitted for brevity) - ensure consistent left/right layout.
-            return renderNoteHtml(note, idx); // existing function defined earlier in file
-        }
-
-        // renderer for goal/task listing (simple linear timeline item used in Goal/Task details)
-        function renderGoalTaskNoteHtml(note) {
-            const modified = note.modifiedOn ? `<div class="mt-2 text-xs text-gray-600"><i class="fas fa-calendar-alt mr-2 text-sm"></i>${formatTimestamp(note.modifiedOn)} | <span class="text-rose-700">Modified</span></div>` :
-                `<div class="mt-2 text-xs text-gray-600"><i class="fas fa-calendar-alt mr-2 text-sm"></i>${formatTimestamp(note.timeStamp)} | <span class="text-green-700">Published</span></div>`;
-
-            const actions = `<div class="mt-3 flex items-center justify-between">
-                                    <div class="flex space-x-2">
-                                        <button class="edit-notes text-gray-700 hover:text-blue-500" data-noteeditid="${note.id}"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="delete-notes text-gray-700 hover:text-red-500" data-noteeditid="${note.id}"><i class="fas fa-trash"></i> Delete</button>
+        function renderDateHeader(globalIndex, dateStr) {
+            const headerText = dateHeaderText(dateStr);
+            const headerHtml = `<div class="mb-2 flex items-center justify-center relative top-[-4px]">
+                                    <div class="inline-flex items-center rounded-full bg-gray-500 px-3 py-1 text-xs font-semibold text-white">
+                                        ${escapeHtml(headerText)}
                                     </div>
-                                    ${note.isPinned ? `<button class="text-yellow-600"><i class="fas fa-thumbtack"></i></button>` : ''}
-                                 </div>`;
+                                </div>`;
+            timelineWrapper.insertAdjacentHTML('beforeend', headerHtml);
+        }
 
-            return `<div class="relative mb-6">
-                            <div class="absolute -left-[20px] top-4 h-0.5 w-2 bg-gray-300"></div>
-                            <div class="absolute -left-[11px] top-2 flex h-5 w-5 items-center justify-center rounded-full border-4 border-white bg-blue-600"></div>
-                            <div class="rounded-lg bg-blue-100 p-4 shadow">
-                                <h3 class="flex items-center font-semibold text-blue-700">${escapeHtml(note.title || '')}</h3>
-                                <div class="richtext w-full">${note.content || ''}</div>
-                                <div class="relative mb-4"><div class="flex py-2 text-sm text-gray-500"><i class="fas fa-link mr-2"></i> Attached Files</div></div>
-                                ${modified}
-                                ${actions}
-                            </div>
-                        </div>`;
+        function renderNoteWithDateGroup(note, globalIndex) {
+            const dt = note.timeStamp ? new Date(note.timeStamp) : null;
+            const dtStr = dt ? dt.toDateString() : null;
+
+            // Only render a new date header if the date has changed
+            if (lastDate !== dtStr) {
+                lastDate = dtStr;
+                renderDateHeader(globalIndex, note.timeStamp);
+            }
+
+            let html;
+            if (isJournal) {
+                html = renderJournalNoteHtml(note, globalIndex);
+            } else {
+                html = renderGoalTaskNoteHtml(note);
+            }
+
+            timelineWrapper.insertAdjacentHTML('beforeend', html);
+            globalIndex++;
         }
 
         async function fetchNextPage() {
-            if (loading || finished) return;
+    
+            if (loading || window.infiniteScrollFinished) return;
             loading = true;
-            setLoadingIndicator(true);
 
-            let url;
-            if (isJournal) {
-                // compute lastDate to avoid duplicate headers: get last displayed article time datetime (if any)
-                let lastDateParam = null;
-                try {
-                    const timeEls = timelineWrapper.querySelectorAll('time[datetime]');
-                    if (timeEls.length > 0) {
-                        const lastTime = timeEls[timeEls.length - 1].getAttribute('datetime');
-                        if (lastTime) {
-                            // send yyyy-mm-dd so server can compare easily
-                            const d = new Date(lastTime);
-                            lastDateParam = d.toISOString().slice(0, 10);
-                        }
-                    }
-                } catch (err) {
-                    lastDateParam = null;
-                }
-
-                // request HTML partial
-                const urlParams = new URLSearchParams({
-                    pageNumber: pageNumber,
-                    pageSize: pageSize
-                });
-                if (lastDateParam) urlParams.set('lastDate', lastDateParam);
-
-                url = `/Notes/GetJournalNotesPartial?${urlParams.toString()}`;
-            } else if (goalId) {
-                url = `/Goals/GetNotesByGoal?goalId=${goalId}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
-            } else if (taskId) {
-                url = `/Tasks/GetNotesByTask?taskId=${taskId}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
-            } else {
-                finished = true;
-                setLoadingIndicator(false);
-                loading = false;
-                return;
+            // Show loading state in sentinel
+            const s = document.getElementById('infinite-scroll-sentinel');
+            if (s) {
+                 s.innerHTML = '<div class="flex justify-center py-4"><i class="fas fa-circle-notch fa-spin text-indigo-500 text-xl"></i><span class="ml-2 text-gray-500 font-medium">Loading more notes...</span></div>';
             }
 
+            const filters = getFilterParams();
+            
+            // Construct URL with filters
+             const urlParams = new URLSearchParams({
+                pageNumber: window.infiniteScrollPage,
+                pageSize: pageSize
+            });
+
+            if(filters.search) urlParams.append('searchQuery', filters.search);
+            
+            // Handle Goal IDs (Array)
+            // Can be single id (legacy) or array
+            let hasGoalFilter = false;
+            if(filters.goalIds && Array.isArray(filters.goalIds) && filters.goalIds.length > 0) {
+                 filters.goalIds.forEach(id => urlParams.append('filterGoalIds', id));
+                 hasGoalFilter = true;
+            } else if (filters.goalId) { // Fallback for legacy single ID if somehow set
+                 urlParams.append('filterGoalIds', filters.goalId);
+                 hasGoalFilter = true;
+            }
+
+            // Fix: If on Goal Details page and no specific filter set, pass the context goalId
+            if (!hasGoalFilter && goalId > 0 && notesType === notesObjType.goals) {
+                urlParams.append('filterGoalIds', goalId);
+            }
+
+            // Handle Task IDs (Array)
+            let hasTaskFilter = false;
+            if(filters.taskIds && Array.isArray(filters.taskIds) && filters.taskIds.length > 0) {
+                 filters.taskIds.forEach(id => urlParams.append('filterTaskIds', id));
+                 hasTaskFilter = true;
+            } else if (filters.taskId) { // Fallback
+                 urlParams.append('filterTaskIds', filters.taskId);
+                 hasTaskFilter = true;
+            }
+
+            // Fix: If on Task Details page and no specific filter set, pass the context taskId
+            if (!hasTaskFilter && taskId > 0 && notesType === notesObjType.tasks) {
+                 urlParams.append('filterTaskIds', taskId);
+            }
+
+            // Handle Boolean
+            if(filters.includeGoalRelatedTasks) {
+                urlParams.append('includeGoalRelatedTasks', 'true');
+            }
+            
+            // compute lastDate to avoid duplicate headers: get last displayed article time datetime (if any)
+            let lastDateParam = null;
             try {
-                if (isJournal) {
-                    // fetch HTML partial
-                    const res = await fetch(url, { headers: { 'Accept': 'text/html' } });
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    const html = await res.text();
-                    if (!html || !html.trim()) {
-                        finished = true;
-                        return;
-                    }
-
-                    // determine how many article nodes were returned so pagination can stop correctly
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const addedArticles = temp.querySelectorAll('article').length;
-
-                    // append server-rendered HTML directly
-                    timelineWrapper.insertAdjacentHTML('beforeend', html);
-
-                    if (addedArticles === 0) {
-                        finished = true;
-                    } else if (addedArticles < pageSize) {
-                        finished = true;
-                        globalIndex += addedArticles;
-                    } else {
-                        pageNumber++;
-                        globalIndex += addedArticles;
-                    }
-
-                    // keep lastDate updated for subsequent requests
-                    const appendedTimes = temp.querySelectorAll('time[datetime]');
-                    if (appendedTimes.length > 0) {
-                        const lastAppended = appendedTimes[appendedTimes.length - 1].getAttribute('datetime');
-                        if (lastAppended) {
-                            lastDate = new Date(lastAppended).toDateString();
-                        }
-                    }
-
-                    // highlight if necessary
-                    if (window.Prism && typeof window.Prism.highlightAll === 'function') {
-                        window.Prism.highlightAll();
-                    }
-                } else {
-                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    const json = await res.json();
-                    if (!json || !json.status) {
-                        finished = true;
-                        return;
-                    }
-
-                    const data = json.data || [];
-                    if (!Array.isArray(data) || data.length === 0) {
-                        finished = true;
-                        return;
-                    }
-
-                    for (let i = 0; i < data.length; i++) {
-                        const note = data[i];
-
-                        const dt = note.timeStamp ? new Date(note.timeStamp) : null;
-                        const dtStr = dt ? dt.toDateString() : null;
-                        if (dtStr !== lastDate) {
-                            lastDate = dtStr;
-                            const headerText = dateHeaderText(note.timeStamp);
-                            const headerHtml = `<div class="mb-2 flex items-center justify-center relative top-[-4px]"><div class="inline-flex items-center rounded-full bg-gray-500 px-3 py-1 text-xs font-semibold text-white">${escapeHtml(headerText)}</div></div>`;
-                            timelineWrapper.insertAdjacentHTML('beforeend', headerHtml);
-                        }
-
-                        let html;
-                        if (isJournal) {
-                            html = renderJournalNoteHtml(note, globalIndex);
-                        } else {
-                            html = renderGoalTaskNoteHtml(note);
-                        }
-
-                        timelineWrapper.insertAdjacentHTML('beforeend', html);
-                        globalIndex++;
-                    }
-
-                    if (data.length < pageSize) finished = true;
-                    else pageNumber++;
-
-                    if (window.Prism && typeof window.Prism.highlightAll === 'function') {
-                        window.Prism.highlightAll();
+                const timeEls = timelineWrapper.querySelectorAll('time[datetime]');
+                if (timeEls.length > 0) {
+                    const lastTime = timeEls[timeEls.length - 1].getAttribute('datetime');
+                    if (lastTime) {
+                        // send yyyy-mm-dd so server can compare easily
+                        const d = new Date(lastTime);
+                        lastDateParam = d.toISOString().slice(0, 10);
                     }
                 }
             } catch (err) {
-                console.error('Error loading notes page:', err);
-                finished = true;
+                lastDateParam = null;
+            }
+            if (lastDateParam) urlParams.set('lastDate', lastDateParam);
+
+            // MODIFIED: Use appropriate endpoint based on page context (Journal vs Goal/Task Details)
+            let endpoint = '/Notes/GetJournalNotesPartial';
+            if (notesType === notesObjType.goals || notesType === notesObjType.tasks) {
+                endpoint = '/Notes/GetGoalTaskNotesPartial';
+            }
+            
+            const url = `${endpoint}?${urlParams.toString()}`;
+
+            try {
+                const res = await fetch(url, { headers: { 'Accept': 'text/html' } });
+                const html = await res.text();
+                
+                if (!html || !html.trim()) {
+                     window.infiniteScrollFinished = true;
+                     const s = document.getElementById('infinite-scroll-sentinel');
+                     if (s) {
+                         s.innerHTML = '<div class="text-slate-400 text-sm py-4 font-center text-center italic">No more history to scan.</div>';
+                     }
+                } else {
+                     // Append logic
+                     // Note: We need to append strictly to the internal container now
+                     const container = document.getElementById('journalItemsContainer') || timelineWrapper;
+                     // Instead of beforeend of container, we should append before the sentinel to keep structure valid if sentinel is inside
+                     // Checking structure: usually sentinel is after container or inside at bottom. 
+                     // In Razor files: <div id="notes-container"> ...items... <div id="sentinel"></div> </div>
+                     // In Notes/Index: <div id="wrapper"> ...items... </div> <div id="sentinel"></div>
+                     
+                     // If sentinel is inside container, insert before sentinel. Else append to container.
+                     if (container.contains(s)) {
+                        s.insertAdjacentHTML('beforebegin', html);
+                     } else {
+                        container.insertAdjacentHTML('beforeend', html);
+                     }
+
+                     window.infiniteScrollPage++;
+                     
+                     // Reset sentinel text to empty/spacer
+                     if (s && !window.infiniteScrollFinished) {
+                        s.innerHTML = '';
+                     }
+
+                     // highlight if necessary
+                     if (window.Prism) window.Prism.highlightAll();
+
+                     // Ensure small pages fetch until screen is full or data ends
+                    setTimeout(() => {
+                         const s = document.getElementById('infinite-scroll-sentinel');
+                         // Fix: Logic to prevent premature stopping if content is short but more exists
+                         // Only fetch if sentinel is actually visible in viewport
+                         if (s && s.getBoundingClientRect().top < window.innerHeight && !window.infiniteScrollFinished && !loading) {
+                             fetchNextPage();
+                         }
+                     }, 200);
+                }
+            } catch (err) {
+                console.error(err);
+                // Don't finish infinite scroll on error, just allow retry
+                // window.infiniteScrollFinished = true; 
+                if (s) s.innerHTML = '<div class="text-red-400 text-sm text-center py-2" onclick="window.triggerInfiniteScroll()">Error loading. Click to retry.</div>';
             } finally {
-                setLoadingIndicator(false);
                 loading = false;
             }
         }
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
+        
+        window.triggerInfiniteScroll = fetchNextPage;
+        
+        // --- Observer setup remains similar ---
+        if(sentinel) {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries.some(e => e.isIntersecting)) {
                     fetchNextPage();
                 }
-            });
-        }, { root: null, rootMargin: '400px', threshold: 0.1 });
+            }, { root: null, rootMargin: '400px' });
+            observer.observe(sentinel);
+        }
 
-        observer.observe(sentinel);
     } catch (err) {
         console.error('Infinite scroll init error:', err);
     }
 })();
+
+// -----------------------------
+// Pinned Notes Carousel & Jump-to-Note Logic (Shared)
+// -----------------------------
+$(document).ready(function () {
+    // Pinned Carousel Logic
+    let currentPinnedIndex = 1;
+    let totalPinned = 0;
+
+    window.initPinnedCarousel = function () {
+        const meta = $('#pinned-metadata');
+        if (!meta.length) return;
+
+        totalPinned = meta.data('total') || 0;
+        $('#pinnedTotalCount').text(totalPinned);
+        $('#pinnedCurrentIndex').text(totalPinned > 0 ? 1 : 0);
+        currentPinnedIndex = 1;
+        updatePinnedVisibility();
+    };
+
+    function updatePinnedVisibility() {
+        $('.pinned-item').addClass('hidden opacity-0');
+        if (totalPinned > 0) {
+            const active = $(`.pinned-item[data-index="${currentPinnedIndex}"]`);
+            active.removeClass('hidden').addClass('animate-fade-in opacity-100');
+            $('#pinnedCurrentIndex').text(currentPinnedIndex);
+        }
+        $('#pinnedUp, #pinnedDown').prop('disabled', totalPinned <= 1);
+    }
+
+    $('#pinnedUp').on('click', function () {
+        currentPinnedIndex = (currentPinnedIndex <= 1) ? totalPinned : currentPinnedIndex - 1;
+        updatePinnedVisibility();
+    });
+
+    $('#pinnedDown').on('click', function () {
+        currentPinnedIndex = (currentPinnedIndex >= totalPinned) ? 1 : currentPinnedIndex + 1;
+        updatePinnedVisibility();
+    });
+
+    // Initialize on load if present
+    initPinnedCarousel();
+});
+
+// Better Scrolling & Highlight
+window.scrollToNote = async function (noteId) {
+    const targetId = `note-card-${noteId}`;
+
+    // 1. Check if note is ALREADY in the DOM
+    let validationEl = document.getElementById(targetId);
+    if (validationEl) {
+        highlightAndScroll(validationEl);
+        return;
+    }
+
+    // 2. Fetch from server if missing
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Locating Note...',
+            text: 'Loading timeline context...',
+            didOpen: () => { Swal.showLoading() },
+            allowOutsideClick: false,
+            backdrop: true,
+            timer: 15000
+        });
+    }
+
+    try {
+        // Prepare params
+        const params = new URLSearchParams({
+            noteId: noteId,
+            pageSize: 20 // Default used in controllers
+        });
+
+        // Add current filters to query if available (Global)
+        if (window.currentFilters) {
+            if (window.currentFilters.search) params.append('searchQuery', window.currentFilters.search);
+
+            if (window.currentFilters.goalIds && window.currentFilters.goalIds.length > 0) {
+                window.currentFilters.goalIds.forEach(id => params.append('filterGoalIds', id));
+            } else if(window.currentFilters.goalId) {
+                 params.append('filterGoalIds', window.currentFilters.goalId);
+            }
+
+            if (window.currentFilters.taskIds && window.currentFilters.taskIds.length > 0) {
+                window.currentFilters.taskIds.forEach(id => params.append('filterTaskIds', id));
+            } else if(window.currentFilters.taskId) {
+                 params.append('filterTaskIds', window.currentFilters.taskId);
+            }
+
+            if (window.currentFilters.includeGoalRelatedTasks) {
+                params.append('includeGoalRelatedTasks', 'true');
+            }
+        }
+        
+        // Context Awareness for Detail Pages
+        const sentinel = document.getElementById('infinite-scroll-sentinel');
+        if (sentinel) {
+            const pageSize = sentinel.dataset.pageSize;
+            if(pageSize) params.set('pageSize', pageSize);
+
+            const contextGoalId = sentinel.dataset.goalId;
+            if (contextGoalId && (!window.currentFilters || !window.currentFilters.goalIds)) {
+                params.append('filterGoalIds', contextGoalId);
+            }
+
+            const contextTaskId = sentinel.dataset.taskId;
+            if (contextTaskId && (!window.currentFilters || !window.currentFilters.taskIds)) {
+                params.append('filterTaskIds', contextTaskId);
+            }
+        }
+
+        // Call the endpoint
+        const response = await fetch(`/Notes/GetPageForNote?${params.toString()}`);
+
+        if (!response.ok) {
+            if (response.status === 404) throw new Error("Note not found.");
+            throw new Error("Server error");
+        }
+
+        // Correctly parse JSON now
+        const data = await response.json();
+
+        if (data.status && data.html) {
+            const container = document.getElementById('journalItemsContainer') || document.getElementById('notes-container'); 
+
+            // Visual separator for jump (optional)
+            if (window.infiniteScrollPage && data.pageNumber > window.infiniteScrollPage) {
+                const gap = `
+                        <div class="w-full text-center my-8 py-4 bg-gray-50/50 border-y border-gray-100">
+                             <div class="text-xs text-uppercase text-gray-400 font-bold tracking-widest">
+                                <i class="fas fa-history mr-2"></i> JUMPED TO PAGE ${data.pageNumber}
+                             </div>
+                        </div>`;
+                container.insertAdjacentHTML('beforeend', gap);
+            }
+
+            // Update global state if applicable
+            if(data.pageNumber) window.infiniteScrollPage = data.pageNumber + 1;
+
+            // Inject HTML
+            container.insertAdjacentHTML('beforeend', data.html);
+
+            // --- CLOSE LOADING ---
+            if (typeof Swal !== 'undefined') Swal.close();
+
+            // --- POLL FOR ELEMENT ---
+            const foundElement = await waitForElement(targetId);
+
+            if (foundElement) {
+                setTimeout(() => {
+                    highlightAndScroll(foundElement);
+                    if (window.Prism) window.Prism.highlightAll();
+                }, 100);
+            } else {
+                console.warn(`Element #${targetId} not found.`);
+                if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Note loaded but scrolling failed.', 'warning');
+            }
+        } else {
+            if (typeof Swal !== 'undefined') Swal.fire('Error', 'Could not load timeline data.', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+            Swal.fire('Note Not Found', 'This note might be filtered out or deleted.', 'info');
+        }
+    }
+};
+
+// --- Helper: Reliable Polling Wait ---
+function waitForElement(id) {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 50 * 50ms = 2.5s total wait
+
+        const interval = setInterval(() => {
+            attempts++;
+            const element = document.getElementById(id);
+
+            if (element) {
+                clearInterval(interval);
+                resolve(element);
+            } else if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                resolve(null); // Failed
+            }
+        }, 50); // Check every 50ms
+    });
+}
+
+function highlightAndScroll(element) {
+    // 1. Smooth Scroll to center of screen
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // 2. Visual Highlight Logic
+    element.classList.remove('note-highlight-active');
+    void element.offsetWidth; // Force reflow
+    element.classList.add('note-highlight-active');
+
+    // 4. Cleanup
+    setTimeout(() => {
+        element.classList.remove('note-highlight-active');
+    }, 3000);
+}

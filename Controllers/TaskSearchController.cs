@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TaskMonitoringApp.Models.Business;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Services;
 
 namespace TaskMonitoringApp.Controllers

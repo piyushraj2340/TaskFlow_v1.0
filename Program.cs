@@ -37,11 +37,23 @@ builder.Services.AddScoped<INotesServices, NotesServices>();
 builder.Services.AddScoped<ITaskSearchRepository, TaskSearchRepository>();
 builder.Services.AddScoped<ITaskSearchService, TaskSearchService>();
 
+builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
+builder.Services.AddScoped<ICollectionService, CollectionService>();
+
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IItemService, ItemService>();
+
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+
 builder.Services.AddSingleton<IEmailService, LoggingEmailService>();
 
 // register search services
@@ -65,8 +77,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache(); // Enable In-Memory Caching
 
+// UPDATED: Use "DefaultConnection". 
+// In Development, this pulls from appsettings.Development.json ((localdb)).
+// In Production, this pulls from appsettings.json (Azure DB).
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApp_AzureDB")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 builder.Services.AddIdentity<Users, IdentityRole>(options =>

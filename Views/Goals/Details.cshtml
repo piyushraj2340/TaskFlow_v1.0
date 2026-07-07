@@ -2,496 +2,428 @@
 
 @{
     ViewData["Title"] = Model.Name + " - Goal Details";
+    var pinnedNotes = ViewBag.PinnedNotes as IEnumerable<TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO>;
 }
 
-
-
-<!-- Add a section for DataTables CSS if this page uses DataTables -->
 @section Styles {
-
     <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="~/css/richtextstyle.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 }
 
-<div class="mx-auto max-w-7xl px-2 py-12 md:px-6">
-    <!-- Dashboard Stats Section (1st Row) -->
-    <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-indigo-600"><i class="fas fa-trophy"></i></div>
-                <div class="text-lg font-semibold">Running Tasks</div>
-            </div>
-            <div class="mt-4 text-xl" id="runningTaskCount">@Model.TaskProductivity.RunningTask</div>
-        </div>
+<div class="mx-auto px-4 py-6">
 
-        <div class="rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-green-600"><i class="fas fa-check"></i></div>
-                <div class="text-lg font-semibold">Tasks Completed</div>
-            </div>
-            <div class="mt-4 text-xl" id="completedTaskCount">@Model.TaskProductivity.CompletedTask</div>
-        </div>
-
-        <div class="rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-blue-600"><i class="fas fa-chart-line"></i></div>
-                <div class="text-lg font-semibold">Your Growth</div>
-            </div>
-            <div class="mt-4 text-xl" id="growthCalculations">
-                @(Model.TaskProductivity.GrowthPercentage > 0 ? $"+{Model.TaskProductivity.GrowthPercentage}%" : $"-{Model.TaskProductivity.GrowthPercentage}%") this week
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-indigo-100 p-4"><i class="fas fa-trophy text-3xl text-indigo-600"></i></div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Running Tasks</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="runningTaskCount">@Model.TaskProductivity.RunningTask</div>
+                </div>
             </div>
         </div>
 
-        <div class="rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-purple-600"><i class="fas fa-cogs"></i></div>
-                <div class="text-lg font-semibold">Task Productivity</div>
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-green-100 p-4"><i class="fas fa-check text-3xl text-green-600"></i></div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Tasks Completed</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="completedTaskCount">@Model.TaskProductivity.CompletedTask</div>
+                </div>
             </div>
-            <div class="mt-4 text-xl" id="productivityPercentage">@Model.TaskProductivity.Productivity%</div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-blue-100 p-4"><i class="fas fa-chart-line text-3xl text-blue-600"></i></div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Your Growth</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="growthCalculations">
+                        @if (Model.TaskProductivity.GrowthPercentage > 0)
+                        {
+                            <span class="text-green-600">+@Model.TaskProductivity.GrowthPercentage%</span>
+                        }
+                        else
+                        {
+
+                            <span class="text-red-600">@Model.TaskProductivity.GrowthPercentage%</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-purple-100 p-4"><i class="fas fa-bolt text-3xl text-purple-600"></i></div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Productivity</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="productivityPercentage">@Model.TaskProductivity.Productivity%</div>
+                </div>
+            </div>
         </div>
     </div>
-
-    @*  <!-- Charts Section -->
-    <div class="mb-12 grid gap-8 md:grid-cols-3">
-        <!-- Left Chart: Task Growth Ratio (70%) -->
-        <div class="col-span-1 h-[400px] rounded-lg bg-white p-6 shadow-lg md:col-span-2">
-            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Task Growth Ratio</h2>
-            <div class="h-[300px]">
-                <canvas id="taskGrowthChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Right Chart: Donut Chart (30%) -->
-        <div class="h-[400px] rounded-lg bg-white p-6 shadow-lg">
-            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Contributing to the Goal</h2>
-            <div class="h-[300px]">
-                <canvas id="goalPieChart"></canvas>
-            </div>
-        </div>
-    </div> *@
-
 
     <div class="mb-8 rounded-lg bg-white p-4 shadow-lg sm:p-6">
-        <!-- Centered Action Buttons -->
-        <div class="mb-6 flex flex-wrap justify-center gap-4">
-            <a href="/Tasks/Create?goalId=@Model.Id" class="flex items-center rounded-lg px-6 py-2 text-white transition duration-300 bg-purple-500 hover:bg-purple-600">
-                <i class="fas fa-plus mr-2"></i>Add Task
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center border-b border-gray-100 pb-6">
+            <a href="/Tasks/Create?goalId=@Model.Id" class="flex w-full items-center justify-center rounded-lg bg-purple-500 px-6 py-2.5 font-medium text-white transition hover:bg-purple-600 sm:w-auto">
+                <i class="fas fa-plus mr-2"></i> Add Task
             </a>
-            <button data-id="@Model.Id" class="editGoalBtn flex items-center rounded-lg bg-blue-500 px-6 py-2 text-white transition duration-300 hover:bg-blue-600">
-                <i class="fas fa-edit mr-2"></i>Edit Goal
+            <button data-id="@Model.Id" class="editGoalBtn flex w-full items-center justify-center rounded-lg bg-blue-500 px-6 py-2.5 font-medium text-white transition hover:bg-blue-600 sm:w-auto">
+                <i class="fas fa-edit mr-2"></i> Edit Goal
             </button>
-            <button data-id="@Model.Id" class="deleteGoalBtn flex items-center rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
-                <i class="fas fa-trash mr-2"></i>Delete Goal
+            <button id="openAddNotesModal" data-action-note-form-type-id="@Model.Id" data-action-note-form-type="goal" class="flex w-full items-center justify-center rounded-lg bg-yellow-500 px-6 py-2.5 font-medium text-white transition hover:bg-yellow-600 sm:w-auto">
+                <i class="fas fa-comment mr-2"></i> Add Notes
             </button>
-            <button id="openAddNotesModal" data-action-note-form-type-id="@Model.Id" data-action-note-form-type="goal" class="flex items-center rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
-                <i class="fas fa-comment mr-2"></i>Add Notes
+            <button data-id="@Model.Id" class="markAsComplete flex w-full items-center justify-center rounded-lg bg-green-500 px-6 py-2.5 font-medium text-white transition hover:bg-green-600 sm:w-auto">
+                <i class="fas fa-check mr-2"></i> Mark Complete
             </button>
-            <button data-id="@Model.Id" class="markAsComplete flex items-center rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
-                <i class="fas fa-check mr-2"></i>Mark as Complete
+            <button data-id="@Model.Id" class="deleteGoalBtn flex w-full items-center justify-center rounded-lg bg-red-500 px-6 py-2.5 font-medium text-white transition hover:bg-red-600 sm:w-auto">
+                <i class="fas fa-trash mr-2"></i> Delete
             </button>
         </div>
-        <div class="sticky top-0 z-10 h-auto border-b border-gray-300 bg-white py-1">
-            <!-- Tab Navigation -->
-            <ul class="flex flex-wrap items-center">
-                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/info") class="@(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="info">Info</a></li>
-                <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/notes") class="@(ViewBag.tabName == "notes" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="notes">All Notes</a></li>
-                @* <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/board1") class="@(ViewBag.tabName == "board1" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="board1">Board 1</a></li> *@
-                @* <li class="my-2"><a href=@($"/Goals/Details/{Model.Id}/create") class="@(ViewBag.tabName == "create" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="create">Create Board</a></li> *@
-            </ul>
-        </div>
 
-        <!-- Tab Content -->
-        <div class="custom-scrollbar relative z-0 mt-4 max-h-screen overflow-y-scroll">
-            <!-- Info Tab -->
-            <div id="info" class="tab-content @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "" : "hidden")" )>
-                <div class="mb-4">
-                    <h2 class="text-3xl font-bold text-gray-800">Goal Information</h2>
-                    <p class="text-gray-600">Here are all details related to this goals.</p>
-                </div>
-                <div class="ms-4 space-y-4">
-                    <!-- Task Name -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Goal Name</div>
-                        <div class="w-full text-left text-lg font-semibold text-gray-800 sm:w-3/4">@Model.Name</div>
-                    </div>
-                    <!-- Description -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Description</div>
-                        <div class="richtext w-full text-left sm:w-3/4">
-                            @Html.Raw(Model.Description)
-                        </div>
-                    </div>
-                    <!-- Priority -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Priority</div>
-                        <div class="w-full text-left sm:w-3/4">
-                            <span class="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
-                                @Model.Priority
-                            </span>
-                        </div>
-                    </div>
-                    <!-- Status -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Status</div>
-                        <div class="w-full text-left sm:w-3/4">
-                            <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
-                                @Model.GoalStatus
-                            </span>
-                        </div>
-                    </div>
-                    <!-- Status -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">End Date</div>
-                        <div class="w-full text-left sm:w-3/4">
-                            <span class="inline-flex items-center rounded-full bg-gray-500 px-3 py-1 text-xs font-semibold text-white">
-                                <!-- TODO: .ToString("hh:mm:ss, MMMM dd, yyyy") Use this for the formatted date and time  -->
-                                @Model.EndDate
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Notes Tab -->
-            <div id="notes" class="tab-content @(ViewBag.tabName == "notes" ? "" : "hidden")">
-
-                <div class="mb-4">
-                    <h2 class="text-3xl font-bold text-gray-800">Notes Timeline</h2>
-                    <p class="text-gray-600">Here are all the notes related to this goals.</p>
-                </div>
-
-                <div class="ms-4 max-w-4xl ps-2 sm:ps-4 sm:ms-8">
-                    <!-- Timeline Wrapper -->
-                    <div class="relative border-l-4 border-gray-300 pl-6">
-
-                        <!-- Note 1 -->
-                        @{
-                            DateTime? tempDateTime = null;
-                            foreach (var noteList in Model.NotesLists)
-                            {
-                                if (tempDateTime == null || tempDateTime?.Date != noteList.TimeStamp?.Date)
-                                {
-                                    <div class="mb-2 mt-4 flex justify-center">
-                                        <div class="inline-flex items-center rounded-full bg-gray-500 px-3 py-1 text-xs font-semibold text-white">
-                                            @if (DateTime.Now.Date == noteList.TimeStamp?.Date)
-                                            {
-                                                <span>Today</span>
-                                            }
-                                            else if (DateTime.Now.AddDays(-1).Date == noteList.TimeStamp?.Date)
-                                            {
-                                                <span>Yesterday</span>
-                                            }
-                                            else if (noteList.TimeStamp >= DateTime.Now.AddDays(-7).Date)
-                                            {
-                                                <span>@noteList.TimeStamp?.ToString("dddd")</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@noteList.TimeStamp?.ToString("MMMM dd, yyyy")</span>
-                                            }
-                                        </div>
-                                    </div>
-
-                                    tempDateTime = noteList.TimeStamp;
-                                }
-
-                                await Html.RenderPartialAsync("NotesLayout", noteList);
-                            }
-                            <div id="infinite-scroll-sentinel" data-goal-id="@Model.Id" aria-hidden="true"></div>
-
-                        }
-
-                    </div>
-                </div>
-            </div>
-
-            @*    <!-- Board 1 Tab -->
-            <div id="board1" class="tab-content @(ViewBag.tabName == "board1" ? "" : "hidden")">
-                <div class="mb-4">
-                    <h2 class="text-3xl font-bold text-gray-800">Notes Board</h2>
-                    <p class="text-gray-600">Display board-related notes here.</p>
-                </div>
-                <div class="mx-auto max-w-6xl">
-                    <!-- Notes Board Container -->
-                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        <!-- Sample Note -->
-                        <div class="rotate-[-2deg] relative transform rounded-lg bg-yellow-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
-                            <div class="absolute right-2 top-2 text-gray-700">
-                                <i class="fa-solid fa-thumbtack"></i>
-                            </div>
-                            <h2 class="text-lg font-semibold">Project Planning</h2>
-                            <p class="mt-2 text-sm text-gray-800">Finalize project roadmap and assign tasks.</p>
-                            <div class="mt-4 text-xs text-gray-600">🕒 Created: 2025-02-06</div>
-                        </div>
-
-                        <div class="rotate-[-2deg] relative transform rounded-lg bg-green-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
-                            <div class="absolute right-2 top-2 text-gray-700">
-                                <i class="fa-solid fa-thumbtack"></i>
-                            </div>
-                            <h2 class="text-lg font-semibold">Meeting Notes</h2>
-                            <p class="mt-2 text-sm text-gray-800">Discuss feature updates and client requirements.</p>
-                            <div class="mt-4 text-xs text-gray-600">🕒 Modified: 2025-02-05</div>
-                        </div>
-
-                        <div class="rotate-[-2deg] relative transform rounded-lg bg-blue-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
-                            <h2 class="text-lg font-semibold">Bug Fixes</h2>
-                            <p class="mt-2 text-sm text-gray-800">Resolve UI inconsistencies in task module.</p>
-                            <div class="mt-4 text-xs text-gray-600">🕒 Created: 2025-02-04</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Create Board Tab -->
-            <div id="create" class="tab-content @(ViewBag.tabName == "create" ? "" : "hidden")">
-                <h2 class="mb-4 text-2xl font-semibold">Create Board</h2>
-                <p class="text-gray-600">Use this section to create a new board.</p>
-            </div> *@
-        </div>
-    </div>
-
-    <div class="mx-auto">
-
-        <h1 class="mb-6 text-xl font-semibold text-gray-800">Associated Tasks</h1>
-
-
-        <!-- running task Section -->
-        <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-            <!-- Task Heading with Actions -->
-            <!-- Running Tasks Section -->
-            <div class="mb-8">
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Running Tasks</h2>
-                    <a href="/Tasks/Create?goalId=@Model.Id" class="flex items-center rounded-lg px-6 py-2 text-white transition duration-300 bg-purple-500 hover:bg-purple-600">
-                        <i class="fas fa-plus mr-2"></i>Add Task
+        <div class="sticky top-[-32px] z-10 bg-gray-200 pt-1 px-2">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-2" aria-label="Tabs">
+                    <a href=@($"/Goals/Details/{Model.Id}/info") data-tab="info" class="tab-link whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm sm:text-base transition-all @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
+                        <i class="fas fa-info-circle mr-2"></i> Info
                     </a>
-                </div>
-
-                <!-- Running Task List (Table) -->
-                <div class="overflow-x-auto">
-                    <table id="viewRunningTaskTableData" data-task-status="running" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left text-gray-600">Task Id</th>
-                                <th class="p-2 text-left text-gray-600">Task Name</th>
-                                <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                                <th class="p-2 text-left text-gray-600">Due Date</th>
-                                <th class="p-2 text-left text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
+                    <a href=@($"/Goals/Details/{Model.Id}/subgoals") data-tab="subgoals" class="tab-link whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm sm:text-base transition-all @(ViewBag.tabName == "subgoals" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
+                        <i class="fas fa-sitemap mr-2"></i> Sub-Goals
+                    </a>
+                    <a href=@($"/Goals/Details/{Model.Id}/tasks") data-tab="tasks" class="tab-link whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm sm:text-base transition-all @(ViewBag.tabName == "tasks" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
+                        <i class="fas fa-tasks mr-2"></i> Tasks
+                    </a>
+                    <a href=@($"/Goals/Details/{Model.Id}/notes") data-tab="notes" class="tab-link whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm sm:text-base transition-all @(ViewBag.tabName == "notes" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
+                        <i class="fas fa-sticky-note mr-2"></i> All Notes
+                    </a>
+                </nav>
             </div>
+        </div>
 
+        <div class="custom-scrollbar relative mt-4 max-h-screen overflow-y-auto p-1">
 
-        </section>
-
-        <!-- not-started task section -->
-        <section class="mb-8 rounded-lg border-l-4 border-yellow-500 bg-white p-6 shadow-md shadow-yellow-300">
-            <!-- not-started Tasks Section -->
-            <div class="mb-8">
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-700">Not Started Tasks</h2>
-                </div>
-
-                <!-- not-started Task List (Table) -->
-                <div class="overflow-x-auto">
-                    <table id="viewNotStartedTaskTableData" data-task-status="notStarted" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left text-gray-600">Task Id</th>
-                                <th class="p-2 text-left text-gray-600">Task Name</th>
-                                <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                                <th class="p-2 text-left text-gray-600">Due Date</th>
-                                <th class="p-2 text-left text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- completed task section -->
-        <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-            <!-- Task Heading with Actio    ns -->
-            <!-- completed Tasks Section -->
-            <div class="mb-8">
-
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 class="text-xl font-semibold text-gray-700 sm:text-lg">Completed Tasks</h2>
-                </div>
-
-                <!-- completed Task List (Table) -->
-                <div class="overflow-x-auto">
-                    <table id="viewCompletedTaskTableData" data-task-status="completed" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left text-gray-600">Task Id</th>
-                                <th class="p-2 text-left text-gray-600">Task Name</th>
-                                <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                                <th class="p-2 text-left text-gray-600">Due Date</th>
-                                <th class="p-2 text-left text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-
-
-        </section>
-
-        <!-- ended task section -->
-        <section class="mb-8 rounded-lg border-l-4 border-gray-600 bg-white p-6 shadow-md shadow-gray-500">
-            <!-- Ended Tasks Section -->
-            <div class="mb-8">
-
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-700">Ended Tasks</h2>
-                </div>
-
-                <!-- Ended Task List (Table) -->
-                <div class="overflow-x-auto">
-                    <table id="viewEndedTaskTableData" data-task-status="ended" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left text-gray-600">Task Id</th>
-                                <th class="p-2 text-left text-gray-600">Task Name</th>
-                                <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                                <th class="p-2 text-left text-gray-600">Due Date</th>
-                                <th class="p-2 text-left text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- deleted task section -->
-        <section class="mb-8 rounded-lg border-l-4 border-red-600 bg-white p-6 shadow-md shadow-red-300">
-            <!-- Deleted Tasks Section -->
-            <div class="mb-8">
-
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-700">Deleted Tasks</h2>
-                </div>
-
-                <!-- Deleted Task List (Table) -->
-                <div class="overflow-x-auto">
-                    <table id="viewDeletedTaskTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left text-gray-600">Task Id</th>
-                                <th class="p-2 text-left text-gray-600">Task Name</th>
-                                <th class="p-2 text-left text-gray-600">Priority</th>
-                                <th class="p-2 text-left text-gray-600">Repeat Type</th>
-                                <th class="p-2 text-left text-gray-600">Task Status</th>
-                                <th class="p-2 text-left text-gray-600">Due Date</th>
-                                <th class="p-2 text-left text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Goals Section -->
-    @*@if (Model.TaskLists != null && Model?.TaskLists?.Count() > 0)
-    {
-        <div class="mb-12">
-            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
-            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                @{
-
-                    foreach (var task in Model.TaskLists)
+            <div id="info" class="tab-content @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "" : "hidden")">
+                <div class="space-y-6">
+                    @if (Model.ParentId.HasValue)
                     {
+                        <div class="rounded-lg bg-blue-50 p-3 border-l-4 border-blue-500 flex items-center gap-2 text-sm text-blue-700 mb-4">
+                            <i class="fas fa-level-up-alt rotate-90"></i>
+                            <span class="font-medium">Parent Goal:</span>
+                            <a href="/Goals/Details/@Model.ParentId" class="underline font-bold hover:text-blue-900">@Model.ParentName</a>
+                        </div>
+                    }
+                    <div class="flex flex-col sm:flex-row border-b border-gray-100 pb-4">
+                        <div class="w-full text-sm font-medium text-gray-500 sm:w-1/4">Goal Name</div>
+                        <div class="w-full text-lg font-semibold text-gray-900 sm:w-3/4">@Model.Name</div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row border-b border-gray-100 pb-4">
+                        <div class="w-full text-sm font-medium text-gray-500 sm:w-1/4">Description</div>
+                        <div class="richtext w-full text-gray-800 sm:w-3/4 prose prose-sm max-w-none">@Html.Raw(Model.Description)</div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-500 mb-1">Priority</span>
+                            <div><span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">@Model.Priority</span></div>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-500 mb-1">Status</span>
+                            <div><span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">@Model.GoalStatus</span></div>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-500 mb-1">Due Date</span>
+                            <div class="text-sm font-medium text-gray-900">@Model.EndDate.ToString("MMM dd, yyyy")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        int productivity = new Random().Next(1, 100);
+            <div id="subgoals" class="tab-content @(ViewBag.tabName == "subgoals" ? "" : "hidden")">
+                <section class="rounded-lg border-l-4 border-indigo-500 bg-white p-4 shadow-md shadow-indigo-100">
+                    <div class="flex justify-between align-content-center mb-4 border-b pb-2">
+                        <h2 class="text-lg font-bold text-gray-800">Sub-Goals Hierarchy</h2>
+                        <button id="addSubGoalButton"
+                                data-parent-id="@Model.Id"
+                                data-parent-name="@Model.Name"
+                                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 transition-all">
+                            <i class="fas fa-plus"></i> Add Sub-Goal
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            @if (Model.SubGoals != null && Model.SubGoals.Count() > 0)
+                            {
+                                <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-3">Name</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3">Due Date</th>
+                                        <th class="px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+
+                                    @foreach (var sub in Model.SubGoals)
+                                    {
+                                        <tr class="hover:bg-gray-50 transition-colors group">
+                                            <td class="px-6 py-4 font-medium text-gray-900">
+                                                <a href="/Goals/Details/@sub.Id" class="text-blue-500 hover:text-blue-700 hover:underline">
+                                                    @sub.Name
+                                                </a>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                                                    @sub.GoalStatus
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-xs font-medium text-gray-600">
+                                                    @sub.EndDate.ToString("MMM dd, yyyy")
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right">
+                                                <div class="flex flex-nowrap items-center gap-1 justify-end">
+
+                                                    <a href="/Tasks/Create?goalId=@sub.Id"
+                                                       class="group flex h-8 w-8 items-center justify-center rounded bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition-colors duration-200"
+                                                       title="Add Task">
+                                                        <i class="fas fa-plus text-xs"></i>
+                                                    </a>
+
+                                                    <button data-id="@sub.Id"
+                                                            class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors duration-200"
+                                                            title="Edit Goal">
+                                                        <i class="fas fa-edit text-xs"></i>
+                                                    </button>
+
+                                                    @if (sub.GoalStatus.ToString().ToLower() == "running")
+                                                    {
+                                                        <button data-id="@sub.Id"
+                                                                class="markAsComplete group flex h-8 w-8 items-center justify-center rounded bg-green-100 text-green-600 hover:bg-green-600 hover:text-white transition-colors duration-200"
+                                                                title="Mark as Complete">
+                                                            <i class="fas fa-check text-xs"></i>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button data-id="@sub.Id"
+                                                                class="moveToRunning group flex h-8 w-8 items-center justify-center rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                                                                title="Start / Move to Running">
+                                                            <i class="fas fa-play text-[10px] pl-0.5"></i>
+                                                        </button>
+                                                    }
+
+                                                    <button data-id="@sub.Id"
+                                                            class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors duration-200"
+                                                            title="Delete Goal">
+                                                        <i class="fas fa-trash text-xs"></i>
+                                                    </button>
+
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
 
 
-                        <div class="rounded-lg bg-white p-6 shadow-lg">
-                            <a href="@Url.Action("Details", "Tasks", new { id = task.Id })">
-                                <h3 class="mb-2 text-lg font-medium text-gray-800">@task.Name</h3>
-                            </a>
-                            <p class="mb-2 text-gray-600">Productivity: @productivity%</p>
-                            <p class="mb-4 text-gray-600">Progress: @productivity% completed</p>
-                            @if (productivity <= 50) //productivity bellow 30 -- need action --added static
-                            {
-                                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
-                            }
-                            else if (productivity <= 70)
-                            {
-                                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
-                            }
-                            else if (productivity <= 90)
-                            {
-                                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
+                                </tbody>
                             }
                             else
                             {
-                                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
+                                <div class="flex flex-col items-center justify-center py-12 text-center">
+                                    <p class="text-gray-500">No sub-goals found.</p>
+                                </div>
                             }
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div id="tasks" class="tab-content @(ViewBag.tabName == "tasks" ? "" : "hidden")">
+                <div class="flex flex-col gap-6">
+                    <div class="flex flex-col gap-6">
+
+                        <section class="rounded-lg border-l-4 border-indigo-600 bg-white p-4 shadow-md shadow-indigo-200">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Running Tasks</h2>
+                            <div class="overflow-x-auto">
+                                <table id="viewRunningTaskTableData" data-task-status="running" class="w-full min-w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Id</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Name</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Priority</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Repeat</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Due Date</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Actions</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="rounded-lg border-l-4 border-yellow-500 bg-white p-4 shadow-md shadow-yellow-200">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Not Started Tasks</h2>
+                            <div class="overflow-x-auto">
+                                <table id="viewNotStartedTaskTableData" data-task-status="notStarted" class="w-full min-w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Id</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Name</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Priority</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Repeat</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Due Date</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Actions</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="rounded-lg border-l-4 border-green-600 bg-white p-4 shadow-md shadow-green-200">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Completed Tasks</h2>
+                            <div class="overflow-x-auto">
+                                <table id="viewCompletedTaskTableData" data-task-status="completed" class="w-full min-w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Id</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Name</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Priority</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Repeat</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Due Date</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Actions</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-200">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Ended Tasks</h2>
+                            <div class="overflow-x-auto">
+                                <table id="viewEndedTaskTableData" data-task-status="ended" class="w-full min-w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Id</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Name</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Priority</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Repeat</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Due Date</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">Actions</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="notes" class="tab-content @(ViewBag.tabName == "notes" ? "" : "hidden")">
+                
+                @* Pinned Notes Section *@
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg py-2 mb-6 mx-2 sm:mx-4">
+                    <div class="px-4 flex items-center justify-between">
+                        <div class="flex items-center gap-4 flex-grow overflow-hidden">
+                            <div class="bg-indigo-600 text-white p-1.5 rounded-lg shadow-sm flex-shrink-0">
+                                <i class="fas fa-thumbtack rotate-45 text-[10px]"></i>
+                            </div>
+                            <div id="pinnedNotesList" class="flex-grow relative h-10 overflow-hidden">
+                                @await Html.PartialAsync("_PinnedNotesList", pinnedNotes ?? new List<TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO>())
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 ml-4 pl-4 border-l border-indigo-200">
+                            <span class="text-[10px] font-black text-indigo-400 w-10 text-center">
+                                <span id="pinnedCurrentIndex">1</span>/<span id="pinnedTotalCount">0</span>
+                            </span>
+                            <div class="flex gap-1">
+                                <button id="pinnedUp" class="p-2 hover:bg-white text-indigo-600 rounded-lg transition-all shadow-sm active:scale-90 disabled:opacity-20"><i class="fas fa-chevron-left text-xs"></i></button>
+                                <button id="pinnedDown" class="p-2 hover:bg-white text-indigo-600 rounded-lg transition-all shadow-sm active:scale-90 disabled:opacity-20"><i class="fas fa-chevron-right text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="notes-container" class="relative border-l-4 border-gray-200 ml-4 sm:ml-12 pl-6 sm:pl-8 pb-8">
+                    @{
+                        DateTime? tempDateTime = null;
+                    }
+                    @foreach (var noteList in Model.NotesLists)
+                    {
+                        if (tempDateTime == null || tempDateTime?.Date != noteList.TimeStamp?.Date)
+                        {
+                            <div class="mb-6 mt-4 flex items-center">
+                                <span class="inline-flex items-center rounded-full bg-gray-600 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm relative -left-[45px] sm:-left-[55px]">
+                                    @if (DateTime.Now.Date == noteList.TimeStamp?.Date)
+                                    {
+                                        <span>Today</span>
+                                    }
+                                    else if (DateTime.Now.AddDays(-1).Date == noteList.TimeStamp?.Date)
+                                    {
+
+                                        <span>Yesterday</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span>@noteList.TimeStamp?.ToString("MMM dd, yyyy")</span>
+                                    }
+                                </span>
+                            </div>
+                            tempDateTime = noteList.TimeStamp;
+                        }
+                        <div class="mb-8 transform transition duration-300 hover:scale-[1.01]">
+                            @await Html.PartialAsync("NotesLayout", noteList)
                         </div>
                     }
-                }
+                    <div id="infinite-scroll-sentinel" data-goal-id="@Model.Id" data-filter-page="goals" aria-hidden="true" class="h-4"></div>
+                </div>
             </div>
+
         </div>
-    }*@
+    </div>
 </div>
 
 @await Html.PartialAsync("AddUpdateGoals")
 @await Html.PartialAsync("AddUpdateNotes")
 
-@section Scripts
-{
-    @* DataTable *@
+@section Scripts {
     <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-    @* sweetalert *@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-
-    <!-- PrismJS Core -->
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
 
-    <!-- Commonly used plugins (optional but recommended) -->
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.css" rel="stylesheet" />
-
-    <!-- Languages -->
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-c.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-java.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markup.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-css.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-rust.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-
     <script>
-        // re-highlight after content loads
-        Prism.highlightAll();
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.tab-link');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    tabs.forEach(t => {
+                        t.classList.remove('border-blue-500', 'text-blue-600');
+                        t.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    this.classList.remove('border-transparent', 'text-gray-500');
+                    this.classList.add('border-blue-500', 'text-blue-600');
+
+                    const targetId = this.getAttribute('data-tab');
+                    contents.forEach(c => c.classList.add('hidden'));
+                    document.getElementById(targetId)?.classList.remove('hidden');
+
+                    const url = this.getAttribute('href');
+                    if(url && url !== '#') history.pushState(null, '', url);
+                });
+            });
+        });
     </script>
 
-
-    @* Client side Script *@
     <script src="~/js/sweetAlertScript.js"></script>
     <script src="~/js/modelScript.js"></script>
     <script src="~/js/utils.js"></script>

@@ -22,6 +22,36 @@ namespace TaskMonitoringApp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CategoryItem", b =>
+                {
+                    b.Property<int>("CategoriesCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemsItemId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CategoriesCategoryId", "ItemsItemId");
+
+                    b.HasIndex("ItemsItemId");
+
+                    b.ToTable("ItemCategories", (string)null);
+                });
+
+            modelBuilder.Entity("ItemTag", b =>
+                {
+                    b.Property<int>("ItemsItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TagsTagId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ItemsItemId", "TagsTagId");
+
+                    b.HasIndex("TagsTagId");
+
+                    b.ToTable("ItemTags", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -180,6 +210,9 @@ namespace TaskMonitoringApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
@@ -187,6 +220,9 @@ namespace TaskMonitoringApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("StartOptionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubGoalsCount")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -397,6 +433,49 @@ namespace TaskMonitoringApp.Migrations
                     b.ToView(null, (string)null);
                 });
 
+            modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Category", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("CategoryId");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Collection", b =>
+                {
+                    b.Property<int>("CollectionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CollectionId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CollectionId");
+
+                    b.HasIndex("UserId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Collections");
+                });
+
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.GoalTask", b =>
                 {
                     b.Property<int>("GoalId")
@@ -460,6 +539,9 @@ namespace TaskMonitoringApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
@@ -481,10 +563,40 @@ namespace TaskMonitoringApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ParentId");
+
                     b.HasIndex("UserId", "Name")
                         .IsUnique();
 
                     b.ToTable("Goals");
+                });
+
+            modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Item", b =>
+                {
+                    b.Property<int>("ItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemId"));
+
+                    b.Property<int>("CollectionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("ItemId");
+
+                    b.HasIndex("CollectionId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Notes", b =>
@@ -607,6 +719,24 @@ namespace TaskMonitoringApp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Tag", b =>
+                {
+                    b.Property<int>("TagId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TagId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("TagId");
+
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Tasks", b =>
@@ -935,6 +1065,36 @@ namespace TaskMonitoringApp.Migrations
                     b.ToTable("TodoProgressAnalyses");
                 });
 
+            modelBuilder.Entity("CategoryItem", b =>
+                {
+                    b.HasOne("TaskMonitoringApp.Models.Entities.Category", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriesCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TaskMonitoringApp.Models.Entities.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemsItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ItemTag", b =>
+                {
+                    b.HasOne("TaskMonitoringApp.Models.Entities.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemsItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TaskMonitoringApp.Models.Entities.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagsTagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -995,6 +1155,17 @@ namespace TaskMonitoringApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Collection", b =>
+                {
+                    b.HasOne("TaskMonitoringApp.Models.Entities.Users", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.GoalTask", b =>
                 {
                     b.HasOne("TaskMonitoringApp.Models.Entities.Goals", "Goal")
@@ -1024,13 +1195,30 @@ namespace TaskMonitoringApp.Migrations
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Goals", b =>
                 {
+                    b.HasOne("TaskMonitoringApp.Models.Entities.Goals", "Parent")
+                        .WithMany("SubGoals")
+                        .HasForeignKey("ParentId");
+
                     b.HasOne("TaskMonitoringApp.Models.Entities.Users", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Parent");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Item", b =>
+                {
+                    b.HasOne("TaskMonitoringApp.Models.Entities.Collection", "Collection")
+                        .WithMany("Items")
+                        .HasForeignKey("CollectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Collection");
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Notes", b =>
@@ -1120,9 +1308,16 @@ namespace TaskMonitoringApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Collection", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Goals", b =>
                 {
                     b.Navigation("GoalTasks");
+
+                    b.Navigation("SubGoals");
                 });
 
             modelBuilder.Entity("TaskMonitoringApp.Models.Entities.Tasks", b =>

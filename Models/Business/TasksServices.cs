@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.Identity.Client;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Repositories;
 using TaskMonitoringApp.Models.Services;
 
@@ -34,7 +35,11 @@ namespace TaskMonitoringApp.Models.Business
                 throw new ArgumentException("Oops! The end date cannot be before or the same as the start date. Please select a later date.", nameof(task.EndDate));
             }
 
-            await _taskRepository.AddTasksAsync(userId, task, goalIds);
+            var goalIdList = string.IsNullOrWhiteSpace(goalIds) 
+                ? new List<int>() 
+                : goalIds.Split(',').Select(int.Parse).ToList();
+
+            await _taskRepository.AddUpdateTaskWithGoalsAsync(userId, task, goalIdList, 1);
         }
 
         public async Task DeleteTask(string userId, int Id)
@@ -130,8 +135,12 @@ namespace TaskMonitoringApp.Models.Business
                 oldTask.TaskStatus = Status.Running;
             }
 
+            var goalIdList = string.IsNullOrWhiteSpace(goalIds) 
+                ? new List<int>() 
+                : goalIds.Split(',').Select(int.Parse).ToList();
 
-            await _taskRepository.UpdateTasksAsync(userId, oldTask, goalIds);
+            var taskDtoToUpdate = _mapper.Map<TaskDTO>(oldTask);
+            await _taskRepository.AddUpdateTaskWithGoalsAsync(userId, taskDtoToUpdate, goalIdList, 2);
         }
 
         public async Task UpdateTask(string userId, TaskDTO task)
@@ -178,7 +187,7 @@ namespace TaskMonitoringApp.Models.Business
                 oldTask.TaskStatus = Status.Running;
             }
 
-            await _taskRepository.UpdateTasksAsync(userId, oldTask, String.Empty);
+            var taskDtoToUpdateBlank = _mapper.Map<TaskDTO>(oldTask); await _taskRepository.AddUpdateTaskWithGoalsAsync(userId, taskDtoToUpdateBlank, new List<int>(), 2);
         }
 
         public async Task UpdateTaskStatus(string userId, int taskId, Status statusToChange)
@@ -208,6 +217,10 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<TaskProductivityDTO> GetTaskProductivity(string userId)
         {
+            // Sync states efficiently before analytics calculation
+            await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            await _taskRepository.UpdateEndedTasksAsync(userId);
+            
             int runningTask = await _taskRepository.GetTaskCountByTaskStatus(userId, Status.Running);
 
             // Overall productivity...
@@ -276,6 +289,10 @@ namespace TaskMonitoringApp.Models.Business
 
         public async Task<TaskProductivityDTO> GetTaskProductivity(string userId, int goalId)
         {
+            // Sync states efficiently before analytics calculation
+            await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            await _taskRepository.UpdateEndedTasksAsync(userId);
+
             int runningTask = await _taskRepository.GetTaskCountByTaskStatus(userId, goalId, Status.Running);
 
             // Overall productivity...
@@ -354,6 +371,44 @@ namespace TaskMonitoringApp.Models.Business
         public async Task<IEnumerable<TaskDTOWithGoalNameListDTO>> SearchTasksWithGoals(string userId, string query, Status status)
         {
             return await _taskRepository.SearchTasksWithGoals(userId, query, status);
+        }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithAutoStartAsync(string userId, Status status)
+        {
+            if (status == Status.Running || status == Status.All)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksAsync<TaskDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithAutoStartAsync(string userId, int goalId, Status taskStatus)
+        {
+            if (taskStatus == Status.Running || taskStatus == Status.All)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId, goalId, taskStatus, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithDynamicStatusUpdatesAsync(string userId, Status status)
+        {
+            if (status != Status.Completed && status != Status.Archived)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+                await _taskRepository.UpdateEndedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksAsync<TaskDTO>(userId, status, ResponseDataMode.ModelDTO);
+        }
+
+        public async Task<IEnumerable<TaskDTO>> GetAllTasksWithStatusByGoalIdWithDynamicStatusUpdatesAsync(string userId, int goalId, Status taskStatus)
+        {
+            if (taskStatus != Status.Completed && taskStatus != Status.Archived)
+            {
+                await _taskRepository.UpdateAutoStartedTasksAsync(userId);
+                await _taskRepository.UpdateEndedTasksAsync(userId);
+            }
+            return await _taskRepository.GetAllTasksWithStatusByGoalId<TaskDTO>(userId, goalId, taskStatus, ResponseDataMode.ModelDTO);
         }
     }
 }

@@ -1,0 +1,40 @@
+@model IEnumerable<TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO>
+
+@{
+    DateTime? tempDateTime = null;
+    // We check if ViewBag.LastDate was passed to avoid duplicate header if dates are contiguous
+    if (ViewBag.LastDate != null)
+    {
+        if (DateTime.TryParse(ViewBag.LastDate, out DateTime parsed))
+        {
+            tempDateTime = parsed;
+        }
+    }
+}
+
+@foreach (var noteList in Model)
+{
+    if (tempDateTime == null || tempDateTime?.Date != noteList.TimeStamp?.Date)
+    {
+        <div class="mb-6 mt-4 flex items-center">
+            <span class="inline-flex items-center rounded-full bg-gray-600 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm relative -left-[45px] sm:-left-[55px]">
+                @if (DateTime.Now.Date == noteList.TimeStamp?.Date)
+                {
+                    <span>Today</span>
+                }
+                else if (DateTime.Now.AddDays(-1).Date == noteList.TimeStamp?.Date)
+                {
+                    <span>Yesterday</span>
+                }
+                else
+                {
+                    <span>@noteList.TimeStamp?.ToString("MMM dd, yyyy")</span>
+                }
+            </span>
+        </div>
+        tempDateTime = noteList.TimeStamp;
+    }
+    <div class="mb-8 transform transition duration-300 hover:scale-[1.01]">
+        @await Html.PartialAsync("NotesLayout", noteList)
+    </div>
+}

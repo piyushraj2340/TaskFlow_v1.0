@@ -1,5 +1,6 @@
 ﻿$(document).ready(function () {
 
+    /* ----------------------- Constants & Enums ----------------------- */
     const goalStatusEnum = Object.freeze({
         notStarted: 0,
         running: 1,
@@ -22,633 +23,575 @@
 
     const defaultPageLength = 5;
 
-    // Running task...
-    const runningGoalDataTable = $('#viewRunningGoalTableData');
-    // Completed Task...
-    const completedGoalDataTable = $('#viewCompletedGoalTableData');
-    // Not Started Task...
-    const notStartedGoalDataTable = $('#viewNotStartedGoalTableData');
-    // Ended Task...
-    const endedGoalDataTable = $('#viewEndedGoalTableData');
-    // Deleted Task...
-    const deletedGoalDataTable = $('#viewDeletedTableData');
+    let initialFormState = ""; // Stores the stringified version of the form
+    let checkDirtyEnabled = false; // Prevents tracking before the form is ready
 
-    // Partial modal selectors (from Views/Shared/AddUpdateGoals.cshtml)
+    const getFormSnapshot = () => {
+        // Sync TinyMCE back to the hidden textarea before serializing
+        if (typeof tinymce !== "undefined") {
+            tinymce.triggerSave();
+        }
+
+        let state = $goalForm.serialize();
+        state += $('#parentGoalId').val() || "";
+        // Include the subGoalMode if visible
+        state += $('input[name="subGoalMode"]:checked').val() || "";
+
+        return state;
+    };
+
+    const startTrackingChanges = () => {
+        // Small timeout to ensure Select2 and TinyMCE are fully rendered
+        setTimeout(() => {
+            initialFormState = getFormSnapshot();
+            checkDirtyEnabled = true;
+        }, 500);
+    };
+
+    const stopTrackingChanges = () => {
+        checkDirtyEnabled = false;
+        initialFormState = "";
+    };
+
+    const isActuallyDirty = () => {
+        if (!checkDirtyEnabled) return false;
+        return initialFormState !== getFormSnapshot();
+    };
+
+    // Table Selectors
+    const runningGoalDataTable = $('#treeTableRunning');
+    const completedGoalDataTable = $('#treeTableCompleted');
+    const notStartedGoalDataTable = $('#treeTableNotStarted');
+    const endedGoalDataTable = $('#treeTableEnded');
+
+    // Modal Selectors
     const $goalModal = $("#addEditGoalModal");
-    const $openModalButton = $("#openModalButton");
-    const $closeModalButton = $("#closeModalButton");
     const $goalForm = $("#goalForm");
+    const $parentGoalSelect = $('#parentGoalId');
+    const $existingGoalSearch = $('#existingGoalSearch');
+    const $subGoalModeContainer = $('#subGoalModeContainer');
+    const $existingSearchContainer = $('#existingGoalSearchContainer');
+    const $closeModalButton = $("#closeModalButton");
+    const $cancelModalButton = $("#cancelModalButton");
 
-    // Open goalModal for create (use partial view already rendered in layout/page)
-    $openModalButton.on("click", function () {
-        // reset form and state
-        $goalForm[0].reset();
+
+    /* ----------------------- Initialization ----------------------- */
+
+    // Parent Goal Search (Standard)
+    if ($parentGoalSelect.length) {
+        $parentGoalSelect.select2({
+            dropdownParent: $goalModal,
+            placeholder: 'Search for a parent goal...',
+            allowClear: true,
+            ajax: {
+                url: '/Goals/SearchGoalNameByName',
+                method: "get",
+                dataType: 'json',
+                delay: 250,
+                data: (params) => ({ searchQuery: params.term }),
+                processResults: (response) => ({
+                    results: response.data.map(item => ({ id: item.id, text: item.name, goalParentId: item.goalParentId }))
+                }),
+                cache: true
+            },
+            minimumInputLength: 3
+        });
+    }
+
+    // Existing Goal Search (For linking sub-goals)
+    if ($existingGoalSearch.length) {
+        $existingGoalSearch.select2({
+            dropdownParent: $goalModal,
+            placeholder: 'Select a goal to link as sub-goal...',
+            allowClear: true,
+            ajax: {
+                url: '/Goals/SearchGoalNameByName',
+                dataType: 'json',
+                delay: 250,
+                data: (params) => ({ searchQuery: params.term }),
+                processResults: (response) => ({
+                    results: response.data.map(item => ({ id: item.id, text: item.name, goalParentId: item.goalParentId }))
+                }),
+                cache: true
+            },
+            minimumInputLength: 3,
+            processResults: (response) => ({
+                results: response.data.map(item => ({
+                    id: item.id,
+                    text: item.name,
+                    alreadyHasParent: item.parentId != null // Use your new key
+                }))
+            }),
+            templateResult: function (data) {
+                if (!data.id) return data.text;
+                // Visual feedback if already linked
+                if (data.alreadyHasParent) {
+                    return $(`<span class="text-gray-400 italic">${data.text} (Already Linked)</span>`);
+                }
+                return data.text;
+            }
+        });
+    }
+
+
+    /* --- Closure Prevention --- */
+
+    // Prevent Modal Close (via X button or Cancel)
+    $(document).on('click', '#closeModalButton, #cancelModalButton', function (e) {
+        if (isActuallyDirty()) {
+            Swal.fire({
+                title: 'Unsaved Changes',
+                text: "You have unsaved changes. Are you sure you want to close?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#4f46e5', // Indigo
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, discard changes',
+                cancelButtonText: 'No, stay here'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    stopTrackingChanges(); // Reset flag
+                    $goalModal.fadeOut();
+                }
+            });
+        } else {
+            stopTrackingChanges();
+            $goalModal.fadeOut();
+        }
+    });
+
+    // Prevent Modal Close (via Clicking outside/Overlay)
+    $goalModal.on('click', function (e) {
+        if (e.target === this) {
+            if (isActuallyDirty()) {
+                // Trigger the same SweetAlert as above or just stop the click
+                $('#closeModalButton').trigger('click');
+            } else {
+                $(this).fadeOut();
+            }
+        }
+    });
+
+    // Prevent Page Reload / Navigation / Tab Close
+    window.addEventListener('beforeunload', function (e) {
+        if (isActuallyDirty()) {
+            // Standard browser prompt (Custom text is ignored by modern browsers for security)
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+
+    $(document).on("click", "#openModalButton, #addSubGoalButton", function () {
+        resetModalState();
+        startTrackingChanges();
+    });
+
+    /* ----------------------- Modal Trigger Logic ----------------------- */
+
+    // Function to adjust field widths based on visibility
+    function adjustModalLayouts() {
+        // 1. Logic for Priority vs Status (50/50 or 100)
+        const statusVisible = !$('#goalStatusContainer').hasClass('hidden');
+        if (statusVisible) {
+            $('#priorityWrapper').removeClass('sm:col-span-2').addClass('sm:col-span-1');
+        } else {
+            $('#priorityWrapper').removeClass('sm:col-span-1').addClass('sm:col-span-2');
+        }
+
+        // 2. Logic for Start Date vs Due Date (50/50 or 100)
+        const isScheduled = $('input[name="goalStart"]:checked').val() === "1";
+        if (isScheduled) {
+            $('#startDateContainer').removeClass('hidden');
+            $('#endDateWrapper').removeClass('sm:col-span-2').addClass('sm:col-span-1');
+        } else {
+            $('#startDateContainer').addClass('hidden');
+            $('#endDateWrapper').removeClass('sm:col-span-1').addClass('sm:col-span-2');
+        }
+    }
+
+    // Standard "Add New Goal" (Dashboard)
+    $(document).on("click", "#openModalButton", function () {
+        resetModalState();
         $goalForm.data('action-goal-form', 'create');
-        $goalForm.removeData('goalid');
-
-        $("#form-label").html('Add Goal');
-        $("#goalIdContainer").addClass('hidden');
-
-        // show modal
+        $("#form-label").html('Add New Goal');
+        $("#goalStatusContainer").addClass('hidden');
+        adjustModalLayouts(); // Force 100% width
+        $subGoalModeContainer.addClass('hidden');
+        $existingSearchContainer.addClass('hidden');
+        $parentGoalSelect.prop('disabled', false).val(null).trigger('change');
         $goalModal.removeClass("hidden").fadeIn();
-
-        // initialize editor after modal is visible
         handleModalOpen();
     });
 
-    const handleModalOpen = function () {
-        // wait a bit for modal to be visible then init/refresh editor
-        setTimeout(() => {
-            setupTinyMCE('textarea[name="goalDescriptions"]', tinymceConfig);
-        }, 100);
-    }
-
-    // Open goalModal for edit
+    // "Edit Goal" (Table Rows - Delegated)
     $(document).on("click", ".editGoalBtn", function () {
         const id = $(this).data("id");
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
+        if (!id) return showErrorNotification("Missing Id parameters!");
+
+        resetModalState();
+        $goalForm.data('action-goal-form', 'edit').data('goalid', id);
+        $("#form-label").html('Edit Goal');
+        $("#goalStatusContainer").removeClass('hidden');
+        $("#goalIdContainer").removeClass('hidden');
+        adjustModalLayouts(); // Force 100% width
+        $subGoalModeContainer.addClass('hidden');
+        $parentGoalSelect.prop('disabled', false);
+
+        $goalModal.removeClass("hidden").fadeIn();
+        handleModalOpen();
+
+        $.get(`/Goals/GetById/${id}`, function (response) {
+            if (response?.status) {
+                populateGoalForm(response.data);
+
+                startTrackingChanges();
+            };
+        });
+    });
+
+    // "Add Sub-Goal" (Goal Details Page)
+    $(document).on('click', '#addSubGoalButton', function () {
+        const parentId = $(this).data('parent-id');
+        const parentName = $(this).data('parent-name');
+
+        resetModalState();
+        $("#goalStatusContainer").addClass('hidden');
+        adjustModalLayouts(); // Force 100% width
+        $goalForm.data('action-goal-form', 'create');
+        $("#form-label").html('Add Sub-goal to: ' + parentName);
+        $subGoalModeContainer.removeClass('hidden');
+        $('input[name="subGoalMode"][value="new"]').prop('checked', true).trigger('change');
+
+        if ($parentGoalSelect.length) {
+            var newOption = new Option(parentName, parentId, true, true);
+            $parentGoalSelect.empty().append(newOption).trigger('change');
+            $parentGoalSelect.prop('disabled', true);
+        }
+
+        $goalModal.removeClass("hidden").fadeIn();
+        handleModalOpen();
+    });
+
+    /* ----------------------- Sub-Goal Logic ----------------------- */
+
+    $(document).on('change', 'input[name="subGoalMode"]', function () {
+        const mode = $(this).val();
+        const currentParentId = $('#parentGoalId').val(); // Grab the parent ID
+        const currentParentName = $('#parentGoalId option:selected').text();
+
+        if (mode === 'existing') {
+            $('#existingGoalSearchContainer').removeClass('hidden');
+            $('#goalName').prop('readonly', true).addClass('bg-gray-100');
+            $goalForm.data('action-goal-form', 'edit'); // Linking is an Edit action
+        } else {
+            $('#existingGoalSearchContainer').addClass('hidden');
+            $('#goalName').prop('readonly', false).removeClass('bg-gray-100');
+            $goalForm.data('action-goal-form', 'create');
+
+            resetModalState(); // Clear name/desc for new sub-goal
+
+            // RE-BIND the ParentId after reset so it isn't lost
+            if (currentParentId) {
+                var newOption = new Option(currentParentName, currentParentId, true, true);
+                $('#parentGoalId').empty().append(newOption).trigger('change');
+                $('#parentGoalId').prop('disabled', true); // Keep it locked
+            }
+        }
+        adjustModalLayouts(); // Refresh grid
+    });
+
+    $existingGoalSearch.on('select2:select', function (e) {
+        const data = e.params.data;
+
+        // Check the new key 'goalParentId' from your API response
+        if (data.goalParentId && data.goalParentId > 0) {
+            // 1. Show Error Message
+            showErrorNotification("This goal is already a sub-goal of another parent and cannot be re-linked.");
+
+            // 2. Discard/Clear the selection
+            $(this).val(null).trigger('change');
             return;
         }
 
-        $("#form-label").html('Edit Goal');
-        $("#goalIdContainer").removeClass('hidden');
-        $goalForm.data('action-goal-form', 'edit');
-        $goalForm.data('goalid', id);
-
-        // show modal
-        $goalModal.removeClass("hidden").fadeIn();
-
-        // ensure tinymce exists for the textarea
-        handleModalOpen();
-
-        // load data and populate fields
-        $.ajax({
-            url: `/Goals/GetById/${id}`,
-            method: "GET",
-            success: function (response) {
-                if (!response || !response.status) {
-                    showErrorNotification(response?.message || "Failed to load goal data!");
-                    return;
-                }
-
-                const data = response.data || {};
-
-                $("#goalId").val(data.id || "");
-                $("#goalName").val(data.name || "");
-                $("#goalDescription").val(data.description || "");
-                $("#goalPriority").val(data.priority ?? 0);
-                $("#startDate").val(data.startDate || "");
-                $("#endDate").val(data.endDate || "");
-                $("#goalStatus").val(data.goalStatus ?? goalStatusEnum.notStarted);
-
-                // set radio for start option
-                const startOption = data.startOptionType ?? startOptionValues.manual;
-                $goalModal.find(`input[name="goalStart"][value="${startOption}"]`).prop('checked', true);
-
-                // show/hide start date container based on value
-                $("#startDateContainer").toggleClass('hidden', +startOption !== startOptionValues.scheduled);
-
-                // set tinymce content (if editor initialized)
-                if (typeof tinymce !== "undefined") {
-                    // ensure editor is initialized for the textarea id
-                    setTimeout(() => {
-                        const editor = tinymce.get($("#goalDescription").attr('id'));
-                        if (editor) {
-                            editor.setContent(data.description || "");
-                        } else {
-                            // attempt to find any editor and set content
-                            const inst = tinymce.editors && tinymce.editors[0];
-                            if (inst) inst.setContent(data.description || "");
-                        }
-                    }, 200);
-                }
-            },
-            error: function (xhr, status, error) {
-                showErrorNotification(error || "Failed to load goal data!");
-                console.error("Error:", error);
+        // If valid, proceed to populate the form
+        const goalId = data.id;
+        $goalForm.data('goalid', goalId);
+        $.get(`/Goals/GetById/${goalId}`, function (response) {
+            if (response?.status) {
+                populateGoalForm(response.data);
+                adjustModalLayouts(); // Ensure grid aligns after population
             }
         });
     });
 
-    // Close modal (button)
-    $closeModalButton.on('click', function () {
-        $goalModal.fadeOut();
-    });
+    /* ----------------------- DataTables Actions & Renderers ----------------------- */
 
-    // Close when clicking overlay
-    $goalModal.on('click', function (e) {
-        if (e.target === this) {
-            $(this).fadeOut();
+    const runningActions = (row) => `
+        <div class="flex flex-nowrap items-center gap-1 justify-start">
+            <a href="/Tasks/Create?goalId=${row.id}" class="group flex h-8 w-8 items-center justify-center rounded bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition" title="Add Task"><i class="fas fa-plus text-sm"></i></a>
+            <button data-id="${row.id}" class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition" title="Edit Goal"><i class="fas fa-edit text-sm"></i></button>
+            <button data-id="${row.id}" class="markAsComplete group flex h-8 w-8 items-center justify-center rounded bg-green-100 text-green-600 hover:bg-green-600 hover:text-white transition" title="Mark as Complete"><i class="fas fa-check text-sm"></i></button>
+            <button data-id="${row.id}" class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete Goal"><i class="fas fa-trash text-sm"></i></button>
+        </div>`;
+
+    const notStartedActions = (row) => `
+        <div class="flex flex-nowrap items-center gap-1 justify-start">
+            <a href="/Tasks/Create?goalId=${row.id}" class="group flex h-8 w-8 items-center justify-center rounded bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition" title="Add Task"><i class="fas fa-plus text-sm"></i></a>
+            <button data-id="${row.id}" class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition" title="Edit Goal"><i class="fas fa-edit text-sm"></i></button>
+            <button data-id="${row.id}" class="moveToRunning group flex h-8 w-8 items-center justify-center rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Start Goal"><i class="fas fa-play text-xs pl-0.5"></i></button>
+            <button data-id="${row.id}" class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete Goal"><i class="fas fa-trash text-sm"></i></button>
+        </div>`;
+
+    const archiveActions = (row) => `
+        <div class="flex flex-nowrap items-center gap-1 justify-start">
+            <button data-id="${row.id}" class="editGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition" title="Edit Goal"><i class="fas fa-edit text-sm"></i></button>
+            <button data-id="${row.id}" class="moveToRunning group flex h-8 w-8 items-center justify-center rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Move to Running"><i class="fas fa-play text-xs pl-0.5"></i></button>
+            <button data-id="${row.id}" class="deleteGoalBtn group flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete Goal"><i class="fas fa-trash text-sm"></i></button>
+        </div>`;
+
+    const returnStatusBadge = (status) => {
+        let classes = "";
+        let text = "";
+
+        switch (parseInt(status)) {
+            case goalStatusEnum.notStarted:
+                classes = "bg-slate-100 text-slate-600 border-slate-200";
+                text = "Not Started";
+                break;
+            case goalStatusEnum.running:
+                classes = "bg-blue-100 text-blue-700 border-blue-200";
+                text = "Running";
+                break;
+            case goalStatusEnum.completed:
+                classes = "bg-green-100 text-green-700 border-green-200";
+                text = "Completed";
+                break;
+            case goalStatusEnum.ended:
+                classes = "bg-red-100 text-red-700 border-red-200";
+                text = "Ended";
+                break;
+            default:
+                return "";
+        }
+
+        return `<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${classes}">${text}</span>`;
+    };
+
+    const dataTableObject = (url, actionRenderer, pageLengthKey) => {
+        const pageLength = localStorage.getItem(pageLengthKey);
+        return {
+            ajax: { url, type: "POST" },
+            responsive: true, processing: true, serverSide: true, filter: true,
+            columns: [
+                {
+                    data: "name", name: "Name",
+                    render: function (data, type, row) {
+                        const hasChildren = row.subGoalsCount > 0;
+                        const toggle = hasChildren ? `<i class="fas fa-chevron-right tree-toggle mr-2 text-gray-400 cursor-pointer" data-id="${row.id}" data-status="${row.goalStatus}"></i>` : `<span class="mr-6"></span>`;
+
+                        const countBadge = row.subGoalsCount > 0 ? ` <span class="text-gray-400 text-sm">(${row.subGoalsCount})</span>` : '';
+
+                        return `
+                            <div class="flex items-center">
+                                ${toggle}
+                                <a href="/Goals/Details/${row.id}" class="text-blue-600 hover:underline font-medium">${data}</a>
+                                ${countBadge}
+                            </div>`;
+                    }
+                },
+                { data: "endDate", render: (data) => `<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full">${formatShortDate(data)}</span>` },
+                { data: "priority", render: (data) => returnPriorityBadge(data) },
+                { data: null, orderable: false, render: (data, type, row) => actionRenderer(row) }
+            ],
+            "order": [[0, 'asc']],
+            lengthMenu: [[5, 10, 50, 100, -1], [5, 10, 50, 100, "All"]],
+            pageLength: pageLength ? pageLength : defaultPageLength,
+            drawCallback: () => $('.dataTables_paginate').addClass('mt-4')
+        };
+    };
+
+    /* ----------------------- Tree Table Expansion ----------------------- */
+
+    function renderGoalRow(goal, level = 0, parentStatus = null) {
+        const hasChildren = goal.subGoalsCount > 0;
+        const paddingClass = `level-${Math.min(level, 4)}`;
+        const toggleIcon = hasChildren ? `<i class="fas fa-chevron-right tree-toggle mr-2 text-gray-400 hover:text-gray-600 cursor-pointer" data-status="${parentStatus}" data-id="${goal.id}" data-level="${level}"></i>` : `<span class="mr-6"></span>`;
+        let statusBadge = "";
+
+        if (level > 0 && parentStatus !== null && parseInt(goal.goalStatus) !== parseInt(parentStatus)) {
+            statusBadge = returnStatusBadge(goal.goalStatus);
+        }
+
+        let actions = "";
+        if (goal.goalStatus == goalStatusEnum.running) actions = runningActions(goal);
+        else if (goal.goalStatus == goalStatusEnum.notStarted) actions = notStartedActions(goal);
+        else actions = archiveActions(goal);
+
+        return `
+            <tr data-id="${goal.id}" data-level="${level}" class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap ${paddingClass}">
+                    <div class="flex items-center">
+                        ${toggleIcon}
+                        <a href="/Goals/Details/${goal.id}" class="text-blue-600 hover:underline font-medium">${goal.name}</a>
+                        ${statusBadge}
+                    </div>            
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-white bg-gray-700 rounded-full">${formatShortDate(goal.endDate)}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap">${returnPriorityBadge(goal.priority)}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${actions}</td>
+            </tr>`;
+    }
+
+    $(document).on('click', '.tree-toggle', function (e) {
+        e.preventDefault();
+        const $icon = $(this);
+        const $row = $icon.closest('tr');
+        const parentId = $icon.data('id');
+        const currentLevel = parseInt($row.data('level') || 0);
+        const parentStatus = $icon.data('status');
+
+        if ($icon.hasClass('fa-chevron-down')) {
+            $icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+            let $nextRow = $row.next();
+            while ($nextRow.length && parseInt($nextRow.data('level')) > currentLevel) {
+                let $temp = $nextRow.next(); $nextRow.remove(); $nextRow = $temp;
+            }
+        } else {
+            $icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+            $.get(`/Goals/GetChildGoals?parentId=${parentId}`, function (response) {
+                if (response?.data) {
+                    let html = '';
+                    response.data.forEach(child => html += renderGoalRow(child, currentLevel + 1, parentStatus));
+                    $row.after(html);
+                }
+            });
         }
     });
 
-    // Toggle startDateContainer when start option changes
+    /* ----------------------- Form Helpers & Submission ----------------------- */
+
+    function resetModalState() {
+
+        // Store current parent details before resetting
+        const isSubGoalMode = !$subGoalModeContainer.hasClass('hidden');
+        const pId = $parentGoalSelect.val();
+        const pText = $parentGoalSelect.find("option:selected").text();
+
+        $goalForm[0].reset();
+        $goalForm.removeData('goalid');
+        $("#goalId").val("");
+
+        // Restore parent if in sub-goal mode
+        if (isSubGoalMode && pId) {
+            var newOption = new Option(pText, pId, true, true);
+            $parentGoalSelect.empty().append(newOption).trigger('change');
+            $parentGoalSelect.prop('disabled', true);
+        } else {
+            $parentGoalSelect.val(null).trigger('change').prop('disabled', false);
+        }
+
+
+        if (typeof tinymce !== "undefined") tinymce.get("goalDescription")?.setContent("");
+    }
+
     $(document).on('change', 'input[name="goalStart"]', function () {
-        const val = $(this).val();
-        $("#startDateContainer").toggleClass('hidden', +val !== startOptionValues.scheduled);
+        adjustModalLayouts($(this).val());
     });
 
-    // Handle form submission using AJAX (use same pattern as notesScript.js)
+    function populateGoalForm(data) {
+        $("#goalId").val(data.id || "");
+        $("#goalName").val(data.name || "");
+        $("#goalPriority").val(data.priority ?? 0);
+        $("#startDate").val(data.startDate || "");
+        $("#endDate").val(data.endDate || "");
+        $("#goalStatus").val(data.goalStatus ?? goalStatusEnum.notStarted);
+        $("#goalDescription").val(data.description || "");
+
+        const isSubGoalMode = !$subGoalModeContainer.hasClass('hidden');
+
+        if (!isSubGoalMode && $parentGoalSelect.length) {
+            if (data.parentId && data.parentName) {
+                // Create a new option and select it
+                var newOption = new Option(data.parentName, data.parentId, true, true);
+                $parentGoalSelect.empty().append(newOption).trigger('change');
+            } else {
+                // Clear if there is no parent
+                $parentGoalSelect.val(null).trigger('change');
+            }
+        }
+        // -------------------------------------------
+
+
+        const startOpt = data.startOptionType ?? startOptionValues.manual;
+        $goalModal.find(`input[name="goalStart"][value="${startOpt}"]`).prop('checked', true);
+        $("#startDateContainer").toggleClass('hidden', +startOpt !== startOptionValues.scheduled);
+
+        if (typeof tinymce !== "undefined") {
+            setTimeout(() => {
+                tinymce.get("goalDescription")?.setContent(data.description || "");
+            }, 200);
+        }
+
+        adjustModalLayouts();
+    }
+
     $goalForm.on('submit', function (e) {
         e.preventDefault();
 
-        // if tinymce active, ensure textarea is updated
-        if (typeof tinymce !== "undefined") {
-            try { tinymce.triggerSave(); } catch (ex) { /* ignore */ }
-        }
+        // 1. DISABLE TRACKING IMMEDIATELY
+        // This stops the "Unsaved Changes" prompt from triggering during save
+        stopTrackingChanges();
+
+        if (typeof tinymce !== "undefined") tinymce.triggerSave();
+
+        // Temporarily enable for serialization
+        $parentGoalSelect.prop('disabled', false);
 
         const action = $(this).data('action-goal-form') || 'create';
-        const goalId = $(this).data('goalid');
+        const pId = $('#parentGoalId').val();
 
         const data = {
-            Id: $("#goalId").val(),
+            Id: $("#goalId").val() || $(this).data('goalid'),
             Name: $("#goalName").val(),
             Description: $("#goalDescription").val(),
             Priority: $("#goalPriority").val(),
             StartOptionType: $("input[name='goalStart']:checked").val(),
             StartDate: $("#startDate").val(),
             EndDate: $("#endDate").val(),
-            GoalStatus: $("#goalStatus").val()
+            GoalStatus: $("#goalStatus").val(),
+            ParentId: pId ? parseInt(pId) : null // Ensure ParentId is sent
         };
 
-        if (action.toString().toLowerCase() === 'create') {
-            $.ajax({
-                url: "/Goals/Create",
-                method: "POST",
-                data: data,
-                success: function (response) {
-                    if (response?.status) {
-                        showSuccessNotification(response.message || "Goal created successfully!");
-                        setTimeout(() => {
-                            $goalModal.fadeOut();
-                            location.reload();
-                        }, 500);
-                    } else {
-                        showErrorNotification(response?.message || "Goal creation failed!");
-                    }
-                },
-                error: function (xhr, status, error) {
-                    showErrorNotification(error || "Goal creation failed!");
-                    console.error("Error:", error);
-                }
-            });
-        } else if (action.toString().toLowerCase() === 'edit' && goalId) {
-            data.Id = goalId;
-            $.ajax({
-                url: `/Goals/Edit`,
-                method: "PUT",
-                data: data,
-                success: function (response) {
-                    if (response?.status) {
-                        showSuccessNotification(response.message || "Goal updated successfully!");
-                        setTimeout(() => {
-                            $goalModal.fadeOut();
-                            location.reload();
-                        }, 500);
-                    } else {
-                        showErrorNotification(response?.message || "Goal update failed!");
-                    }
-                },
-                error: function (xhr, status, error) {
-                    showErrorNotification(error || "Goal update failed!");
-                    console.error("Error:", error);
-                }
-            });
-        } else {
-            showErrorNotification("Invalid Action!");
-        }
+        const url = action.toLowerCase() === 'create' ? "/Goals/Create" : "/Goals/Edit";
+        const method = action.toLowerCase() === 'create' ? "POST" : "PUT";
+
+        $.ajax({
+            url: url, method: method, data: data,
+            success: function (response) {
+                if (response?.status) {
+                    showSuccessNotification(response.message);
+
+                    // 2. Remove the browser listener so refresh doesn't prompt
+                    window.removeEventListener('beforeunload', function (e) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    });
+
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showErrorNotification(response?.message);
+                    
+                    // 3. RE-ENABLE TRACKING IF SAVE FAILED
+                    // If there's a validation error, we want to keep tracking 
+                    // so the user doesn't lose their corrections!
+                    if (!$subGoalModeContainer.hasClass('hidden')) $parentGoalSelect.prop('disabled', true);
+                    startTrackingChanges();                }
+            }
+        });
     });
 
-    const dataTableObject = (url, renderCallBack, pageLengthKey) => {
-
-        const pageLength = localStorage.getItem(pageLengthKey);
-
-
-        return {
-            ajax: {
-                url,
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "Priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: renderCallBack
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            lengthMenu: [[5, 10, 50, 100, 250, 500, -1], [5, 10, 50, 100, 250, 500, "All"]],
-            pageLength: pageLength ? pageLength : defaultPageLength
-        }
-    }
-
-    // Running Goal Data...
-    function loadRunningGoalData() {
-        let url = "/Goals/GetAllRunningGoals";
-
-        function renderCallBack(data, type, row) {
-            return `
-               <div class="flex flex-wrap gap-2 items-center">
-                
-                <a href="/Tasks/Create?goalId=${row.id}" 
-                   class="my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                   aria-label="Add Task">
-                    <i class="fas fa-plus"></i>
-                    <span class="ml-2">Add Task</span>
-                </a>
-
-                
-                <button data-id="${row.id}" 
-                        class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                        aria-label="Edit Goal">
-                    <i class="fas fa-edit"></i>
-                    <span class="ml-2">Edit</span>
-                </button>
-
-                
-                <button data-id="${row.id}" class="markAsComplete my-1 rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                        aria-label="Mark Goal as Complete">
-                    <i class="fas fa-check"></i>
-                    <span class="ml-2">Mark as Complete</span>
-                </button>
-
-                
-                <button data-id="${row.id}" 
-                        class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                        aria-label="Delete Goal">
-                    <i class="fas fa-trash"></i>
-                    <span class="ml-2">Delete</span>
-                </button>
-            </div>
-
-            `;
-        }
-
-        if (runningGoalDataTable?.length) {
-
-            runningGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.runningGoal));
-
-            runningGoalDataTable.on('length.dt', function (e, settings, len) {
-                localStorage.setItem(pageLengthValue.runningGoal, len);
-            });
-
-        }
-    }
-
-    // Completed Goal data....
-    function loadCompletedGoalData() {
-        let url = "/Goals/GetAllCompletedGoals";
-
-        function renderCallBack(data, type, row) {
-            return `
-                <div class="flex flex-wrap gap-2 items-center">
-                    
-                    <button data-id="${row.id}" 
-                            class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                            aria-label="Edit Goal">
-                        <i class="fas fa-edit"></i>
-                        <span class="ml-2">Edit</span>
-                    </button>
-
-                    <!-- Move to Running Button -->
-                    <button data-id="${row.id}" 
-                            class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                            aria-label="Move Goal to Running">
-                        <i class="fas fa-play"></i>
-                        <span class="ml-2">Move to Running</span>
-                    </button>
-
-                    
-                    <button data-id="${row.id}" 
-                            class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                            aria-label="Delete Goal">
-                        <i class="fas fa-trash"></i>
-                        <span class="ml-2">Delete</span>
-                    </button>
-                </div>
-
-            `;
-        }
-
-        if (completedGoalDataTable?.length) {
-
-            completedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.completedGoal));
-
-            completedGoalDataTable.on('length.dt', function (e, settings, len) {
-                localStorage.setItem(pageLengthValue.completedGoal, len);
-            });
-
-        }
-    }
-
-    // NotStarted
-    function loadNotStartedGoalData() {
-        let url = "/Goals/GetAllNotStartedGoals";
-
-        function renderCallBack(data, type, row) {
-            return `
-                <div class="flex flex-wrap gap-2 items-center">
-                    
-                    <a href="/Tasks/Create?goalId=${row.id}" 
-                       class="my-1 rounded bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                       aria-label="Add Task to Goal">
-                        <i class="fas fa-plus"></i>
-                        <span class="ml-2">Add Task</span>
-                    </a>
-
-                    
-                    <button data-id="${row.id}" 
-                            class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                            aria-label="Edit Goal">
-                        <i class="fas fa-edit"></i>
-                        <span class="ml-2">Edit</span>
-                    </button>
-
-                    <!-- Move to Running Button -->
-                    <button data-id="${row.id}" 
-                            class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                            aria-label="Move Goal to Running">
-                        <i class="fas fa-play"></i>
-                        <span class="ml-2">Move to Running</span>
-                    </button>
-
-                    
-                    <button data-id="${row.id}" 
-                            class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto"
-                            aria-label="Delete Goal">
-                        <i class="fas fa-trash"></i>
-                        <span class="ml-2">Delete</span>
-                    </button>
-                </div>
-
-            `;
-        }
-
-        if (notStartedGoalDataTable?.length) {
-
-            notStartedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.notStartedGoal));
-
-            notStartedGoalDataTable.on('length.dt', function (e, settings, len) {
-                localStorage.setItem(pageLengthValue.notStartedGoal, len);
-            });
-
-        }
-    }
-
-    // Ended
-    function loadEndedGoalData() {
-        let url = "/Goals/GetAllEndedGoals";
-
-        function renderCallBack(data, type, row) {
-            return `
-                <div class="flex flex-wrap gap-2 items-center">
-                  <button data-id="${row.id}" 
-                          class="editGoalBtn my-1 rounded bg-yellow-600 px-4 py-2 text-sm text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                          aria-label="Edit Goal">
-                    <i class="fas fa-edit"></i>
-                    <span class="ml-2">Edit</span>
-                  </button>
-
-                  <button data-id="${row.id}" 
-                          class="moveToRunning my-1 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                          aria-label="Move to Running">
-                    <i class="fas fa-play"></i>
-                    <span class="ml-2">Move to Running</span>
-                  </button>
-
-                  <button data-id="${row.id}" 
-                          class="deleteGoalBtn my-1 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-105 shadow-md w-full sm:w-auto" 
-                          aria-label="Delete Goal">
-                    <i class="fas fa-trash"></i>
-                    <span class="ml-2">Delete</span>
-                  </button>
-                </div>
-
-            `;
-        }
-
-        if (endedGoalDataTable?.length) {
-
-            endedGoalDataTable.DataTable(dataTableObject(url, renderCallBack, pageLengthValue.endedGoal));
-
-            endedGoalDataTable.on('length.dt', function (e, settings, len) {
-                localStorage.setItem(pageLengthValue.endedGoal, len);
-            });
-
-        }
-    }
-
-    function loadDeletedGoalData() {
-        goalDeletedDataTableReload = deletedGoalDataTable.DataTable({
-            ajax: {
-                url: "/Goals/GetAllDeletedGoals",
-                type: "POST",
-            },
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            filter: true,
-            columns: [
-                { data: "id", name: "Id" },
-                {
-                    data: "name",
-                    name: "Name",
-                    render: function (data, type, row) {
-                        return `<a href="/Goals/Details/${row.id}" class="text-blue-500 hover:text-blue-700 hover:underline">${data}</a>`
-                    }
-                },
-                {
-                    data: "endDate",
-                    name: "Due Date",
-                    render: function (data, type, row) {
-                        return `<span class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold text-white bg-gray-700 rounded-full shadow-md hover:bg-gray-500 transition duration-300 min-w-max">${formatShortDate(data)}</span>`
-                    }
-                },
-                {
-                    data: "priority",
-                    name: "priority",
-                    render: function (data, type, row) {
-                        return returnPriorityBadge(data);
-                    }
-                },
-                {
-                    data: "goalStatus",
-                    name: "Status",
-                    render: function (data, type, row) {
-                        return returnStatusBadge(data);
-                    }
-                },
-                {
-                    data: null, // This column will not contain data directly
-                    name: "Action",
-                    defaultContent: "",
-                    render: function (data, type, row) {
-                        return `
-                            <button data-id="${row.id}" class="moveToRunning my-1 me-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600">
-                                 <i class="fas fa-check"></i> Move to Running
-                            </button>
-                            <button data-id="${row.id}" class="deleteGoalBtn my-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    }
-                }
-            ],
-            "order": [[0, 'asc']],
-            info: true,
-            pageLength: 5
-        });
-    }
-
-    runningGoalDataTable?.length && loadRunningGoalData();
-    completedGoalDataTable?.length && loadCompletedGoalData();
-    notStartedGoalDataTable?.length && loadNotStartedGoalData();
-    endedGoalDataTable?.length && loadEndedGoalData();
-    //loadDeletedGoalData();
-
-    // delete goal
-    $(document).on("click", ".deleteGoalBtn", async function () {
-        const id = $(this).data("id");
-        let parentTable = $(this).closest("table");
-
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
-            return;
-        }
-
-        try {
-            // Call reusable confirmation function
-            showConfirmationDialog(
-                {
-                    title: 'Are you sure?',
-                    text: 'Do you really want to delete this goal? This action cannot be undone.',
-                },
-                {
-                    url: `/Goals/DeleteGoal`,
-                    type: 'DELETE',
-                    data: { Id: id }
-                },
-                function (response) { // Success callback
-                    parentTable?.DataTable().ajax.reload();
-                },
-                function (error) { // Error callback
-                    console.error('Error deleting goal:', error);
-                }
-            );
-        }
-        catch (error) {
-            showErrorNotification(error.message || "Error: while deleting Goal with Id: " + id);
-            console.error(error);
-        }
-    })
-
-
-    // Mark goal as completed...
-    $(document).on("click", ".markAsComplete", async function () {
-        const id = $(this).data("id");
-
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
-            return;
-        }
-
-        $.ajax({
-            url: "/Goals/ChangeGoalStatus",
-            method: "POST",
-            data: {
-                Id: id,
-                GoalStatus: goalStatusEnum.completed
-            },
-            success: function (response) {
-                if (response.status) {
-
-                    runningGoalDataTable?.DataTable().ajax.reload();
-
-                    completedGoalDataTable?.DataTable().ajax.reload();
-
-                    showSuccessNotification(response.message);
-                } else {
-                    throw new Error(response.message || "Error: while changing the status of Goal with Id: " + id);
-                }
-            },
-            error: function (xhr, status, error) {
-                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
-                console.error("Error:", error);
-            }
-        })
-    })
-
-    // Move to runnings
-    $(document).on("click", ".moveToRunning", async function () {
-        const id = $(this).data("id");
-        let goalStatus = $(this).closest("table").data("goal-status");
-
-        if (!id) {
-            showErrorNotification("Missing Id parameters!");
-            return;
-        }
-
-        $.ajax({
-            url: "/Goals/ChangeGoalStatus",
-            method: "POST",
-            data: {
-                Id: id,
-                GoalStatus: goalStatusEnum.running
-            },
-            success: function (response) {
-                if (response.status) {
-
-                    runningGoalDataTable.DataTable().ajax.reload();
-
-                    goalStatus === "notStarted" && notStartedGoalDataTable?.DataTable().ajax.reload();
-
-                    goalStatus === "completed" && completedGoalDataTable?.DataTable().ajax.reload();
-
-                    goalStatus === "ended" && endedGoalDataTable?.DataTable().ajax.reload();
-
-
-                    showSuccessNotification(response.message);
-                } else {
-                    showErrorNotification(response.message || "Error: while changing the status of Goal with Id: " + id);
-                }
-            },
-            error: function (xhr, status, error) {
-                showErrorNotification(error || "Error: while changing the status of Goal with Id: " + id);
-                console.error("Error:", error);
-            }
-        })
-    })
-
-    /* ----------------------- TinyMCE config + helper ----------------------- */
+    /* -----------------------  UI Utilities ----------------------- */
 
     const tinymceConfig = {
         menubar: false,
@@ -722,51 +665,215 @@
         },
         convert_urls: false,
         media_live_embeds: true,
+        setup: function (editor) {
+            editor.on('Change KeyUp', function (e) {
+                setFormDirty();
+            });
+            editor.on('init', function () {
+                // Ensure initial content doesn't trigger dirty flag
+                editor.setContent($('#goalDescription').val() || "");
+            });
+        }
     };
 
-    function setupTinyMCE(selector, config) {
-        const $targetElement = $(selector);
-        if (!$targetElement.length) {
-            console.warn(`TinyMCE: Target element not found for selector: ${selector}`);
-            return;
-        }
 
-        let editorId = $targetElement.attr('id');
-        if (!editorId) {
-            editorId = 'tinymce-dynamic-' + Math.random().toString(36).substring(2, 9);
-            $targetElement.attr('id', editorId);
-        }
+    const handleModalOpen = (initialContent = "") => {
+        // 1. Give the DOM a moment to be visible
+        setTimeout(() => {
+            setupTinyMCE('textarea[name="goalDescriptions"]', tinymceConfig, initialContent);
+        }, 100);
+    };
+    function setupTinyMCE(selector, config, initialContent) {
+        const $target = $(selector);
+        if (!$target.length) return;
 
-        const existingEditor = tinymce.get(editorId);
+        let editorId = $target.attr('id') || 'tmce-' + Math.random().toString(36).substring(2, 9);
+        $target.attr('id', editorId);
 
-        if (existingEditor) {
-            try {
-                existingEditor.execCommand('mceFocus', false, editorId);
-                // deprecated repaint but harmless if available
-                try { existingEditor.execCommand('mceRepaint'); } catch (e) { }
-                const content = existingEditor.getContent();
-                existingEditor.setContent(content);
-                existingEditor.fire && existingEditor.fire('ResizeEditor');
-            } catch (e) {
-                console.error("TinyMCE refresh failed:", e);
-            }
+        const editor = tinymce.get(editorId);
+
+        if (editor) {
+            // 2. If editor exists, just update the content and reset dirty flag
+            editor.setContent(initialContent || "");
+            editor.undoManager.clear(); // Prevents "Undo" from bringing back old data
         } else {
-            const fullConfig = {
+            // 3. If editor doesn't exist, initialize it
+            tinymce.init({
                 ...config,
                 selector: `#${editorId}`,
-                setup: function (editor) {
-                    editor.on('init', function () {
-                        console.log(`TinyMCE instance '${editorId}' initialized.`);
+                setup: (ed) => {
+                    ed.on('init', () => {
+                        ed.setContent(initialContent || $target.val() || "");
                     });
-                    $(document).on('focusin', function (e) {
-                        if ($(e.target).closest('.tox-tinymce, .tox-tinymce-aux').length) {
-                            e.stopImmediatePropagation();
-                        }
+                    // Ensure the dirty check logic works with TinyMCE
+                    ed.on('Change KeyUp', function () {
+                        tinymce.triggerSave(); // Keep the hidden textarea in sync
                     });
                 }
-            };
-            tinymce.init(fullConfig);
+            });
         }
+    }
+
+    function initTable(tableSelector, url, actionRenderer, storageKey) {
+        if (tableSelector?.length) {
+            tableSelector.DataTable(dataTableObject(url, actionRenderer, storageKey));
+            tableSelector.on('length.dt', (e, s, len) => localStorage.setItem(storageKey, len));
+        }
+    }
+
+    // Initialize Root Tables
+    initTable(runningGoalDataTable, "/Goals/GetAllRunningGoals", runningActions, pageLengthValue.runningGoal);
+    initTable(completedGoalDataTable, "/Goals/GetAllCompletedGoals", archiveActions, pageLengthValue.completedGoal);
+    initTable(notStartedGoalDataTable, "/Goals/GetAllNotStartedGoals", notStartedActions, pageLengthValue.notStartedGoal);
+    initTable(endedGoalDataTable, "/Goals/GetAllEndedGoals", archiveActions, pageLengthValue.endedGoal);
+
+
+    /* ----------------------- Status & Delete Action Handlers ----------------------- */
+
+    // 1. Handle Delete Goal
+    $(document).on("click", ".deleteGoalBtn", function () {
+        const id = $(this).data("id");
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will permanently delete the goal and its sub-goals!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // Red
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/Goals/DeleteGoal/${id}`,
+                    method: "DELETE",
+                    success: function (response) {
+                        if (response?.status) {
+                            showSuccessNotification(response.message);
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            showErrorNotification(response?.message || "Delete failed.");
+                        }
+                    },
+                    error: () => showErrorNotification("An error occurred while deleting the goal.")
+                });
+            }
+        });
+    });
+
+    // Replace the moveToRunning and markAsComplete listeners with this unified logic
+    $(document).on("click", ".moveToRunning, .markAsComplete", function () {
+        const $btn = $(this);
+        const goalId = $btn.data("id");
+        const isCompleting = $btn.hasClass("markAsComplete");
+
+        const targetStatus = isCompleting ? goalStatusEnum.completed : goalStatusEnum.running;
+        const statusName = isCompleting ? "Completed" : "Running";
+
+        $.get(`/Goals/GetChildGoals?parentId=${goalId}`, function (response) {
+            const subGoals = (response && response.status) ? response.data : [];
+            if (subGoals.length > 0) {
+                handleMultiLevelTransition(goalId, subGoals, targetStatus, statusName);
+            } else {
+                updateSingleGoalStatus(goalId, targetStatus, `Goal marked as ${statusName}!`);
+            }
+        });
+    });
+
+    // Replace the moveToRunning and markAsComplete listeners with this unified logic
+    $(document).on("click", ".moveToRunning, .markAsComplete", function () {
+        const $btn = $(this);
+        const goalId = $btn.data("id");
+        const isCompleting = $btn.hasClass("markAsComplete");
+
+        const targetStatus = isCompleting ? goalStatusEnum.completed : goalStatusEnum.running;
+        const statusName = isCompleting ? "Completed" : "Running";
+
+        $.get(`/Goals/GetChildGoals?parentId=${goalId}`, function (response) {
+            const subGoals = (response && response.status) ? response.data : [];
+            if (subGoals.length > 0) {
+                handleMultiLevelTransition(goalId, subGoals, targetStatus, statusName);
+            } else {
+                updateSingleGoalStatus(goalId, targetStatus, `Goal marked as ${statusName}!`);
+            }
+        });
+    });
+
+    async function handleMultiLevelTransition(parentId, subGoals, targetStatus, statusName) {
+        const isRunning = targetStatus === goalStatusEnum.running;
+        const actionVerb = isRunning ? "start" : "complete";
+
+        // Step 1: Update All?
+        const result1 = await Swal.fire({
+            title: `Multi-level Goal: ${statusName}`,
+            text: `Do you want to ${actionVerb} all sub-goals as well?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: `Yes, ${actionVerb} all`,
+            cancelButtonText: 'No',
+            confirmButtonColor: isRunning ? '#2563eb' : '#10b981',
+            cancelButtonColor: '#6b7280'
+        });
+
+        if (result1.isConfirmed) {
+            Swal.showLoading();
+            const promises = subGoals.map(sg =>
+                $.ajax({ url: `/Goals/ChangeGoalStatus/${sg.id}`, method: "POST", data: { Id: sg.id, GoalStatus: targetStatus } })
+            );
+            promises.push($.ajax({ url: `/Goals/ChangeGoalStatus/${parentId}`, method: "POST", data: { Id: parentId, GoalStatus: targetStatus } }));
+
+            await Promise.all(promises);
+            showSuccessNotification(`Parent and all sub-goals updated to ${statusName}.`);
+            setTimeout(() => location.reload(), 500);
+
+        } else if (result1.dismiss === Swal.DismissReason.cancel) {
+            // Step 2: De-attach?
+            const result2 = await Swal.fire({
+                title: 'Sub-goal Relationship',
+                text: "De-attach these sub-goals as root goals and only update the parent?",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, de-attach',
+                cancelButtonText: `No, just update parent`
+            });
+
+            if (result2.isConfirmed) {
+                Swal.showLoading();
+                const goalIds = subGoals.map(sg => sg.id);
+                $.ajax({
+                    url: `/Goals/DeattachSubGoals`,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(goalIds),
+                    success: function (response) {
+                        if (response.status) {
+                            updateSingleGoalStatus(parentId, targetStatus, `Sub-goals de-attached. Parent is now ${statusName}.`);
+                        } else {
+                            showErrorNotification(response.message);
+                        }
+                    }
+                });
+            } else if (result2.dismiss === Swal.DismissReason.cancel) {
+                updateSingleGoalStatus(parentId, targetStatus, `Parent goal moved to ${statusName}.`);
+            }
+        }
+    }
+
+    // Helper to handle simple status updates
+    function updateSingleGoalStatus(id, status, customMessage) {
+        $.ajax({
+            url: `/Goals/ChangeGoalStatus/${id}`,
+            method: "POST",
+            data: { Id: id, GoalStatus: status },
+            success: function (response) {
+                if (response?.status) {
+                    showSuccessNotification(customMessage || "Status updated successfully!");
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showErrorNotification(response?.message);
+                }
+            }
+        });
     }
 
 });

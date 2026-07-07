@@ -8,6 +8,7 @@ using TaskMonitoringApp.Exceptions;
 using TaskMonitoringApp.Models;
 using TaskMonitoringApp.Models.DTOs;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 using TaskMonitoringApp.Models.Services;
 
 namespace TaskMonitoringApp.Controllers.API
@@ -95,7 +96,7 @@ namespace TaskMonitoringApp.Controllers.API
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllGoals()
         {
             var userId = _userManager.GetUserId(User);
 
@@ -104,7 +105,7 @@ namespace TaskMonitoringApp.Controllers.API
                 return RedirectToAction("Login", "Account");
             }
 
-            var getGoals = await _service.GetAllGoals(userId, Status.All);
+            var getGoals = await _service.GetAllGoalsWithDynamicStatusUpdatesAsync(userId, Status.All);
 
             if (getGoals == null)
             {

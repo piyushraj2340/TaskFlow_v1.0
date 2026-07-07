@@ -1,400 +1,352 @@
-﻿@model TaskMonitoringApp.Models.ViewModel.TaskViewModel
+﻿@using TaskMonitoringApp.Models.Enums
+@model TaskMonitoringApp.Models.ViewModel.TaskViewModel
 
 @{
     ViewData["Title"] = Model.Name;
+    var pinnedNotes = ViewBag.PinnedNotes as IEnumerable<TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO>;
 }
 
 @section Styles {
-    <!-- Add a section for DataTables CSS if this page uses DataTables -->
     <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-    <!-- Flatpickr (Calendar) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="~/css/richtextstyle.css" rel="stylesheet" />
+
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.css" rel="stylesheet" />
 }
 
-<div class="mx-auto max-w-7xl px-2 py-12 md:px-6">
-    <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-indigo-600"><i class="fas fa-trophy"></i></div>
-                <div class="text-lg font-semibold">Total Todos</div>
-            </div>
-            <div class="mt-4 text-xl" id="totalTodoTaskCount">@Model.TodoProgress.TotalTodo</div>
-        </div>
+<div class="mx-auto">
 
-        <div class="rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-green-600"><i class="fas fa-check"></i></div>
-                <div class="text-lg font-semibold">Completed Todos</div>
-            </div>
-            <div class="mt-4 text-xl" id="completedTodoTaskCount">@Model.TodoProgress.TotalCompletedTodo</div>
-        </div>
-
-        <div class="rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-blue-600"><i class="fas fa-clipboard"></i></div>
-                <div class="text-lg font-semibold">Missed Todos</div>
-            </div>
-            <div class="mt-4 text-xl" id="runningTodoTaskCount">
-                @Model.TodoProgress.TotalMissedTodo
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        @* (I omitted the stats HTML to save space, paste your existing stats block here) *@
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-indigo-100 p-4">
+                    <i class="fas fa-trophy text-3xl text-indigo-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Total Todos</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="totalTodoTaskCount">@Model.TodoProgress.TotalTodo</div>
+                </div>
             </div>
         </div>
 
-        <div class="rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
-            <div class="flex items-center justify-between">
-                <div class="text-3xl text-purple-600"><i class="fas fa-cogs"></i></div>
-                <div class="text-lg font-semibold">Task's Productivity</div>
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-green-100 p-4">
+                    <i class="fas fa-check text-3xl text-green-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Completed</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="completedTodoTaskCount">@Model.TodoProgress.TotalCompletedTodo</div>
+                </div>
             </div>
-            <div class="mt-4 text-xl" id="productivityPercentageTodo">@Model.TodoProgress.ProductivityForDay%</div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-blue-600 bg-white p-6 shadow-md shadow-blue-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-blue-100 p-4">
+                    <i class="fas fa-clipboard text-3xl text-blue-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Missed Todos</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="runningTodoTaskCount">@Model.TodoProgress.TotalMissedTodo</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center min-h-[120px] rounded-lg border-l-4 border-purple-600 bg-white p-6 shadow-md shadow-purple-300">
+            <div class="flex items-center space-x-4 w-full">
+                <div class="flex-shrink-0 rounded-full bg-purple-100 p-4">
+                    <i class="fas fa-cogs text-3xl text-purple-600"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium uppercase tracking-wider text-gray-500">Productivity</div>
+                    <div class="truncate text-3xl font-bold text-gray-900" id="productivityPercentageTodo">@Model.TodoProgress.ProductivityForDay%</div>
+                </div>
+            </div>
         </div>
     </div>
 
-
-    <!-- Charts Section -->
-    @*     <div class="mb-12 grid gap-8 md:grid-cols-3">
-        <!-- Left Chart: Task Growth Ratio (70%) -->
-        <div class="col-span-1 h-[400px] rounded-lg bg-white p-6 shadow-lg md:col-span-2">
-            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Task Growth Ratio</h2>
-            <div class="h-[300px]">
-                <canvas id="taskGrowthChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Right Chart: Donut Chart (30%) -->
-        <div class="h-[400px] rounded-lg bg-white p-6 shadow-lg">
-            <h2 class="mb-4 text-2xl font-semibold text-gray-800">Contributing to the Goal</h2>
-            <div class="h-[300px]">
-                <canvas id="goalPieChart"></canvas>
-            </div>
-        </div>
-    </div> *@
-
-
     <div class="mb-8 rounded-lg bg-white p-4 shadow-lg sm:p-6">
-        <!-- Centered Action Buttons -->
-        <div class="mb-6 flex flex-wrap justify-center gap-4">
-            <a href="@Url.Action("Edit", "Tasks", new { id = Model.Id })" class="flex items-center rounded-lg bg-blue-500 px-6 py-2 text-white transition duration-300 hover:bg-blue-600">
-                <i class="fas fa-edit mr-2"></i>Edit Task
+
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+            <a href="@Url.Action("Edit", "Tasks", new { id = Model.Id })" class="flex w-full items-center justify-center rounded-lg bg-blue-500 px-6 py-2.5 font-medium text-white transition duration-300 hover:bg-blue-600 sm:w-auto">
+                <i class="fas fa-edit mr-2"></i> Edit Task
             </a>
-            <button data-id="@Model.Id" class="deleteTaskBtn flex items-center rounded-lg bg-red-500 px-6 py-2 text-white transition duration-300 hover:bg-red-600">
-                <i class="fas fa-trash mr-2"></i>Delete Task
+
+            <button data-id="@Model.Id" class="deleteTaskBtn flex w-full items-center justify-center rounded-lg bg-red-500 px-6 py-2.5 font-medium text-white transition duration-300 hover:bg-red-600 sm:w-auto">
+                <i class="fas fa-trash mr-2"></i> Delete Task
             </button>
-            <button id="openAddNotesModal" data-action-note-form-type-id="@Model.Id" data-action-note-form-type="task" class="flex items-center rounded-lg bg-yellow-500 px-6 py-2 text-white transition duration-300 hover:bg-yellow-600">
-                <i class="fas fa-comment mr-2"></i>Add Notes
+
+            <button id="openAddNotesModal" data-action-note-form-type-id="@Model.Id" data-action-note-form-type="task" class="flex w-full items-center justify-center rounded-lg bg-yellow-500 px-6 py-2.5 font-medium text-white transition duration-300 hover:bg-yellow-600 sm:w-auto">
+                <i class="fas fa-comment mr-2"></i> Add Notes
             </button>
-            <button data-id="@Model.Id" class="markAsCompleteTaskBtn flex items-center rounded-lg bg-green-500 px-6 py-2 text-white transition duration-300 hover:bg-green-600">
-                <i class="fas fa-check mr-2"></i>Mark as Complete
+
+            <button data-id="@Model.Id" class="markAsCompleteTaskBtn flex w-full items-center justify-center rounded-lg bg-green-500 px-6 py-2.5 font-medium text-white transition duration-300 hover:bg-green-600 sm:w-auto">
+                <i class="fas fa-check mr-2"></i> Mark Complete
             </button>
         </div>
 
-        <div class="sticky top-0 z-10 h-auto border-b border-gray-300 bg-white py-1">
-            <!-- Tab Navigation -->
-            <ul class="flex flex-wrap items-center">
-                <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/info") class="@(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="info">Info</a></li>
-                <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/notes") class="@(ViewBag.tabName == "notes" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="notes">All Notes</a></li>
-                <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/todos") class="@(ViewBag.tabName == "todos" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="todos">Todos</a></li>
-                @* <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/board1") class="@(ViewBag.tabName == "board1" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="board1">Board 1</a></li> *@
-                @* <li class="my-2"><a href=@($"/Tasks/Details/{Model.Id}/create") class="@(ViewBag.tabName == "create" ? "text-blue-600 border-blue-600 font-semibold" : "text-gray-600 border-gray-600") tab-link border-l-1 border-r-1 border-b-2 px-4 py-2" data-tab="create">Create Board</a></li> *@
-            </ul>
+        <div class="sticky top-[-32px] z-10 bg-gray-200 pt-1 px-2">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-2" aria-label="Tabs">
+                    <a href=@($"/Tasks/Details/{Model.Id}/info")
+                       class="tab-link whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")"
+                       data-tab="info">
+                        <i class="fas fa-info-circle mr-1 sm:mr-2"></i> Info
+                    </a>
+
+                    <a href=@($"/Tasks/Details/{Model.Id}/notes")
+                       class="tab-link whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 @(ViewBag.tabName == "notes" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")"
+                       data-tab="notes">
+                        <i class="fas fa-sticky-note mr-1 sm:mr-2"></i> All Notes
+                    </a>
+
+                    <a href=@($"/Tasks/Details/{Model.Id}/todos")
+                       class="tab-link whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 @(ViewBag.tabName == "todos" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")"
+                       data-tab="todos">
+                        <i class="fas fa-list-check mr-1 sm:mr-2"></i> Todos
+                    </a>
+                </nav>
+            </div>
         </div>
 
-        <!-- Tab Content -->
-        <div class="custom-scrollbar relative z-0 mt-4 max-h-screen overflow-y-scroll">
-            <!-- Task Details Section -->
-            <div id="info" class="tab-content @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "" : "hidden") mb-8 rounded-lg bg-white p-6 shadow-lg">
+        <div class="custom-scrollbar relative z-0 mt-4 max-h-screen overflow-y-scroll overflow-x-hidden p-1">
 
-                <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                    <h2 class="mb-3 text-2xl font-semibold text-gray-800">Task Information</h2>
-                </div>
-                <div class="space-y-4">
-                    <!-- Task Name -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Task Name</div>
-                        <div class="w-full text-left text-lg font-semibold text-gray-800 sm:w-3/4">@Model.Name</div>
+            <div id="info" class="tab-content @(ViewBag.tabName == "info" || String.IsNullOrWhiteSpace(ViewBag.tabName) ? "" : "hidden")">
+                <div class="space-y-6">
+                    <div class="flex flex-col sm:flex-row border-b border-gray-100 pb-4">
+                        <div class="w-full text-sm font-medium text-gray-500 sm:w-1/4 mb-1 sm:mb-0">Task Name</div>
+                        <div class="w-full text-lg font-semibold text-gray-900 sm:w-3/4">@Model.Name</div>
                     </div>
-                    <!-- Description -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Description</div>
-                        <div class="richtext w-full text-left sm:w-3/4">
+
+                    <div class="flex flex-col sm:flex-row border-b border-gray-100 pb-4">
+                        <div class="w-full text-sm font-medium text-gray-500 sm:w-1/4 mb-1 sm:mb-0">Description</div>
+                        <div class="richtext w-full text-gray-800 sm:w-3/4 prose prose-sm max-w-none">
                             @Html.Raw(Model.Description)
                         </div>
                     </div>
-                    <!-- Repeat Type -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Repeat Type</div>
-                        <div class="w-full text-left sm:w-3/4">
-                            <span class="inline-flex items-center rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white">
-                                @Model.Repeat
-                            </span>
-                        </div>
-                    </div>
-                    <!-- Repeat Type list -->
-                    @{
-                        if (Model.Repeat == TaskMonitoringApp.Models.Entities.RepeatType.Weekly && Model.RepeatWeekList != null)
-                        {
 
-                            <div class="flex flex-col sm:flex-row">
-                                <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Weekly Repeat</div>
-                                <div class="w-full text-left sm:w-3/4">
-
-                                    @foreach (TaskMonitoringApp.Models.Entities.Weekly weekName in Model.RepeatWeekList)
-                                    {
-                                        // <span class="text-sm text-black peer-checked:text-white">@weekName.ToString()</span>
-                                        <span class="badge mb-2 mr-2 rounded-full bg-gray-200 px-3 py-1 text-sm text-gray-900">
-                                            @weekName.ToString()
-                                        </span>
-                                    }
-                                </div>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-500 mb-1">Repeat Type</span>
+                            <div>
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                                    @Model.Repeat
+                                </span>
                             </div>
-                        }
+                        </div>
+
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-500 mb-1">Priority</span>
+                            <div>
+                                <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">
+                                    @Model.Priority
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-500 mb-1">Status</span>
+                            <div>
+                                <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                                    @Model.TaskStatus
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.Repeat == RepeatType.Weekly && Model.RepeatWeekList != null)
+                    {
+                        <div class="flex flex-col mt-4">
+                            <span class="text-sm font-medium text-gray-500 mb-2">Active Days</span>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach (var weekName in Model.RepeatWeekList)
+                                {
+                                    <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 border border-gray-200">
+                                        @weekName.ToString()
+                                    </span>
+                                }
+                            </div>
+                        </div>
                     }
-                    <!-- Priority -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Priority</div>
-                        <div class="w-full text-left sm:w-3/4">
-                            <span class="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
-                                @Model.Priority
-                            </span>
-                        </div>
-                    </div>
-                    <!-- Status -->
-                    <div class="flex flex-col sm:flex-row">
-                        <div class="w-full text-lg font-medium text-gray-600 sm:w-1/4">Status</div>
-                        <div class="w-full text-left sm:w-3/4">
-                            <span class="inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
-                                @Model.TaskStatus
-                            </span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Notes Tab -->
             <div id="notes" class="tab-content @(ViewBag.tabName == "notes" ? "" : "hidden")">
+                
+                @* Pinned Notes Section *@
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg py-2 mb-6 mx-2 sm:mx-4">
+                    <div class="px-4 flex items-center justify-between">
+                        <div class="flex items-center gap-4 flex-grow overflow-hidden">
+                            <div class="bg-indigo-600 text-white p-1.5 rounded-lg shadow-sm flex-shrink-0">
+                                <i class="fas fa-thumbtack rotate-45 text-[10px]"></i>
+                            </div>
+                            <div id="pinnedNotesList" class="flex-grow relative h-10 overflow-hidden">
+                                @await Html.PartialAsync("_PinnedNotesList", pinnedNotes ?? new List<TaskMonitoringApp.Models.DTOs.NoteDTOWithGoalAndTaskDTO>())
+                            </div>
+                        </div>
 
-                <div class="mb-4">
-                    <h2 class="text-3xl font-bold text-gray-800">Notes Timeline</h2>
-                    <p class="text-gray-600">Here are all the notes related to this goals.</p>
+                        <div class="flex items-center gap-2 ml-4 pl-4 border-l border-indigo-200">
+                            <span class="text-[10px] font-black text-indigo-400 w-10 text-center">
+                                <span id="pinnedCurrentIndex">1</span>/<span id="pinnedTotalCount">0</span>
+                            </span>
+                            <div class="flex gap-1">
+                                <button id="pinnedUp" class="p-2 hover:bg-white text-indigo-600 rounded-lg transition-all shadow-sm active:scale-90 disabled:opacity-20"><i class="fas fa-chevron-left text-xs"></i></button>
+                                <button id="pinnedDown" class="p-2 hover:bg-white text-indigo-600 rounded-lg transition-all shadow-sm active:scale-90 disabled:opacity-20"><i class="fas fa-chevron-right text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="ms-4 max-w-4xl ps-2 sm:ms-8 sm:ps-4">
-                    <!-- Timeline Wrapper -->
-                    <div class="relative border-l-4 border-gray-300 pl-6">
+                <div class="mb-6 px-4">
+                    <h2 class="text-xl font-bold text-gray-900">Notes Timeline</h2>
+                </div>
 
+                <div class="pl-2 sm:pl-4">
+                    <div id="notes-container" class="relative border-l-4 border-gray-200 pl-4 sm:pl-8 pb-8">
                         @{
                             DateTime? tempDateTime = null;
                         }
-                        <!-- Note 1 -->
+
                         @foreach (var noteList in Model.NotesLists)
                         {
-
                             @if (tempDateTime == null || tempDateTime?.Date != noteList.TimeStamp?.Date)
                             {
                                 <div class="mb-2 mt-4 flex justify-center">
-                                    <div class="inline-flex items-center rounded-full bg-gray-500 px-3 py-1 text-xs font-semibold text-white">
+                                    <span class="inline-flex items-center rounded-full bg-gray-600 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm relative sm:-left-[50px]">
                                         @if (DateTime.Now.Date == noteList.TimeStamp?.Date)
                                         {
                                             <span>Today</span>
                                         }
                                         else if (DateTime.Now.AddDays(-1).Date == noteList.TimeStamp?.Date)
                                         {
+
                                             <span>Yesterday</span>
-                                        }
-                                        else if (noteList.TimeStamp >= DateTime.Now.AddDays(-7).Date)
-                                        {
-                                            <span>@noteList.TimeStamp?.ToString("dddd")</span>
                                         }
                                         else
                                         {
-                                            <span>@noteList.TimeStamp?.ToString("MMMM dd, yyyy")</span>
-                                        }
-                                    </div>
-                                </div>
 
+                                            <span>@noteList.TimeStamp?.ToString("MMM dd, yyyy")</span>
+                                        }
+                                    </span>
+                                </div>
                                 tempDateTime = noteList.TimeStamp;
                             }
-                            await Html.RenderPartialAsync("NotesLayout", noteList);
+
+                            <div class="mb-6 transform transition duration-300 hover:scale-[1.01]">
+                                @await Html.PartialAsync("NotesLayout", noteList)
+                            </div>
                         }
-
-                        <!-- infinite scroll sentinel (observed by JS) -->
-                        <div id="infinite-scroll-sentinel" data-task-id="@Model.Id" aria-hidden="true"></div>
-
+                        <div id="infinite-scroll-sentinel" data-task-id="@Model.Id" data-filter-page="tasks" data-page-size="@(ViewBag.PageSize ?? 20)" aria-hidden="true" class="h-4"></div>
                     </div>
                 </div>
             </div>
 
             <div id="todos" class="tab-content @(ViewBag.tabName == "todos" ? "" : "hidden")">
-                <div class="mb-6 flex flex-col items-start justify-between rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-300 md:flex-row md:items-center md:p-6">
-                    <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">
-                        Select Date:
-                        <span id="selectedDate" class="inline-flex min-w-max items-center rounded bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md transition duration-300 hover:bg-gray-500 sm:text-sm">
-                        </span>
-                    </h2>
 
-                    <!-- Container for Buttons & Date Picker -->
-                    <div class="mt-4 flex w-full flex-col items-center justify-between space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 sm:w-auto md:mt-0">
-                        <button id="prevDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
-                            <i class="fas fa-arrow-left"></i> Previous
-                        </button>
+                <div class="mb-6 rounded-lg border-l-4 border-gray-600 bg-white p-4 shadow-md shadow-gray-400">
+                    <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+                        <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">
+                            Date:
+                            <span id="selectedDate" class="ml-2 inline-flex min-w-max items-center rounded bg-gray-700 px-3 py-1 text-xs font-semibold text-white shadow-md"></span>
+                        </h2>
 
-                        <button id="nextDateBtn" class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white transition hover:bg-gray-600 sm:w-auto">
-                            Next <i class="fas fa-arrow-right"></i>
-                        </button>
+                        <div class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row">
+                            <button id="prevDateBtn" class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-700 sm:w-auto">
+                                <i class="fas fa-arrow-left"></i> <span>Prev</span>
+                            </button>
 
-                        <input type="text" id="taskDatePicker" class="w-full rounded-md border p-2 shadow-sm sm:w-auto" placeholder="Pick a date">
-                    </div>
-                </div>
+                            <button id="nextDateBtn" class="inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-700 sm:w-auto">
+                                <span>Next</span> <i class="fas fa-arrow-right"></i>
+                            </button>
 
-                <div id="todoSections" class="flex flex-col">
-                    <!-- running task Section -->
-                    <section class="mb-8 rounded-lg border-l-4 border-indigo-600 bg-white p-6 shadow-md shadow-indigo-300">
-                        <!-- Task Heading with Actions -->
-                        <!-- Running Tasks Section -->
-                        <div class="mb-8">
-                            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                                <h2 id="RunningOrMissingHeadId" class="text-xl font-semibold text-gray-700 sm:text-lg">Today's Tasks</h2>
-                                @*<a href="@Url.Action("Create")" id="openModalButton" class="my-1 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-                                <i class="fas fa-plus"></i> Add New Todo
-                            </a>*@
-                            </div>
-                            <div class="w-full overflow-x-auto">
-                                <table id="viewRunningTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                                    <thead>
-                                        <tr>
-                                            <th class="p-2 text-left text-gray-600">Id</th>
-                                            <th class="p-2 text-left text-gray-600">Name</th>
-                                            <th class="p-2 text-left text-gray-600">Status</th>
-                                            <th class="p-2 text-left text-gray-600">Priority</th>
-                                            <th class="p-2 text-left text-gray-600">Repeat</th>
-                                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                                            <th class="p-2 text-left text-gray-600">Notes</th>
-                                            <th class="p-2 text-left text-gray-600">Productivity</th>
-                                            <th class="p-2 text-left text-gray-600">Actions</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
-
-
-                    </section>
-
-                    <!-- not-started task section -->
-                    <section class="mb-8 rounded-lg border-l-4 border-green-600 bg-white p-6 shadow-md shadow-green-300">
-                        <!-- Completed Tasks Section -->
-                        <div class="mb-8">
-
-                            <div class="mb-4 flex flex-col items-center justify-between border-b-2 border-gray-500 pb-2 sm:flex-row">
-                                <h2 id="CompletedTodoHeadId" class="mb-4 text-xl font-semibold text-gray-700">Today's Completed Tasks</h2>
-                            </div>
-                            <div class="w-full overflow-x-auto">
-                                <table id="viewCompletedTodoTableData" class="min-w-full rounded-lg border border-gray-300 bg-white">
-                                    <thead>
-                                        <tr>
-                                            <th class="p-2 text-left text-gray-600">Id</th>
-                                            <th class="p-2 text-left text-gray-600">Name</th>
-                                            <th class="p-2 text-left text-gray-600">Status</th>
-                                            <th class="p-2 text-left text-gray-600">Priority</th>
-                                            <th class="p-2 text-left text-gray-600">Repeat</th>
-                                            <th class="p-2 text-left text-gray-600">Due Date</th>
-                                            <th class="p-2 text-left text-gray-600">Notes</th>
-                                            <th class="p-2 text-left text-gray-600">Productivity</th>
-                                            <th class="p-2 text-left text-gray-600">Actions</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
-
-                </div>
-
-
-
-            </div>
-            @*
-            <!-- Board 1 Tab -->
-            <div id="board1" class="tab-content @(ViewBag.tabName == "board1"? "" : "hidden")">
-                <div class="mb-4">
-                    <h2 class="text-3xl font-bold text-gray-800">Notes Board</h2>
-                    <p class="text-gray-600">Display board-related notes here.</p>
-                </div>
-                <div class="mx-auto max-w-6xl">
-                    <!-- Notes Board Container -->
-                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        <!-- Sample Note -->
-                        <div class="rotate-[-2deg] relative transform rounded-lg bg-yellow-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
-                            <div class="absolute right-2 top-2 text-gray-700">
-                                <i class="fa-solid fa-thumbtack"></i>
-                            </div>
-                            <h2 class="text-lg font-semibold">Project Planning</h2>
-                            <p class="mt-2 text-sm text-gray-800">Finalize project roadmap and assign tasks.</p>
-                            <div class="mt-4 text-xs text-gray-600">🕒 Created: 2025-02-06</div>
-                        </div>
-
-                        <div class="rotate-[-2deg] relative transform rounded-lg bg-green-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
-                            <div class="absolute right-2 top-2 text-gray-700">
-                                <i class="fa-solid fa-thumbtack"></i>
-                            </div>
-                            <h2 class="text-lg font-semibold">Meeting Notes</h2>
-                            <p class="mt-2 text-sm text-gray-800">Discuss feature updates and client requirements.</p>
-                            <div class="mt-4 text-xs text-gray-600">🕒 Modified: 2025-02-05</div>
-                        </div>
-
-                        <div class="rotate-[-2deg] relative transform rounded-lg bg-blue-300 p-4 shadow-lg transition-transform duration-200 hover:rotate-0 hover:scale-105">
-                            <h2 class="text-lg font-semibold">Bug Fixes</h2>
-                            <p class="mt-2 text-sm text-gray-800">Resolve UI inconsistencies in task module.</p>
-                            <div class="mt-4 text-xs text-gray-600">🕒 Created: 2025-02-04</div>
+                            <input type="text" id="taskDatePicker" class="w-full rounded-lg border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:w-40" placeholder="Select Date">
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Create Board Tab -->
-            <div id="create" class="tab-content @(ViewBag.tabName == "create"? "" : "hidden")">
-                <h2 class="mb-4 text-2xl font-semibold">Create Board</h2>
-                <p class="text-gray-600">Use this section to create a new board.</p>
-            </div> *@
+                <div id="todoSections" class="flex flex-col gap-6">
+                    <section class="rounded-lg border-l-4 border-indigo-600 bg-white p-4 shadow-md shadow-indigo-300">
+                        <div class="mb-4 border-b border-gray-200 pb-2">
+                            <h2 class="text-lg font-bold text-gray-800">Today's Tasks</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table id="viewRunningTodoTableData" class="w-full min-w-full" style="width:100%">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Repeat</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Notes</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Productivity</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="rounded-lg border-l-4 border-green-600 bg-white p-4 shadow-md shadow-green-300">
+                        <div class="mb-4 border-b border-gray-200 pb-2">
+                            <h2 class="text-lg font-bold text-gray-800">Completed Today</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table id="viewCompletedTodoTableData" class="w-full min-w-full" style="width:100%">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Id</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Repeat</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Due Date</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Notes</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Productivity</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
         </div>
     </div>
-    <!-- Goals Section -->
+
     @if (Model.GoalLists != null && Model?.GoalLists?.Count() > 0)
     {
         <div class="mb-12">
-            <h2 class="mb-6 text-xl font-semibold text-gray-800">Associated Goals</h2>
-            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                @{
+            <h2 class="mb-6 text-xl font-bold text-gray-800 pl-2 border-l-4 border-gray-800">Associated Goals</h2>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                @foreach (var goal in Model.GoalLists)
+                {
+                    var productivity = new Random().Next(1, 100);
 
-                    foreach (var goal in Model.GoalLists)
-                    {
-
-                        int productivity = new Random().Next(1, 100);
-
-
-                        <div class="rounded-lg bg-white p-6 shadow-lg">
-                            <a href="@Url.Action("Details", "Goals", new { id = goal.Id })">
-                                <h3 class="mb-2 text-lg font-medium text-gray-800">@goal.Name</h3>
-                            </a>
-                            <p class="mb-2 text-gray-600">Productivity: @productivity%</p>
-                            <p class="mb-4 text-gray-600">Progress: @productivity% completed</p>
-                            @if (productivity <= 50) //productivity bellow 30 -- need action --added static
-                            {
-                                <div class="rounded-full bg-red-500 px-4 py-2 text-center text-white">Needs Attention</div>
-                            }
-                            else if (productivity <= 70)
-                            {
-                                <div class="rounded-full bg-yellow-500 px-4 py-2 text-center text-white">On Track</div>
-                            }
-                            else if (productivity <= 90)
-                            {
-                                <div class="rounded-full bg-green-500 px-4 py-2 text-center text-white">In Progress</div>
-                            }
-                            else
-                            {
-                                <div class="rounded-full bg-blue-500 px-4 py-2 text-center text-white">Completed</div>
-                            }
+                    // Mock data
+                    <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">
+                        <a href="@Url.Action("Details", "Goals", new { id = goal.Id })" class="block">
+                            <h3 class="mb-3 text-lg font-bold text-gray-900 hover:text-indigo-600">@goal.Name</h3>
+                        </a>
+                        <div class="mb-4 space-y-2">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Productivity</span>
+                                <span class="font-semibold">@productivity%</span>
+                            </div>
+                            <div class="h-2 w-full rounded-full bg-gray-200">
+                                <div class="h-2 rounded-full bg-indigo-600" style="width: @productivity%"></div>
+                            </div>
                         </div>
-                    }
+                        <div class="flex justify-center">
+                            <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">In Progress</span>
+                        </div>
+                    </div>
                 }
             </div>
         </div>
@@ -407,48 +359,58 @@
 
 @section Scripts
 {
-    @* DataTable *@
     <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-    @* sweetalert *@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-
-    <!-- PrismJS Core -->
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
-
-    <!-- Commonly used plugins (optional but recommended) -->
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.css" rel="stylesheet" />
-
-    <!-- Languages -->
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-c.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-java.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markup.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-css.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-rust.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
-
     <script>
-        // re-highlight after content loads
+        // Highlight code on load
         Prism.highlightAll();
-    </script>
 
+        // --- NEW: Tab Switching Logic ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.tab-link');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function (e) {
+                    e.preventDefault(); // Prevent full page reload
+
+                    // 1. Reset all tabs styles
+                    tabs.forEach(t => {
+                        t.classList.remove('border-blue-500', 'text-blue-600');
+                        t.classList.add('border-transparent', 'text-gray-500');
+                        t.classList.remove('hover:border-gray-300', 'hover:text-gray-700'); // Optional reset
+                        t.classList.add('hover:border-gray-300', 'hover:text-gray-700');
+                    });
+
+                    // 2. Set active tab styles
+                    this.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                    this.classList.add('border-blue-500', 'text-blue-600');
+
+                    // 3. Show/Hide Content
+                    const targetId = this.getAttribute('data-tab');
+                    contents.forEach(c => c.classList.add('hidden'));
+                    const targetContent = document.getElementById(targetId);
+                    if (targetContent) {
+                        targetContent.classList.remove('hidden');
+                    }
+
+                    // 4. Update URL (Optional, keeps back button working)
+                    const url = this.getAttribute('href');
+                    if(url && url !== '#') {
+                        history.pushState(null, '', url);
+                    }
+                });
+            });
+        });
+    </script>
 
     @* Client side Script *@
     <script src="~/js/sweetAlertScript.js"></script>

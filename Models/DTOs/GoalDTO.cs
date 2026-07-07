@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TaskMonitoringApp.Models.Entities;
+using TaskMonitoringApp.Models.Enums;
 
 namespace TaskMonitoringApp.Models.DTOs
 {
@@ -26,12 +27,20 @@ namespace TaskMonitoringApp.Models.DTOs
         public Status GoalStatus { get; set; }
 
         public string? UserId { get; set; }
+
+        // Multi-level properties
+        public int? ParentId { get; set; }
+        
+        public string? ParentName { get; set; }
+
+        public int SubGoalsCount { get; set; }
     }
 
 
     public class GoalDTOWithTaskNameListDTO : GoalDTO
     {
         public IEnumerable<TaskNameDTO>? TaskLists { get; set; }
+        public IEnumerable<GoalDTO>? SubGoals { get; set; } // Added for Details view
     }
 
     public class GoalDTOWithTaskListDTO : GoalDTO
@@ -68,6 +77,8 @@ namespace TaskMonitoringApp.Models.DTOs
         public string? UserId { get; set; }
 
         public Status? GoalStatus { get; set; }
+
+        public int? GoalParentId { get; set; }
 
     }
 

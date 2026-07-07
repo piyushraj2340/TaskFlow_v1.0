@@ -30,6 +30,14 @@ namespace TaskMonitoringApp.Models.Data
 
         public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
 
+        public DbSet<Collection> Collections { get; set; }
+
+        public DbSet<Item> Items { get; set; }
+
+        public DbSet<Category> Categories { get; set; }
+
+        public DbSet<Tag> Tags { get; set; }
+
         // Adding the sp_entity_data
 
 
@@ -89,6 +97,28 @@ namespace TaskMonitoringApp.Models.Data
             modelBuilder.Entity<Todo>()
                 .HasIndex(t => new { t.EndDate, t.TaskId })
                 .IsUnique();
+
+            // Business Rule 1: Collection name must be unique per user.
+            modelBuilder.Entity<Collection>()
+                .HasIndex(c => new { c.UserId, c.Name })
+                .IsUnique();
+
+            // Business Rule 2: Item name must be unique within a collection.
+            modelBuilder.Entity<Item>()
+                .HasIndex(i => new { i.CollectionId, i.Name })
+                .IsUnique();
+
+            // Configure the many-to-many relationship between Item and Category
+            modelBuilder.Entity<Item>()
+                .HasMany(i => i.Categories)
+                .WithMany(c => c.Items)
+                .UsingEntity(j => j.ToTable("ItemCategories"));
+
+            // Configure the many-to-many relationship between Item and Tag
+            modelBuilder.Entity<Item>()
+                .HasMany(i => i.Tags)
+                .WithMany(t => t.Items)
+                .UsingEntity(j => j.ToTable("ItemTags"));
 
             modelBuilder.Entity<InsertUpdateSpWithIdDTO>().ToView(null);
             modelBuilder.Entity<GoalDTO>().ToView(null);
