@@ -1,4 +1,4 @@
-﻿@model TaskMonitoringApp.Models.ViewModel.DashboardProductivityViewModel
+@model TaskMonitoringApp.Models.ViewModel.DashboardProductivityViewModel
 
 @{
     ViewData["Title"] = "Dashboard";
@@ -99,7 +99,7 @@
 
     <!-- Running Goals Section -->
     <!-- Added back original border/shadow style -->
-    <section class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-4 shadow-md shadow-blue-300">
+    <section id="runningGoalsSection" class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-4 shadow-md shadow-blue-300">
         <div class="mb-6">
             <!-- Updated header and button layout -->
             <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -131,7 +131,7 @@
 
     <!-- Running Tasks Section -->
     <!-- Added back original border/shadow style -->
-    <section class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-4 shadow-md shadow-blue-300">
+    <section id="runningTasksSection" class="mb-8 rounded-lg border-l-4 border-blue-600 bg-white p-4 shadow-md shadow-blue-300">
         <div class="mb-6">
             <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h2 class="text-2xl font-bold text-gray-900">Running Tasks</h2>
@@ -179,6 +179,83 @@
     <script src="~/js/utils.js"></script>
     <script src="~/js/goalScript.js"></script>
     <script src="~/js/taskScript.js"></script>
+
+    @if (TempData["TriggerTour"]?.ToString() == "true")
+    {
+        <script>
+            sessionStorage.setItem("playGuestTour", "true");
+        </script>
+    }
+
+    <script>
+        $(document).ready(function() {
+            if (sessionStorage.getItem("playGuestTour") === "true") {
+                sessionStorage.removeItem("playGuestTour");
+
+                // Start Intro.js Tour
+                introJs().setOptions({
+                    steps: [
+                        {
+                            title: "Welcome to TMA! 👋",
+                            intro: "Welcome to your Task Monitoring App guest account! Let's take a quick 1-minute tour of how to interact with the application."
+                        },
+                        {
+                            element: document.querySelector('.fa-trophy')?.closest('.flex'),
+                            title: "Goals Achieved 🏆",
+                            intro: "This card shows the total number of high-level goals you have completed.",
+                            position: 'bottom'
+                        },
+                        {
+                            element: document.querySelector('.fa-check')?.closest('.flex'),
+                            title: "Tasks Completed Check ✅",
+                            intro: "This card shows the total number of individual tasks you have marked as completed.",
+                            position: 'bottom'
+                        },
+                        {
+                            element: document.querySelector('.fa-chart-line')?.closest('.flex'),
+                            title: "Growth Tracker 📈",
+                            intro: "This displays your growth rate this week, calculated dynamically by comparing recent productivity averages.",
+                            position: 'bottom'
+                        },
+                        {
+                            element: document.querySelector('.fa-cogs')?.closest('.flex'),
+                            title: "Productivity Score ⚙️",
+                            intro: "Your dynamic productivity percentage. Complete tasks to keep this score high!",
+                            position: 'bottom'
+                        },
+                        {
+                            element: document.querySelector('#runningGoalsSection'),
+                            title: "Running Goals 🎯",
+                            intro: "Manage your active high-level goals here. Click 'Add New Goal' to create one. You can expand a goal to see associated tasks.",
+                            position: 'top'
+                        },
+                        {
+                            element: document.querySelector('#runningTasksSection'),
+                            title: "Running Tasks 📝",
+                            intro: "View and edit scheduled tasks here. You can assign tasks to goals, specify priorities, and define due dates.",
+                            position: 'top'
+                        },
+                        {
+                            element: document.querySelector('a[title="Todo"]'),
+                            title: "Daily To-Dos 📅",
+                            intro: "Navigate here to view and manage your daily routines and check off staging items.",
+                            position: 'right'
+                        },
+                        {
+                            element: document.querySelector('a[title="Timeline"]'),
+                            title: "Timeline & Notes 📌",
+                            intro: "Create notes, configure pinned/sticky notes, and organize details for your tasks or goals.",
+                            position: 'right'
+                        }
+                    ],
+                    showProgress: true,
+                    showBullets: false,
+                    disableInteraction: true,
+                    overlayOpacity: 0.6
+                }).start();
+            }
+        });
+    </script>
 
     <!-- Chart.js (left commented) -->
     @* <script>

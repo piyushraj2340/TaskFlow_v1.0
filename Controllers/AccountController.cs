@@ -1,5 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using TaskMonitoringApp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TaskMonitoringApp.Models.Entities;
@@ -115,6 +116,31 @@ namespace TaskMonitoringApp.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
             return View(model);
+        }
+
+        // POST: /Account/GuestLogin
+        [HttpPost]
+        public async Task<IActionResult> GuestLogin([FromServices] IGuestSeederService guestSeeder)
+        {
+            // Ensure they have the seed data immediately on login (this also creates the user if they don't exist)
+            await guestSeeder.EnsureGuestDataExistsAsync();
+
+            var guestEmail = "guest@taskmonitorapp.com";
+            var guestUser = await _userManager.FindByEmailAsync(guestEmail);
+
+            if (guestUser == null)
+            {
+                ModelState.AddModelError(string.Empty, "Could not initialize Guest account.");
+                return RedirectToAction("Login");
+            }
+
+            // Sign in
+            await _signInManager.SignInAsync(guestUser, isPersistent: false);
+
+            // Set TempData flag to trigger tour on dashboard
+            TempData["TriggerTour"] = "true";
+
+            return RedirectToAction("Index", "Home");
         }
 
         // POST: /Account/Logout
