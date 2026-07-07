@@ -22,6 +22,21 @@ namespace TaskMonitoringApp.Services
         {
             _logger.LogInformation("Guest Cleanup Hosted Service initialized.");
 
+            // Immediate startup reset on server start / deployment
+            try
+            {
+                _logger.LogInformation("Server startup/deployment detected: Performing immediate guest data reset...");
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var seeder = scope.ServiceProvider.GetRequiredService<IGuestSeederService>();
+                    await seeder.CleanupAndReseedGuestAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during startup guest data reset.");
+            }
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 var now = DateTime.Now;

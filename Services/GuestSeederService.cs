@@ -182,8 +182,8 @@ namespace TaskMonitoringApp.Services
 
             // D. Link Goals and Tasks
             _dbContext.GoalTasks.AddRange(
-                new GoalTask { GoalId = masterGoal.Id, TaskId = exploreTask.Id },
-                new GoalTask { GoalId = masterGoal.Id, TaskId = firstTodoTask.Id }
+                new GoalTask { GoalId = masterGoal.Id, TaskId = exploreTask.Id, UserId = userId },
+                new GoalTask { GoalId = masterGoal.Id, TaskId = firstTodoTask.Id, UserId = userId }
             );
 
             // E. Seed To-Dos
