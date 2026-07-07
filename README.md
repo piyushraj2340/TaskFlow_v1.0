@@ -1,284 +1,171 @@
-﻿# Task Monitoring Applications 
+# Task Monitoring Application (TMA)
 
-Todo: 
-1. Implement the error handling for the developer mode : redirect.... for both.. || have the both error throwing mode for json and view...
-2. design the error page beautiful 
-8. implement the add notes with the time stamp and having the roadmap or planning....
-	1. ISpecification use of this to apply the filter....
-3. Implement the todo page... such that get the information about the daily routine ... working on...✅
-4. Implement the logic for the having an instance of the task tha have an repeat daily or weekly ✅
-5. analysis the data simple only such as completed task count, goal achieved count, success ratio, etc....✅
-6. implement the time taken to complete the task manual latter implement the tracker.... or having both...
-7. filter the data like in the active row only show the active, complete only show complete... ✅
-10. implement the pop-over when we attamps to delete the data in the row to confirm, you want to delete or not. ✅
-	11. Authentication using the identity asp.net or both... to learn ... ✅ using the identity
-	
-	1. 1. Implement the active and completed goal  same goes to the task ✅
-	1. add endedonDate in both task, goal.. modify if the status changes to the end then make the datetime to the current so that next moment it goes to end and also update the status...✅
-	1. implement the redirect logic from the same page that have been called for the create task and edit task.. ✅
-	1. calculations is done using the mvc model -- productivity... using the service... ✅
-	1. all the calculations goes through the stored procedured.... 
+A comprehensive task and productivity monitoring web application built with **ASP.NET Core MVC 8.0** and **Entity Framework Core**. TMA is designed to help users establish clear goals, break them down into actionable tasks, organize daily routines using a To-Do system, and visualize productivity analytics using stored procedures and dynamic calculations.
 
-	for the mvc that direcly render like in the details : generate the status in more better ways like: delete have red color..✅ 
-	1. 
-	1. Add the date like: CompletedOn, EndedOn, StartedOn, EndingOn, etc... in the next version of projects...✅
-	1. Add the descriptions, priority, that have been added today... on the model class ✅
+---
 
-	        [Range(minimum:0,maximum:100)]
-        public int PerformanceScale { get; set; } // this help me to calculate the actual productivity of the task...
+## 🚀 Key Features
 
-		if needed add this also implemnt the custome productivity by the user 
+*   **Goal & Objectives Management**: Establish high-level goals with customized target completion dates, track active vs. completed goals, and automatically track progress.
+*   **Hierarchical Task Tracking**: Link tasks to specific goals or manage them independently. Features priority labels (Low, Medium, High), status updates, and automatic status transitions.
+*   **Daily To-Do Lists**: Generate dynamic to-do instances from tracked tasks to plan daily routines.
+*   **Productivity Analytics Dashboard**: View comprehensive progress stats including completed tasks count, success ratios, and weekly productivity growth calculations.
+*   **Rich Notes & Sticky Notes System**: Attach formatted notes to tasks or goals. Features pinning, custom background colors, and timestamp tracking.
+*   **Secure Authentication**: Built-in User Account management powered by **ASP.NET Core Identity** (supports password hashing, verified user checks, and roles).
 
-	
-		check if we Add validations in the controller 
+---
 
-		add the logic where user can eaisly review there progress on the daily, weekly, monthly, and yearly basis 
+## 🛠️ Tech Stack
 
-		improve the logic of repeat just like the google task....
+### Backend
+*   **Framework**: .NET 8.0 (ASP.NET Core MVC & Web API)
+*   **Data Access**: Entity Framework Core 9.0 (Code-First) & Stored Procedures
+*   **Authentication**: ASP.NET Core Identity (JWT Authentication & Application Cookies)
+*   **Logging**: Serilog (structured file logging with automatic rotation)
+*   **Object Mapping**: AutoMapper
 
-		Test the logic for the task instance in the todo 
+### Frontend
+*   **Styling**: Tailwind CSS & Custom CSS
+*   **Interactions**: jQuery, AJAX
+*   **Data Grid**: DataTables.net (for advanced client-side sorting and filtering)
 
+### Database & Hosting
+*   **Database Engine**: SQL Server (LocalDB for development, Azure SQL Database for production)
+*   **CI/CD**: Azure DevOps Pipelines
 
+---
 
-		bugs list 
-	1. sorting on the datatable....
-	2. review the calculations of goal,task,and todos.... 
+## 📐 Architecture & Design Patterns
 
-# Add UserBased control in service, repository if need....✅
-# Add username while register user  ✅
-# add the task, goal, todo, productivity controller to the authorize ✅
-# add the model error in the mvc patter using the partial view  ✅
-# add the icon in the navigation bar nav link 
-# add the border shadow in the model validations in the model modelErrorPartialView ✅
-# learn how to use the social login using the identity model 
-# implement the admin login to view activity of the user, such as userVerifications, block user, verify user, or create new user, add site settings such as upload logo, use the default theme, see the logs, etc.... 
-# implement the redirect logic in the login page....
-
-
-# need to test the updateExecuteAsync if not work implement the saveChangesAsync()
-# test if the goal.user.id work or not if not use the another LINQ based approach used the include✅
-# redirect logic if we add, update, task as we have made to redirect to back page but if we have directly come to that page so where to redirect....
-
-# test the todo to the and add the todo in repository layer 
-# label in the task appears to be wrong fix it as low display as high and high will display as low.....
-# test all the label properly for goal, task, todo.....
-	
-
-## Productivity calculations (Use SignalR - If Needed!)
-
-# Todo Productivity: -> calculate daily productivity -> total Task and completed task and get the percentage 
-# Task Productivity: currently calculated as Total Task = (Completed Task + Ended Task ) and completed task  and get the percentage 
-# Goal Productivity: currently calculated as Total Goal = (Completed Goal + Ended Goal ) and completed goal  and get the percentage 
-
-# Need to calculate (((completed)/((running + completed + end) as total)) * 100) 
-
-# Calculate Growth by Previous Week : (Get the Average productivity of 7 days) and (Get the Average productivity of 7 days to 14 days) and then calculate the productivity accordingly 
-
+The project follows a modular **N-Tier Architecture** utilizing the **Repository-Service Pattern** for separation of concerns:
 
 ```
-
-formula - (((Presend week productivity - past week productivity ) / past week productivity) * 100)
-
+[Presentation Layer]  (MVC Controllers / Razor Views / API Controllers)
+         │
+         ▼
+[Service Layer]       (Business Logic, Mapping, Emailing, Logging)
+         │
+         ▼
+[Repository Layer]    (Data Access Layer, Stored Procedures, EF Queries)
+         │
+         ▼
+[Data Source]         (SQL Server / Azure DB via ApplicationDbContext)
 ```
 
-# Overall Productivity: (total productivity) / (total active day + missing day)
+*   **Controllers**: Map incoming HTTP requests to corresponding DTOs (Data Transfer Objects) and ViewModels.
+*   **Services**: Encapsulate business logic, invoke mappers, and write structured logs.
+*   **Repositories**: Encapsulate queries and interact directly with the database.
+*   **DTOs & ViewModels**: Used to decouple data models from views and prevent over-posting vulnerabilities.
 
-# Productivity of selected goal -> ((completed task with related to that goal / sum(running task, completed task, ended task)) * 100)
+---
 
+## ⚙️ Setup & Installation
 
-### Features that need to add
+### Prerequisites
+*   [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+*   [SQL Server LocalDB](https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/sql-server-express-localdb) or SQLExpress
+*   Visual Studio 2022 or VS Code
 
-# Add the graph calculation 
-# Add Streak to auto complete task or goal
-# Add the logic to make the todo complete or undo for the previous day 
-# Add the options to provide the custom productivity for each day with Notes...
-# Add Note in the task and goal and make an UI that let you see your progress and what need to change with time 
-# enhance the repeat logic for task -- see the reference for google task
-# Implement the admin control - such as - site settings -- update logo, allow verify user, user can limit to add the goal, task, etc..., user control - block,change password, verify user, etc....
-# Implement in the Account controller social login, forget password, change password, two-factor authentication, etc...
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/piyushraj2340/TaskMonitorApp.git
+cd TaskMonitorApp
+```
 
+### Step 2: Initialize Local User Secrets
+To prevent committing database passwords and secret keys, the app uses **User Secrets**. Run the following commands to initialize and store your local connection credentials:
 
-### Todo 
-# Add SearchGoalBySearchQuery in service layer 
-# implement the sp to create the task by adding the goal
-# Add the Task with goal through the sp 
-# need to test the logic of debouncing in the task create view....
+```bash
+# Initialize User Secrets
+dotnet user-secrets init
 
-# validate the add-goal in the goal list and selectedgoal list after the selected goals 
+# Set your local database connection string
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=(localdb)\MSSQLLocalDB;Database=TaskMonitoringApp;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
 
-# fetch Goal Associated while edit or post create render in the AddTask or editTask 
+# Set a development JWT secret key
+dotnet user-secrets set "Jwt:Secret" "YOUR_SUPER_SECRET_DEVELOPMENT_KEY_MUST_BE_AT_LEAST_256_BITS"
+```
 
+### Step 3: Run Database Migrations & Stored Procedures
+TMA utilizes Entity Framework Core for schema management, alongside stored procedures for reporting.
 
-# GoalName must be unique for the users 
-# TaskName must be unique for the users, goal 
-	##	-- like if the user has created a task with goal therefore if the user re-create a task with the same name with goal will not allowed
-	##  -- similar if the user has create a taks without goal will act as independent and can created with same same with other goal 
-	##  -- suggest the name if the taskName already taken with like task 1 already exit and if we write task 1 and selct with the goal 1 
-		###  --- suggestiong like task 1 with goal 1 add explictily and give the suggestion name.....
---- use the sp for the above functionality... ---
+1. Apply migrations to create the database schema:
+   ```bash
+   dotnet ef database update
+   ```
+2. Execute the database SQL scripts located in the `App_Data` / SQL directory to deploy the required stored procedures:
+   *   `usp_AddTodoFromTask`
+   *   `usp_AddUpdateTaskWithGoals`
+   *   `usp_DashboardAnalyses`
+   *   `usp_TodoProgressAnalyses`
+   *   `usp_UpdateEndedTask`
 
-# GoalEndDate - TaskEndDate does it need the dateTime or just need the date : ans: need datetime but time end to mid-night like : 23:59:59 
-# if goal or task mark as completed and then change the status to running: need to add the notes before move to running....
-# also add the notes automatically when status changes or task completed, etc.... and have tags manual notes or log notes....
+### Step 4: Run the Application
+```bash
+dotnet run
+```
+Open `https://localhost:7198` (or the port specified in your `launchSettings.json`) in your browser.
 
-# Repository accept the parameter of entity and return entity  ✅
-# Service accept the parameter of dto and return dto ✅
-# Controller accept the DTO or ViewModel and retrn the DTO for api and return mvc for viewmodels ✅
+---
 
+## 🔒 Production Deployment Configuration
 
-# map the dto and viewmodel so that it can transform the data.... ✅
+For security reasons, **never commit real credentials to `appsettings.json`**. When deploying to production (such as Azure App Service), configure your database connections and secrets as **Application Settings / Environment Variables** in the Azure portal:
 
-# remove the status 'delete' from and create one column that will handle te isDelete and deletedOn.... ✅
+| Config Key | Azure Setting Equivalent | Description |
+| :--- | :--- | :--- |
+| `ConnectionStrings:DefaultConnection` | `ConnectionStrings__DefaultConnection` | Production Azure SQL Database connection string |
+| `Jwt:Secret` | `Jwt__Secret` | Secure 256-bit token signature key |
+| `Jwt:Issuer` | `Jwt__Issuer` | Token Issuer domain |
+| `Jwt:Audience` | `Jwt__Audience` | Token Audience domain |
 
-# implement queue to change the goalStatus as ended to act as background processing.....  by using the entity framework remove the stored procedure....
+---
 
-# Implement the logic if we change the status from 'ended' to 'running' or 'ended' to 'completed' must need to add the notes before changing the status without notes are not allowed...
+## 📊 Productivity Formulas
 
+The system monitors growth and efficiency based on the following calculations:
 
-# Reduce the round trip to the db in the delete and update operations.... either by using the ef or stored procedure in single round-trip
-# implement the GetAllTasksWithStatusByGoalId in the goal details page (repo, service completed need to implement the controller.... need testing...)
-# implement the GetAllGoalsWithStatusByTaskId in the task details page
+*   **Daily To-Do Productivity**: 
+    $$\text{Productivity \%} = \left( \frac{\text{Completed Tasks}}{\text{Total Staged Tasks}} \right) \times 100$$
+*   **Weekly Growth Rate**: Compares the average productivity of the current 7 days against the previous 7-14 days:
+    $$\text{Growth \%} = \left( \frac{\text{Current Week Avg} - \text{Past Week Avg}}{\text{Past Week Avg}} \right) \times 100$$
 
+---
 
-# in the home index page productivity calculation not working in the task
+## 🛠️ Current Development Roadmap
 
-# we have encounter an error tasks model is not maped with the table in the db find the issue in this model....✅
+Here is the developer todo list and tracking status for ongoing improvements:
 
-# all the mapper and logger dependency will be in the service layers....
--- LOGGER WILL MOVE TO THE SERVICE LAYER 
--- MAPPER CAN STILL BE USED IN THE CONTROLLER AND THE SERVICE 
--- IN CONTROLLER WE CHANGE VIEWMODEL <---> DTO
+### Completed (Done ✅)
+- [x] Initialized MVC repository structure with Service-Repository pattern.
+- [x] Dynamic Daily To-Do list generators.
+- [x] Date tracking properties (`StartedOn`, `EndingOn`, `CompletedOn`).
+- [x] User-based authentication via ASP.NET Core Identity.
+- [x] Model validation error messages loaded through partial views.
+- [x] Localdb connection setups and User Secrets separation.
 
-# goal have only end date not time.... expelicetly do in service layers.... ❌ - IMPLEMENTED TO END 23:23:59 AND NOW GOING TO IMPLEMENT TO ADD THE TIME OPTIONAL.....
- 
-# EndedGoal, EndedTask, should be handeled by the in-memory queus not by the stored procedured. so remove the sp after this....
-# handel the update functionality in only 1 round trip....
+### Active Priorities & Upcoming Features 🚀
+- [ ] **Advanced Error Handling**: Introduce unified redirection/rendering filters for both API and MVC exception modes.
+- [ ] **Sticky Notes & Timeline View**: Add rich content text formatting (WYSIWYG editor), pinned notes layout, and automatic timeline/roadmap views.
+- [ ] **Google-Tasks Style Reoccurrence**: Expand recurring tasks logic for daily, weekly, or custom interval resets.
+- [ ] **Admin Control Panel**: Add site settings (logo uploading, custom theme toggle, audit logs viewing) and user access controls (verifying, blocking accounts).
+- [ ] **SignalR Notifications**: Implement real-time notifications for automated status changes (e.g., tasks moving to `Running` or `Ended`).
+- [ ] **Social Logins**: Add OAuth2 configuration for Microsoft/Google accounts in the Identity system.
 
+---
 
-
-# update the frontend logic such as : endDate validations and all...
-# edit task with goal not saving goals ✅
-# see how the task end date saving date and time ✅
-
-
-# when I implemented the Iunit of work patter then addtaskwithgoal WE will be TRY  added using the entity...
-# ALSO IMPLEMENT THE QUEUE TO HANDEL ALL THE ASYNC TASK LIKE CHANGE THE STRUCTUE IN BULK 
-  
-  #TODO PAGE NOW WOKING NOW BUT HAS ISSUE WITH CREATING THE INSTANCE OF THE TASK ✅
-
-  CREATEING THE MULTIPLE TODO WITH THE SAME DATE ✅
-
-  TODO LINK TO TASK IS NOT OPENING SOME 0 IDS ✅
-
-  SEARCH GOAL ON THE TASK CREATION WILL NOT HIDE IF OTHER FIELD IS SELECTED 
-
-  PRIORITY TAG APPERS WRONGS ✅
-
-  STILL NOT GETTIG THE GOAL DETAILS ON EDITING ✅
-
-  Add validation in the sp to only active goal is added to the task ✅
-
-  fix: end time for goal,task,todo at :23:59 ✅
-
- Scheduled move to running.... like planning
- 
- add the components on planning on goal and task both...
-
- add deleted and ended todos 
-
-
- add include time optional to the user for end date by default it will be ending on 23:59:59 ✅
-	and use the socket for timer ending... 
-
-
- ### Features : notes..
-# Introduce the concept of the category, labels, or tags, etc dynamic....
-# configure the sticky notes models such as time,stickytilldate,timerange,closecount,etc....
-#
-
-
-# Test the DTOWithout creating the tables or we need to use the select
-# move the hardCoded goalId, taskId, todoId in the notes as notes can be added any where in the application using the category :-
-
-# implement the IUnitOfWork Patter with the ISpecficaton
-
-
- add include time optional to the user for end date by default it will be ending on 23:59:59
-
- -- Notes module in the goal 
-
- -- Form url not update if the we switch the edit to create it will update the data.....
- -- timestemp update if we modified the content and it will cause the order issue so only modify the modified on date and ismodified as true 
- -- test the proper logic for the timestamp and does the mapper work correctly or not....
-
-
- # Features in the notes...
-
-	## Time Stemps
-		-- 1. timestamp will added on creating the notes after that it will not change 
-		-- 2. if we modify the timestamp : isModified will change to true and onModified will change to currentTime
-		-- 3. sort by timestam desc to the the data in most recent and then followed
-
-	## Features Notes
-		-- 1. Add the Content field to have the word formated features: use the libarar
-		-- 2. Implement the sticky notes with features
-		-- 3. Pin Notes will display as the list on the top of the list title and content in the single line 
-		-- 4. see if we want to move the state from in-active to active then we need to add notes :- This will act as the feature by which we can add or remove by the admin control panel 
-
-	## Features Sticky Notes
-		-- 1. has options to open on the selected page with configurations 
-		-- 2. show popup as the sticky notes on page with fixed positions or right side or any other place with automatic close or manual close 
-		-- 3. display and close with certain time like after 2 min or when we cut by clicking on the close button 
-		-- 4. Have repeate cycle that are used in the task with advance implementions
-
-		+------------------------+
-		|     Notes              |
-		+------------------------+
-		| - title: string        |
-		| - content: string      |
-		| - dateCreated: Date    |
-		| - timestamp: Date      |
-		+------------------------+
-		| + createNote()         |
-		| + editNote()           |
-		| + deleteNote()         |
-		| + displayNote()        |
-		+------------------------+
-				▲
-				│ (inherits)
-		+----------------------+
-		|    StickyNotes       |
-		+----------------------+
-		| - color: string      |
-		| - size: string       |
-		| - pinned: boolean    |
-		+----------------------+
-		| + pinNote()          |
-		| + setColor(color)    |
-		| + resize(size)       |
-		+----------------------+
-
-
-
-
-* Add the notification features *
-* for example: when task or goal move to running automatically then notify the user with the message *
-* when task or goal move to ended automatically then notify the user with the message *
-* Add the feature to get the list of task or email as a notification on the email or the phone *
-
-
-
-correct
-usp_AddAndGetTodoFromTask.sql
-usp_AddTodoFromTask.sql
-usp_AddUpdateTaskWithGoals.sql
-usp_ChangeGoalStatus.sql
-usp_ChangeTaskStatus.sql
-usp_DashboardAnalyses.sql
-usp_GetAllGoalsWithStatus.sql
-usp_GetAllTasksWithStatus.sql
-usp_GetAllTasksWithStatusByGoalId.sql
-usp_GetGoalById.sql
-usp_GetTaskById.sql
-usp_TodoProgressAnalyses
-usp_UpdateEndedTask
+## 📝 Stored Procedures Index
+The application relies on the following database stored procedures for specialized analytics and bulk updates:
+- `usp_AddAndGetTodoFromTask.sql`
+- `usp_AddTodoFromTask.sql`
+- `usp_AddUpdateTaskWithGoals.sql`
+- `usp_ChangeGoalStatus.sql`
+- `usp_ChangeTaskStatus.sql`
+- `usp_DashboardAnalyses.sql`
+- `usp_GetAllGoalsWithStatus.sql`
+- `usp_GetAllTasksWithStatus.sql`
+- `usp_GetAllTasksWithStatusByGoalId.sql`
+- `usp_GetGoalById.sql`
+- `usp_GetTaskById.sql`
+- `usp_TodoProgressAnalyses.sql`
+- `usp_UpdateEndedTask.sql`
