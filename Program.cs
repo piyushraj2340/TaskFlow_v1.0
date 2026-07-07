@@ -57,6 +57,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddSingleton<IEmailService, LoggingEmailService>();
 builder.Services.AddScoped<IGuestSeederService, GuestSeederService>();
 builder.Services.AddHostedService<GuestCleanupService>();
+builder.Services.AddHostedService<DbKeepAliveService>();
 
 // register search services
 builder.Services.AddScoped<ISearchRepository, TaskMonitoringApp.Models.DataAccessLayer.SearchRepository>();
