@@ -57,7 +57,7 @@
 
         <!-- Guest Login -->
         <div class="text-center">
-            <form asp-action="GuestLogin" method="post">
+            <form id="guestLoginForm" asp-action="GuestLogin" method="post">
                 <button type="submit" class="w-full rounded-md bg-emerald-600 px-4 py-2.5 font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 transition duration-300">
                     <i class="fas fa-user-shield mr-2"></i> Log In as Guest
                 </button>
@@ -75,5 +75,51 @@
         </div>
     </div>
 </div>
+
+<!-- Fullscreen Loading Overlay for Database Cold Start -->
+<div id="loadingOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-slate-200">
+        <!-- Spinner -->
+        <div class="flex justify-center mb-6">
+            <div class="relative w-16 h-16">
+                <!-- Inner spinner -->
+                <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-t-emerald-600 border-r-emerald-500 animate-spin"></div>
+            </div>
+        </div>
+        
+        <!-- Heading -->
+        <h3 class="text-lg sm:text-xl font-bold text-slate-800 mb-2">Waking up the Database</h3>
+        
+        <!-- Explanation -->
+        <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+            The database is hosted on a free-tier plan and goes to sleep after inactivity. We are waking it up for you!
+        </p>
+        
+        <!-- Alert Box -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded text-left mb-4">
+            <p class="text-amber-800 text-xs font-semibold flex items-center">
+                <i class="fas fa-hourglass-half mr-2"></i> Est. Time: 20-30 seconds
+            </p>
+            <p class="text-amber-700 text-xs mt-1 leading-relaxed">
+                Please do not close or reload this page. The dashboard will load automatically once connection is established.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const guestForm = document.getElementById("guestLoginForm");
+        const overlay = document.getElementById("loadingOverlay");
+
+        if (guestForm && overlay) {
+            guestForm.addEventListener("submit", function() {
+                overlay.classList.remove("hidden");
+                overlay.classList.add("flex");
+            });
+        }
+    });
+</script>
 
 
