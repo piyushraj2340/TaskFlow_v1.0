@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -13,16 +14,25 @@ namespace TaskMonitoringApp.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<DbKeepAliveService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public DbKeepAliveService(IServiceProvider serviceProvider, ILogger<DbKeepAliveService> logger)
+        public DbKeepAliveService(IServiceProvider serviceProvider, ILogger<DbKeepAliveService> logger, IConfiguration configuration)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _configuration = configuration;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Database Keep-Alive Hosted Service initialized.");
+
+            var enableKeepAlive = _configuration.GetValue<bool>("BackgroundServices:EnableDbKeepAlive");
+            if (!enableKeepAlive)
+            {
+                _logger.LogInformation("Database Keep-Alive Hosted Service is disabled in configuration.");
+                return;
+            }
 
             while (!stoppingToken.IsCancellationRequested)
             {
