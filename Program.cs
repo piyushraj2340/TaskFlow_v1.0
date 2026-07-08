@@ -84,7 +84,14 @@ builder.Services.AddMemoryCache(); // Enable In-Memory Caching
 // In Development, this pulls from appsettings.Development.json ((localdb)).
 // In Production, this pulls from appsettings.json (Azure DB).
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApp_AzureDB")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("TaskMonitoringApp_AzureDB"),
+        sqlServerOptionsAction: sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 6,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null
+        )
+    ));
 
 
 builder.Services.AddIdentity<Users, IdentityRole>(options =>
