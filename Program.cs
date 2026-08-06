@@ -57,6 +57,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddSingleton<IEmailService, LoggingEmailService>();
 builder.Services.AddScoped<IGuestSeederService, GuestSeederService>();
 builder.Services.AddHostedService<GuestCleanupService>();
+builder.Services.AddHostedService<DbKeepAliveService>();
 
 // register search services
 builder.Services.AddScoped<ISearchRepository, TaskMonitoringApp.Models.DataAccessLayer.SearchRepository>();
@@ -83,7 +84,14 @@ builder.Services.AddMemoryCache(); // Enable In-Memory Caching
 // In Development, this pulls from appsettings.Development.json ((localdb)).
 // In Production, this pulls from appsettings.json (Azure DB).
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("TaskMonitoringApp_AzureDB")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptionsAction: sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 6,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null
+        )
+    ));
 
 
 builder.Services.AddIdentity<Users, IdentityRole>(options =>
@@ -267,6 +275,13 @@ app.MapControllers();  // API routes
 
 try
 {
+    Log.Information("Applying Database Migrations");
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+
     Log.Information("Application Starting Up");
     app.Run();
 }

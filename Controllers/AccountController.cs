@@ -120,8 +120,33 @@ namespace TaskMonitoringApp.Controllers
 
         // POST: /Account/GuestLogin
         [HttpPost]
-        public async Task<IActionResult> GuestLogin([FromServices] IGuestSeederService guestSeeder)
+        public async Task<IActionResult> GuestLogin(
+            [FromServices] IGuestSeederService guestSeeder,
+            [FromServices] TaskMonitoringApp.Models.Data.ApplicationDbContext dbContext,
+            [FromServices] ILogger<AccountController> logger)
         {
+            // Database connection warm-up & retry loop for serverless/cold-start databases
+            int maxAttempts = 6;
+            int delaySeconds = 6;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
+            {
+                try
+                {
+                    logger.LogInformation("Database connection warm-up check: Attempt {Attempt} of {MaxAttempts}", attempt, maxAttempts);
+                    await dbContext.Database.CanConnectAsync();
+                    logger.LogInformation("Database connection verified. DB is awake.");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Database connection attempt {Attempt} failed (DB might be sleeping): {Message}", attempt, ex.Message);
+                    if (attempt < maxAttempts)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                    }
+                }
+            }
+
             // Ensure they have the seed data immediately on login (this also creates the user if they don't exist)
             await guestSeeder.EnsureGuestDataExistsAsync();
 

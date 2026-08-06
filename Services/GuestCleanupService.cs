@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,16 +12,25 @@ namespace TaskMonitoringApp.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<GuestCleanupService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public GuestCleanupService(IServiceProvider serviceProvider, ILogger<GuestCleanupService> logger)
+        public GuestCleanupService(IServiceProvider serviceProvider, ILogger<GuestCleanupService> logger, IConfiguration configuration)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _configuration = configuration;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Guest Cleanup Hosted Service initialized.");
+
+            var enableCleanup = _configuration.GetValue<bool>("BackgroundServices:EnableGuestCleanup");
+            if (!enableCleanup)
+            {
+                _logger.LogInformation("Guest Cleanup Hosted Service is disabled in configuration.");
+                return;
+            }
 
             // Immediate startup reset on server start / deployment
             try

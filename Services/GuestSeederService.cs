@@ -41,12 +41,23 @@ namespace TaskMonitoringApp.Services
                 return;
             }
 
-            // Check if guest user already has any goals or tasks
-            var hasGoals = await _dbContext.Goals.AnyAsync(g => g.UserId == guestUser.Id);
+            // Check the oldest goal's creation date to determine if the seed data is older than 24 hours
+            var firstGoal = await _dbContext.Goals
+                .Where(g => g.UserId == guestUser.Id)
+                .FirstOrDefaultAsync();
+
             var hasTasks = await _dbContext.Tasks.AnyAsync(t => t.UserId == guestUser.Id);
 
-            if (!hasGoals || !hasTasks)
+            if (firstGoal == null || !hasTasks)
             {
+                await CleanupAndReseedGuestAsync();
+                return;
+            }
+
+            // If the guest data was created/seeded more than 24 hours ago, force a clean and re-seed
+            if (firstGoal.CreatedOn < DateTime.Now.AddDays(-1))
+            {
+                _logger.LogInformation("Guest data is older than 24 hours. Cleaning and re-seeding guest data on login...");
                 await CleanupAndReseedGuestAsync();
             }
         }
@@ -109,6 +120,9 @@ namespace TaskMonitoringApp.Services
 
             var collections = await _dbContext.Collections.Where(c => c.UserId == userId).ToListAsync();
             _dbContext.Collections.RemoveRange(collections);
+
+            var progressAnalyses = await _dbContext.TodoProgressAnalyses.Where(pa => pa.UserId == userId).ToListAsync();
+            _dbContext.TodoProgressAnalyses.RemoveRange(progressAnalyses);
 
             await _dbContext.SaveChangesAsync();
             _logger.LogInformation("Successfully cleaned up old Guest database records.");
