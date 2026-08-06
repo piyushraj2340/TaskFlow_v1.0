@@ -85,7 +85,7 @@ builder.Services.AddMemoryCache(); // Enable In-Memory Caching
 // In Production, this pulls from appsettings.json (Azure DB).
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("TaskMonitoringApp_AzureDB"),
+        builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlServerOptionsAction: sqlOptions => sqlOptions.EnableRetryOnFailure(
             maxRetryCount: 6,
             maxRetryDelay: TimeSpan.FromSeconds(10),
@@ -275,6 +275,13 @@ app.MapControllers();  // API routes
 
 try
 {
+    Log.Information("Applying Database Migrations");
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+
     Log.Information("Application Starting Up");
     app.Run();
 }
